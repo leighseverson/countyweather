@@ -1,6 +1,6 @@
 Package: countyweather
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Obtains Meterologic Data for U.S. Counties
 Version: 0.0.9000
 Date: 2016-02-22
 Author: Rachel Severson
@@ -8,3 +8,6 @@ Maintainer: Who to complain to <yourfault@somewhere.net>
 Description: More about what it does (maybe more than one line)
 License: What license is it under?
 LazyData: TRUE
+Imports:
+    rnoaa
+RoxygenNote: 5.0.1
