@@ -1,5 +1,3 @@
-
-
 #' Count of weather stations per county.
 #'
 #' \code{stationspercounty} returns a plot showing the number of GHCND weather
@@ -12,8 +10,23 @@
 #'
 #' @param yourvector A vector of U.S. FIPS codes in numberic or factor format.
 #' @examples
-#'  vec7 <- c(36081, 36085, 36087, 36119, 40017)
-#'  stationspercounty(vec7)
+#' vec7 <- c(36081, 36085, 36087, 36119, 40017)
+#' stationspercounty(vec7)
+#'
+#' returns an error - none of these fips had relevant stations
+#' \donttest{
+#' vec2 <- c("01073", "01089", "01097", "01101", "02020", "04013", "04019",
+#'          "05119", "06001", "06013", "06019", "06029", "06037", "06065",
+#'          "06067", "06071", "06073", "06075", "06077", "06081", "06085",
+#'          "06099", "06111", "08001", "08005", "08031", "08041", "09001",
+#'          "09003", "09009", "10003", "11001", "12001", "12011", "12031",
+#'          "12033", "12057", "12071", "12073", "12081", "12086", "12095",
+#'          "12099", "12103", "12117", "12127", "13021", "13051", "13063",
+#'          "13067", "13089", "13121", "13215", "13245")
+#' stationspercounty(vec2)
+#' }
+#'
+#' @export
 stationspercounty <- function(yourvector){
   vec <- as.data.frame(yourvector)
   # add column with fips codes in 'FIPS:#####' format for ncdc_stations function
@@ -85,19 +98,7 @@ stationspercounty <- function(yourvector){
 
 # Examples
 
-vec <- c(36081, 36085, 36087, 36119, 40017)
-stationspercounty(vec)
-# returns an error - none of these fips had relevant stations
 
-vec2 <- c("01073", "01089", "01097", "01101", "02020", "04013", "04019",
-          "05119", "06001", "06013", "06019", "06029", "06037", "06065",
-          "06067", "06071", "06073", "06075", "06077", "06081", "06085",
-          "06099", "06111", "08001", "08005", "08031", "08041", "09001",
-          "09003", "09009", "10003", "11001", "12001", "12011", "12031",
-          "12033", "12057", "12071", "12073", "12081", "12086", "12095",
-          "12099", "12103", "12117", "12127", "13021", "13051", "13063",
-          "13067", "13089", "13121", "13215", "13245")
-stationspercounty(vec2)
 
 # A fips code could get kicked out of the final dataframe because its weather
 # stations:
