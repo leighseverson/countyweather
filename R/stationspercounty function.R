@@ -1,10 +1,5 @@
 options(noaakey = "PbGEAVHwjtNNuqVxSYLKMFBvQLHCvAZq")
 
-library(ggplot2)
-library(dplyr)
-library(rgdal)
-library(rnoaa)
-
 #' Count of weather stations per county.
 #'
 #' \code{stationspercounty} returns a plot showing the number of GHCND weather
@@ -22,7 +17,7 @@ library(rnoaa)
 stationspercounty <- function(yourvector){
   vec <- as.data.frame(yourvector)
   # add column with fips codes in 'FIPS:#####' format for ncdc_stations function
-  vec <- mutate(vec, FIPS = "FIPS:")
+  vec <- dplyr::mutate(vec, FIPS = "FIPS:")
   for(i in 1:length(vec$FIPS)){
     vec$FIPS[i] <- gsub("$", vec$yourvector[i], vec$FIPS[i])
 
@@ -71,7 +66,7 @@ stationspercounty <- function(yourvector){
     }
 
     df <- as.data.frame(df)
-    df <- mutate(df, fips_code = vec$FIPS[i])
+    df <- dplyr::mutate(df, fips_code = vec$FIPS[i])
 
     # new dataframe with only fips code and # of corresponding weather stations
     stationinfo <- data.frame(fips_code = df$fips_code, nstations = nrow(df))
