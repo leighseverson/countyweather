@@ -1,6 +1,6 @@
 #' Count of weather stations per county.
 #'
-#' \code{stationspercounty} returns a plot showing the number of GHCND weather
+#' \code{stations_per_county} returns a plot showing the number of GHCND weather
 #' stations for each U.S. county present in its arguments.
 #'
 #' A NOAA Token is required to use this function, which interacts with the NCDC
@@ -11,7 +11,7 @@
 #' @param yourvector A vector of U.S. FIPS codes in numberic or factor format.
 #' @examples
 #' vec7 <- c(36081, 36085, 36087, 36119, 40017)
-#' stationspercounty(vec7)
+#' stations_per_county(vec7)
 #'
 #' returns an error - none of these fips had relevant stations
 #' \donttest{
@@ -23,11 +23,11 @@
 #'          "12033", "12057", "12071", "12073", "12081", "12086", "12095",
 #'          "12099", "12103", "12117", "12127", "13021", "13051", "13063",
 #'          "13067", "13089", "13121", "13215", "13245")
-#' stationspercounty(vec2)
+#' stations_per_county(vec2)
 #' }
 #'
 #' @export
-stationspercounty <- function(yourvector){
+stations_per_county <- function(yourvector){
   vec <- as.data.frame(yourvector)
   # add column with fips codes in 'FIPS:#####' format for ncdc_stations function
   vec <- dplyr::mutate(vec, FIPS = "FIPS:")
