@@ -8,7 +8,7 @@
 #' Then run the code \code{options(noaakey = "your key")} before using this
 #' function.
 #'
-#' @param yourvector A vector of U.S. FIPS codes in numberic or factor format.
+#' @param fips A vector of U.S. FIPS codes in numeric or factor format.
 #' @examples
 #' vec7 <- c(36081, 36085, 36087, 36119, 40017)
 #' stations_per_county(vec7)
@@ -27,12 +27,12 @@
 #' }
 #'
 #' @export
-stations_per_county <- function(yourvector){
-  vec <- as.data.frame(yourvector)
+stations_per_county <- function(fips){
+  vec <- as.data.frame(fips)
   # add column with fips codes in 'FIPS:#####' format for ncdc_stations function
   vec <- dplyr::mutate(vec, FIPS = "FIPS:")
   for(i in 1:length(vec$FIPS)){
-    vec$FIPS[i] <- gsub("$", vec$yourvector[i], vec$FIPS[i])
+    vec$FIPS[i] <- gsub("$", vec$fips[i], vec$FIPS[i])
 
     # the max daily limit of 1000 for this function is a potential prob.
     df <- rnoaa::ncdc_stations(datasetid = 'GHCND', locationid = vec$FIPS[i],
@@ -43,7 +43,7 @@ stations_per_county <- function(yourvector){
     if(length(df$data[i]) == 0){
       # I want this 'missing' dataframe to contain fips codes without a corresponding
       # station...the code I have isn't doing this
-      missing <- yourvector$yourvector[i]
+      missing <- fips$fips[i]
     } else {
       df <- df$data
     }
@@ -60,20 +60,20 @@ stations_per_county <- function(yourvector){
     # happening, but the function will keep going if there are fips codes that
     # don't meet the date/station coverage requirements.
     if(length(df[!(df$id %in% max$id), ]) == 0){
-      missing_maxdate <- yourvector$yourvector[i]
+      missing_maxdate <- fips$fips[i]
     } else {
       df <- df[!(df$id %in% max$id), ]
     }
 
     if(length(df[!(df$id %in% min$id), ]) == 0){
-      missing_mindate <- yourvector$yourvector[i]
+      missing_mindate <- fips$fips[i]
     } else {
       df <- df[!(df$id %in% min$id), ]
     }
 
     coverage <- subset(df, datacoverage < 0.9)
     if(length(df[!(df$id %in% coverage$id), ]) == 0){
-      missing_coverage <- yourvector$yourvector[i]
+      missing_coverage <- fips$fips[i]
     } else {
       df <- df[!(df$id %in% coverage$id), ]
     }
