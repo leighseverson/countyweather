@@ -4,10 +4,10 @@
 \alias{stations_per_county}
 \title{Count of weather stations per county.}
 \usage{
-stations_per_county(yourvector)
+stations_per_county(fips)
 }
 \arguments{
-\item{yourvector}{A vector of U.S. FIPS codes in numberic or factor format.}
+\item{fips}{A vector of U.S. FIPS codes in numeric or factor format.}
 }
 \description{
 \code{stations_per_county} returns a plot showing the number of GHCND weather
@@ -18,6 +18,16 @@ A NOAA Token is required to use this function, which interacts with the NCDC
 API. Request a Token from here: \url{http://www.ncdc.noaa.gov/cdo-web/token}.
 Then run the code \code{options(noaakey = "your key")} before using this
 function.
+}
+\note{
+A fips code could get excluded from the final dataframe because its weather
+stations:
+\itemize{
+\item don't exist,
+\item don't start after Jan 1, 1999,
+\item don't start before Dec. 31, 2012, and/or
+\item don't have a % coverage of at least 0.9.
+}
 }
 \examples{
 vec7 <- c(36081, 36085, 36087, 36119, 40017)
