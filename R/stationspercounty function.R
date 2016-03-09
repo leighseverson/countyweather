@@ -1,4 +1,4 @@
-options(noaakey = "PbGEAVHwjtNNuqVxSYLKMFBvQLHCvAZq")
+
 
 #' Count of weather stations per county.
 #'
