@@ -26,7 +26,7 @@ stations:
 \item don't exist,
 \item don't start after Jan 1, 1999,
 \item don't start before Dec. 31, 2012, and/or
-\item don't have a % coverage of at least 0.9.
+\item don't have a \% coverage of at least 0.9.
 }
 }
 \examples{

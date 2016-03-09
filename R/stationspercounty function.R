@@ -16,7 +16,7 @@
 #' \item don't exist,
 #' \item don't start after Jan 1, 1999,
 #' \item don't start before Dec. 31, 2012, and/or
-#' \item don't have a % coverage of at least 0.9.
+#' \item don't have a \% coverage of at least 0.9.
 #' }
 #' @examples
 #' vec7 <- c(36081, 36085, 36087, 36119, 40017)
@@ -34,6 +34,8 @@
 #'          "13067", "13089", "13121", "13215", "13245")
 #' stations_per_county(vec2)
 #' }
+#'
+#' @importFrom dplyr %>%
 #'
 #' @export
 stations_per_county <- function(fips){
