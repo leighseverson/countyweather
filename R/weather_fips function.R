@@ -103,6 +103,9 @@ weather_fips <- function(fips){
   tot_dat$TMAX <- as.integer(tot_dat$TMAX)
   tot_dat$TMIN <- as.integer(tot_dat$TMIN)
 
+  # change missing values coded as -9999 to NA
+  tot_dat[tot_dat == -9999] <- NA
+
   # TMAX is in "tenths of a degree C"
   tot_dat <- dplyr::mutate(tot_dat, TMAX_C = (tot_dat$TMAX)/10)
   tot_dat <- dplyr::mutate(tot_dat, TMAX_F = celsius.to.fahrenheit(T.celsius =
@@ -142,10 +145,8 @@ weather_fips <- function(fips){
 #
 # 5. "No encoding supplied: defaulting to UTP-8."
 #
-# 6. need to change missing values coded as -9999 to "NA"
-#
-# 7. stations_per_county() worked with all 222 medicare fips, this function
+# 6. stations_per_county() worked with all 222 medicare fips, this function
 # did not
 #
-# 8. want weather info for each county in a separate file? (vs. one huge
+# 7. want weather info for each county in a separate file? (vs. one huge
 # dataframe)
