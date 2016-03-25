@@ -75,6 +75,10 @@ weather_fips <- function(fips){
   # move PRCP, TMAX, TMIN to be column headings
   # this step moves around the order of fips codes in tot_dat - unclear why
   #
+  # tried defining fips as ordered factor (makes no differnce)
+
+  tot_dat$fips <- factor(tot_dat$fips, levels = fips, ordered = TRUE)
+
   # for c(36081, 36085, 36087, 36119, 40017):
   # weather info for 36119 are at the head and tail of the df, but rows
   # for 36081 and 40017 are still in there
@@ -121,6 +125,12 @@ weather_fips <- function(fips){
 
   tot_dat <- dplyr::select(tot_dat, fips, id, year, month, day, PRCP_mm,
                            TMAX_C, TMAX_F, TMIN_C, TMIN_F)
+
+  # retain date order
+  tot_dat$year <- factor(tot_dat$year, levels = c(1999:2012), ordered = TRUE)
+  tot_dat$month <- factor(tot_dat$month, levels = c(1:12), ordered = TRUE)
+  tot_dat$day <- factor(tot_dat$day, levels = c(1:31), ordered = TRUE)
+
   return(tot_dat)
 }
 
@@ -136,12 +146,14 @@ weather_fips <- function(fips){
 # info? (avg yearly rainfall?) - do this by hand?
 #
 # 3. testing this function with fips <- c(36081, 36085, 36087, 36119, 40017) -
-# values are missing for 40017 - this stations doesn't have precipitation
+# values are missing for 40017 - this station doesn't have precipitation
 # info? - Need to see how many of our fips codes will have missing values w/
 # this function.
+# (SOME of the missing rows are because each month has 31 days)
+#
 #
 # 4. potential problem with spread() step - why is this reordering the fips
-# codes
+# codes - need to define fips as ordered factors?
 #
 # 5. "No encoding supplied: defaulting to UTP-8."
 #
@@ -151,7 +163,11 @@ weather_fips <- function(fips){
 # 7. want weather info for each county in a separate file? (vs. one huge
 # dataframe)
 
+
 # functions to check out how many rows have missing data - maybe not useful ???
+# BUT maybe helpful to figure out what to do about fips with multiple stations
+# (average vs. choose one)
+# ALSO notes/code about averaging across stations for a particular fips
 
 # Given a particular fips code, this returns the percent of rows with missing
 # data in the corresponding weather data frame
@@ -174,7 +190,6 @@ na_stations <- function(fips){
   for(i in 1:length(a_st)){
     perc_st <- (nrow(na.omit(subset(a, id == a_st[i]))) /
                   nrow(subset(a, id == a_st[i])))
-    st_col <- paste0("FIPS:", fips, " IDs")
     out <- data.frame("FIPS" = fips, "id" = a_st[i], "Percent_NA" = 1-perc_st)
     if(i == 1){
       dat <- out
@@ -189,6 +204,20 @@ na_stations <- function(fips){
 }
 
 y <- na_stations("01073")
+
+# for 01073, three of the six stations have 100% of their rows with missing
+# data. We either want to average the remaining three, or choose one of them.
+
+# averaging:
+
+test <- weather_fips("01073")
+na_stations("01073")
+test_st <- filter(test, id == "USC00010764" | id == "USC00016478" | id ==
+                    "USW00013876")
+
+test_avg <- ddply(test_st, .(fips, year, month, day), colwise(mean, .(PRCP_mm,
+              TMAX_C, TMAX_F, TMIN_C, TMIN_F)))
+
 
 # same as na_fips() but for a vector of fips
 na_fips_fun <- function(fvec){
