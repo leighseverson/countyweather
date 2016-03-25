@@ -150,3 +150,76 @@ weather_fips <- function(fips){
 #
 # 7. want weather info for each county in a separate file? (vs. one huge
 # dataframe)
+
+# functions to check out how many rows have missing data - maybe not useful ???
+
+# Given a particular fips code, this returns the percent of rows with missing
+# data in the corresponding weather data frame
+na_fips <- function(fips){
+  a <- weather_fips(fips)
+  b <- na.omit(a)
+  percent <- (nrow(b)/nrow(a))
+  out <- data.frame("FIPS" = fips,
+                    "Percent_NA" = 1-percent)
+  return(out)
+}
+
+x <- na_fips("01073")
+
+# Given a particular fips, this returns the percent of rows with missing data
+# in the corresponding weather data frame per weather station
+na_stations <- function(fips){
+  a <- weather_fips(fips)
+  a_st <- c(unique(a$id))
+  for(i in 1:length(a_st)){
+    perc_st <- (nrow(na.omit(subset(a, id == a_st[i]))) /
+                  nrow(subset(a, id == a_st[i])))
+    st_col <- paste0("FIPS:", fips, " IDs")
+    out <- data.frame("FIPS" = fips, "id" = a_st[i], "Percent_NA" = 1-perc_st)
+    if(i == 1){
+      dat <- out
+    } else {
+      dat <- rbind(dat, out)
+    }
+    if(length(dat$id) == length(a_st)){
+      dat_final <- dat
+    }
+  }
+  return(dat_final)
+}
+
+y <- na_stations("01073")
+
+# same as na_fips() but for a vector of fips
+na_fips_fun <- function(fvec){
+  for(i in 1:length(fvec)){
+    missing <- na_fips(fvec[i])
+    if(i == 1){
+      df <- missing
+    } else {
+      df <- rbind(df, missing)
+    }
+    if(length(df$FIPS) == length(fvec)){
+      df_final <- df
+    }
+  }
+  return(df_final)
+}
+
+fvec <- c("01073", "01089", "01097", "01101", "02020", "04013")
+ok <- na_fips_fun(fvec)
+
+# same as na_stations() but for a vector of fips
+na_st_fun <- function(fvec){
+  for(i in 1:length(fvec)){
+    missing <- na_stations(fvec[i])
+    if(i == 1){
+      df <- missing
+    } else {
+      df <- rbind(df, missing)
+    }
+  }
+  return(df)
+}
+
+ok2 <- na_st_fun(fvec)
