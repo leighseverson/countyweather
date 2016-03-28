@@ -112,14 +112,14 @@ weather_fips <- function(fips){
 
   # TMAX is in "tenths of a degree C"
   tot_dat <- dplyr::mutate(tot_dat, TMAX_C = (tot_dat$TMAX)/10)
-  tot_dat <- dplyr::mutate(tot_dat, TMAX_F = celsius.to.fahrenheit(T.celsius =
-                                                                tot_dat$TMAX_C,
-                                                                   round = 0))
+  tot_dat <- dplyr::mutate(tot_dat,
+                           TMAX_F = weathermetrics::celsius.to.fahrenheit(
+                             T.celsius = tot_dat$TMAX_C, round = 0))
   # same with TMIN
   tot_dat <- dplyr::mutate(tot_dat, TMIN_C = (tot_dat$TMIN)/10)
-  tot_dat <- dplyr::mutate(tot_dat, TMIN_F = celsius.to.fahrenheit(T.celsius =
-                                                                tot_dat$TMIN_C,
-                                                                   round = 0))
+  tot_dat <- dplyr::mutate(tot_dat,
+                           TMIN_F = weathermetrics::celsius.to.fahrenheit(
+                             T.celsius = tot_dat$TMIN_C, round = 0))
   # PRCP is in 10ths of mm
   tot_dat <- dplyr::mutate(tot_dat, PRCP_mm = (tot_dat$PRCP)/10)
 
@@ -135,12 +135,6 @@ weather_fips <- function(fips){
 }
 
 # QUESTIONS/NOTES:
-# 1. how to reference two packages for one line of code
-# for example,
-# tot_dat <- dplyr::mutate(tot_dat, TMAX_F = celsius.to.fahrenheit(T.celsius =
-#                                                             tot_dat$TMAX_C,
-#                                                           round = 0))
-# uses both dplyr and weathermetrics
 #
 # 2. we have daily info for tmax, tmin, and precip - do we want more averaged
 # info? (avg yearly rainfall?) - do this by hand?
