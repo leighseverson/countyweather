@@ -18,9 +18,12 @@
 #' \item don't start before Dec. 31, 2012, and/or
 #' \item don't have a \% coverage of at least 0.9.
 #' }
+#'
 #' @examples
+#' \dontrun{
 #' vec7 <- c(36081, 36085, 36087, 36119, 40017)
 #' stations_per_county(vec7)
+#' }
 #'
 #' returns an error - none of these fips had relevant stations
 #' \donttest{

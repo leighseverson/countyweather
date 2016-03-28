@@ -11,9 +11,12 @@
 #' @param fips A vector of U.S. FIPS codes in numeric or factor format.
 #'
 #' @examples
-#'ex <- c(36081, 36085, 36087, 36119, 40017)
-#'ex_df <- weather_fips(ex)
-
+#' \dontrun{
+#'  ex <- c(36081, 36085, 36087, 36119, 40017)
+#'  ex_df <- weather_fips(ex)
+#' }
+#'
+#' @export
 weather_fips <- function(fips){
   vec <- as.data.frame(fips)
   # add column with fips codes in 'FIPS:#####' format for ncdc_stations function
@@ -204,8 +207,9 @@ na_stations("01073")
 test_st <- filter(test, id == "USC00010764" | id == "USC00016478" | id ==
                     "USW00013876")
 
-test_avg <- ddply(test_st, .(fips, year, month, day), colwise(mean, .(PRCP_mm,
-              TMAX_C, TMAX_F, TMIN_C, TMIN_F)))
+test_avg <- plyr::ddply(test_st, .(fips, year, month, day),
+                        colwise(mean, .(PRCP_mm,
+                                        TMAX_C, TMAX_F, TMIN_C, TMIN_F)))
 
 
 # same as na_fips() but for a vector of fips
