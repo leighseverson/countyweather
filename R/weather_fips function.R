@@ -136,9 +136,6 @@ weather_fips <- function(fips){
 
 # QUESTIONS/NOTES:
 #
-# 2. we have daily info for tmax, tmin, and precip - do we want more averaged
-# info? (avg yearly rainfall?) - do this by hand?
-#
 # 3. testing this function with fips <- c(36081, 36085, 36087, 36119, 40017) -
 # values are missing for 40017 - this station doesn't have precipitation
 # info? - Need to see how many of our fips codes will have missing values w/
@@ -153,9 +150,7 @@ weather_fips <- function(fips){
 #
 # 6. stations_per_county() worked with all 222 medicare fips, this function
 # did not
-#
-# 7. want weather info for each county in a separate file? (vs. one huge
-# dataframe)
+
 
 
 # functions to check out how many rows have missing data - maybe not useful ???
