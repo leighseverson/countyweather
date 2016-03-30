@@ -15,23 +15,35 @@
 #'
 #' @examples
 #' \dontrun{
-#'  ex <- c(36081, 36085, 36087, 36119, 40017)
+#'  fips <- c(36081, 36085, 36087, 36119, 40017)
 #'  ex_df <- weather_fips(ex)
 #' }
 #'
+#' @importFrom dplyr %>%
+#'
 #' @export
 weather_fips <- function(fips){
-  vec <- as.data.frame(fips)
-  # add column with fips codes in 'FIPS:#####' format for ncdc_stations function
-  vec <- dplyr::mutate(vec, FIPS = paste0("FIPS:", fips))
+  browser()
+  vec <- as.data.frame(fips) %>%
+    dplyr::mutate(FIPS = paste0("FIPS:", fips))
 
   # Create a dataframe that joins all the dataframes from `rnoaa` calls for
   # different fips together
   for (i in 1:length(fips)) {
     # the max daily limit of 1000 for this function is a potential prob.
-    df <- rnoaa::ncdc_stations(datasetid = 'GHCND', locationid = vec$FIPS[i],
-                               limit = 1000)$data %>%
-      dplyr::mutate(fips = fips[i])
+    fip_stations <- rnoaa::ncdc_stations(datasetid = 'GHCND',
+                                         locationid = vec$FIPS[i],
+                               limit = 10)
+    df <- fip_stations$data
+    if(fip_stations$meta$totalCount > 10){
+      how_many_more <- fip_stations$meta$totalCount - 10
+      more_stations <- rnoaa::ncdc_stations(datasetid = 'GHCND',
+                                            locationid = vec$FIPS[i],
+                                            limit = how_many_more,
+                                            offset = 10 + 1)
+      df <- rbind(df, more_stations$data)
+    }
+    df <- dplyr::mutate(df, fips = fips[i])
     if (i == 1) {
       tot_df <- df
     } else {
