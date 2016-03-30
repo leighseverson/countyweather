@@ -1,4 +1,7 @@
-#' Daily precipiation, maximum and minimum temperatures per county.
+#' Create county-specific weather datasets for US counties
+#'
+#' This function pulls daily precipiation, maximum and minimum temperatures for
+#' each county requested.
 #'
 #' \code{fips_stations} returns a dataframe showing daily maximum and minimum
 #' temperatures from 1999-2012 for each U.S. county present in its arguments.
@@ -137,45 +140,53 @@ weather_fips <- function(fips){
   return(tot_dat)
 }
 
-# QUESTIONS/NOTES:
-#
-# 3. testing this function with fips <- c(36081, 36085, 36087, 36119, 40017) -
-# values are missing for 40017 - this station doesn't have precipitation
-# info? - Need to see how many of our fips codes will have missing values w/
-# this function.
-# (SOME of the missing rows are because each month has 31 days)
-#
-#
-# 4. potential problem with spread() step - why is this reordering the fips
-# codes - need to define fips as ordered factors?
-#
-# 5. "No encoding supplied: defaulting to UTP-8."
-#
-# 6. stations_per_county() worked with all 222 medicare fips, this function
-# did not
-
-
-
-# functions to check out how many rows have missing data - maybe not useful ???
-# BUT maybe helpful to figure out what to do about fips with multiple stations
-# (average vs. choose one)
-# ALSO notes/code about averaging across stations for a particular fips
-
-# Given a particular fips code, this returns the percent of rows with missing
-# data in the corresponding weather data frame
+#' Determine percent missing data for a FIPs code
+#'
+#' Given a particular fips code, this returns the percent of rows with missing
+#' data in the corresponding weather data frame
+#'
+#' @inheritParams weather_fips
+#'
+#' @examples
+#' \dontrun{
+#' x <- na_fips("01073")
+#' }
+#'
+#' @export
 na_fips <- function(fips){
   a <- weather_fips(fips)
   b <- na.omit(a)
-  percent <- (nrow(b)/nrow(a))
+  percent <- (nrow(b) / nrow(a))
   out <- data.frame("FIPS" = fips,
-                    "Percent_NA" = 1-percent)
+                    "Percent_NA" = 1 - percent)
   return(out)
 }
 
-x <- na_fips("01073")
-
-# Given a particular fips, this returns the percent of rows with missing data
-# in the corresponding weather data frame per weather station
+#' Given a particular fips, this returns the percent of rows with missing data
+#' in the corresponding weather data frame per weather station
+#'
+#' @inheritParams weather_fips
+#'
+#' @note For 01073, three of the six stations have 100% of their rows with
+#'    missing data. We either want to average the remaining three, or choose one
+#'    of them.
+#'
+#' @examples
+#' \dontrun{
+#' y <- na_stations("01073")
+#'
+#' # averaging:
+#' test <- weather_fips("01073")
+#' na_stations("01073")
+#' test_st <- filter(test, id == "USC00010764" | id == "USC00016478" | id ==
+#'                     "USW00013876")
+#'
+#' test_avg <- plyr::ddply(test_st, .(fips, year, month, day),
+#'                         colwise(mean, .(PRCP_mm,
+#'                                         TMAX_C, TMAX_F, TMIN_C, TMIN_F)))
+#' }
+#'
+#' @export
 na_stations <- function(fips){
   a <- weather_fips(fips)
   a_st <- c(unique(a$id))
@@ -195,24 +206,19 @@ na_stations <- function(fips){
   return(dat_final)
 }
 
-y <- na_stations("01073")
-
-# for 01073, three of the six stations have 100% of their rows with missing
-# data. We either want to average the remaining three, or choose one of them.
-
-# averaging:
-
-test <- weather_fips("01073")
-na_stations("01073")
-test_st <- filter(test, id == "USC00010764" | id == "USC00016478" | id ==
-                    "USW00013876")
-
-test_avg <- plyr::ddply(test_st, .(fips, year, month, day),
-                        colwise(mean, .(PRCP_mm,
-                                        TMAX_C, TMAX_F, TMIN_C, TMIN_F)))
-
-
-# same as na_fips() but for a vector of fips
+#'
+#' This function performs the same task as \code{\link{na_fips}} but for a
+#' vector of counties (identified with FIPS codes) rather than a single county.
+#'
+#' @param fvec A numeric or character vector of FIPS codes for US counties.
+#'
+#' @examples
+#' \dontrun{
+#'  fvec <- c("01073", "01089", "01097", "01101", "02020", "04013")
+#'  ok <- na_fips_fun(fvec)
+#' }
+#'
+#' @export
 na_fips_fun <- function(fvec){
   for(i in 1:length(fvec)){
     missing <- na_fips(fvec[i])
@@ -228,10 +234,13 @@ na_fips_fun <- function(fvec){
   return(df_final)
 }
 
-fvec <- c("01073", "01089", "01097", "01101", "02020", "04013")
-ok <- na_fips_fun(fvec)
-
-# same as na_stations() but for a vector of fips
+#' This function does the same thing as \code{\link{na_stations}}, but for a
+#' vector counties (listed using their FIPS codes) rather than a single county.
+#'
+#' @examples
+#' \dontrun{
+#'  ok2 <- na_st_fun(fvec)
+#' }
 na_st_fun <- function(fvec){
   for(i in 1:length(fvec)){
     missing <- na_stations(fvec[i])
@@ -244,4 +253,3 @@ na_st_fun <- function(fvec){
   return(df)
 }
 
-ok2 <- na_st_fun(fvec)
