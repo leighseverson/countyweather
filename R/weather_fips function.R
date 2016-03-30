@@ -19,11 +19,22 @@
 #'  ex_df <- weather_fips(ex)
 #' }
 #'
+#' @study_mindate A character string giving the start date of the study period
+#'    for which the user wants to pull data (in the format "yyyy-mm-dd").
+#' @study_maxdate A character string giving the end date of the study period
+#'    for which the user wants to pull data (in the format "yyyy-mm-dd").
+#' @coverage_min A numeric value between 0 and 1 giving the threshold of
+#'    data coverage for a monitor to be kept.
 #' @importFrom dplyr %>%
 #'
 #' @export
-weather_fips <- function(fips){
+weather_fips <- function(fips, study_mindate = "1999-01-01",
+                         study_maxdate = "2012-12-31",
+                         coverage_min = 0.90){
   browser()
+
+  study_mindate <- lubridate::ymd(study_mindate)
+  study_maxdate <- lubridate::ymd(study_mindate)
   vec <- as.data.frame(fips) %>%
     dplyr::mutate(FIPS = paste0("FIPS:", fips))
 
@@ -55,21 +66,26 @@ weather_fips <- function(fips){
   tot_df <- dplyr::mutate(tot_df,
                           mindate = lubridate::ymd(mindate),
                           maxdate = lubridate::ymd(maxdate)) %>%
-    dplyr::filter(maxdate >= "2012-12-31" & mindate <= "1999-01-01") %>%
-    dplyr::filter(datacoverage >= 0.90)
+    dplyr::filter(maxdate >= study_maxdate &
+                    mindate <= study_mindate) %>%
+    dplyr::filter(datacoverage >= coverage_min)
 
+  ### Does this have to stay? Why do we need them as factors? ###
   tot_df$fips <- as.factor(tot_df$fips)
 
+  ### Do we want to keep (or write out elsewhere) anything else? Lat-lon? ###
   tot_df <- dplyr::select(tot_df, id, fips)
 
   # remove "GHCND:" from station id
   tot_df$id <- gsub("GHCND:", "", tot_df$id)
 
+  ### Let's see if we can write this as a function and
   for (i in 1:length(tot_df$id)) {
     # get weather info for each station
     dat <- rnoaa::ghcnd(stationid = tot_df$id[i])$data
     # relevant dates
-    dat <- dplyr::filter(dat, year >= 1999 & year <= 2012)
+    dat <- dplyr::filter(dat, year >= lubridate::year(study_mindate) &
+                           year <= lubridate::year(study_maxdate))
     # combine different stations into one df
     if (i == 1) {
       tot_dat <- dat
