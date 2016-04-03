@@ -11,9 +11,10 @@
 #' @param fips A vector of U.S. FIPS codes in numeric or factor format.
 #'
 #' @examples
+#' \dontrun{
 #'ex <- c(36081, 36085, 36087, 36119, 40017)
 #'ex_df <- weather_fips(ex)
-
+#'}
 weather_fips <- function(fips){
   vec <- as.data.frame(fips)
   # add column with fips codes in 'FIPS:#####' format for ncdc_stations function
@@ -112,12 +113,14 @@ weather_fips <- function(fips){
 
   # TMAX is in "tenths of a degree C"
   tot_dat <- dplyr::mutate(tot_dat, TMAX_C = (tot_dat$TMAX)/10)
-  tot_dat <- dplyr::mutate(tot_dat, TMAX_F = celsius.to.fahrenheit(T.celsius =
+  tot_dat <- dplyr::mutate(tot_dat, TMAX_F =
+                             weathermetrics::celsius.to.fahrenheit(T.celsius =
                                                                 tot_dat$TMAX_C,
                                                                    round = 0))
   # same with TMIN
   tot_dat <- dplyr::mutate(tot_dat, TMIN_C = (tot_dat$TMIN)/10)
-  tot_dat <- dplyr::mutate(tot_dat, TMIN_F = celsius.to.fahrenheit(T.celsius =
+  tot_dat <- dplyr::mutate(tot_dat, TMIN_F =
+                             weathermetrics::celsius.to.fahrenheit(T.celsius =
                                                                 tot_dat$TMIN_C,
                                                                    round = 0))
   # PRCP is in 10ths of mm
@@ -180,7 +183,6 @@ na_fips <- function(fips){
   return(out)
 }
 
-x <- na_fips("01073")
 
 # Given a particular fips, this returns the percent of rows with missing data
 # in the corresponding weather data frame per weather station
@@ -203,20 +205,22 @@ na_stations <- function(fips){
   return(dat_final)
 }
 
-y <- na_stations("01073")
+
+
+#cutpoint ~ 5%
 
 # for 01073, three of the six stations have 100% of their rows with missing
 # data. We either want to average the remaining three, or choose one of them.
 
 # averaging:
 
-test <- weather_fips("01073")
-na_stations("01073")
-test_st <- filter(test, id == "USC00010764" | id == "USC00016478" | id ==
-                    "USW00013876")
+#test <- weather_fips("01073")
+#na_stations("01073")
+#test_st <- filter(test, id == "USC00010764" | id == "USC00016478" | id ==
+#                    "USW00013876")
 
-test_avg <- ddply(test_st, .(fips, year, month, day), colwise(mean, .(PRCP_mm,
-              TMAX_C, TMAX_F, TMIN_C, TMIN_F)))
+#test_avg <- ddply(test_st, .(fips, year, month, day), colwise(mean, .(PRCP_mm,
+#              TMAX_C, TMAX_F, TMIN_C, TMIN_F)))
 
 
 # same as na_fips() but for a vector of fips
@@ -235,9 +239,6 @@ na_fips_fun <- function(fvec){
   return(df_final)
 }
 
-fvec <- c("01073", "01089", "01097", "01101", "02020", "04013")
-ok <- na_fips_fun(fvec)
-
 # same as na_stations() but for a vector of fips
 na_st_fun <- function(fvec){
   for(i in 1:length(fvec)){
@@ -251,4 +252,4 @@ na_st_fun <- function(fvec){
   return(df)
 }
 
-ok2 <- na_st_fun(fvec)
+
