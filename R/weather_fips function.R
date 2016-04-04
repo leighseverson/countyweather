@@ -41,7 +41,6 @@ weather_fips <- function(fips, study_mindate = "1999-01-01",
   # Create a dataframe that joins all the dataframes from `rnoaa` calls for
   # different fips together
   for (i in 1:length(fips)) {
-    # the max daily limit of 1000 for this function is a potential prob.
     fip_stations <- rnoaa::ncdc_stations(datasetid = 'GHCND',
                                          locationid = vec$FIPS[i],
                                limit = 10)
@@ -73,13 +72,11 @@ weather_fips <- function(fips, study_mindate = "1999-01-01",
   ### Does this have to stay? Why do we need them as factors? ###
   tot_df$fips <- as.factor(tot_df$fips)
 
-  ### Do we want to keep (or write out elsewhere) anything else? Lat-lon? ###
   tot_df <- dplyr::select(tot_df, id, fips)
 
   # remove "GHCND:" from station id
   tot_df$id <- gsub("GHCND:", "", tot_df$id)
 
-  ### Let's see if we can write this as a function and
   for (i in 1:length(tot_df$id)) {
     # get weather info for each station
     dat <- rnoaa::ghcnd(stationid = tot_df$id[i])$data
@@ -100,6 +97,7 @@ weather_fips <- function(fips, study_mindate = "1999-01-01",
   # reshape df
   # gather all variables expect for id, year, month, element, and fips, with
   # key variable = col and value variable = measurement
+  ### Can we use `select` for all of this instead of gathering and spreading?
   tot_dat <- tot_dat %>% tidyr::gather(col, measurement, -id, -year, -month,
                                        -element, -fips)
   # filter to isolate only relevant weather values
