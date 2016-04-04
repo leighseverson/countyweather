@@ -24,10 +24,11 @@
 #' @examples
 #' \dontrun{
 #'  fips <- c(36081, 36085, 36087, 36119, 40017)
-#'  ex_df <- weather_fips(ex)
+#'  ex_df <- fips_stations(fips)
 #'
 #' fips_stations(c("01073", "01089", "01097"),
-#'    date_min = "1999-01-01", date_max = "2012-12-31", data_coverage = 0.9)
+#'    date_min = "1999-01-01", date_max = "2012-12-31",
+#'    data_coverage = 0.9)
 #' }
 #'
 #' @importFrom dplyr %>%
@@ -36,8 +37,6 @@
 fips_stations <- function(fips, date_min = NULL, date_max = NULL,
                          data_coverage = 0){
 
-  study_mindate <- lubridate::ymd(date_min)
-  study_maxdate <- lubridate::ymd(date_max)
   vec <- as.data.frame(fips) %>%
     dplyr::mutate(FIPS = paste0("FIPS:", fips))
 
@@ -64,30 +63,25 @@ fips_stations <- function(fips, date_min = NULL, date_max = NULL,
     }
   }
 
-  # If either `min_date` or `max_date` option was null, set to equal the
-  # minimum or maximum date in the data you just pulled.
-  if(is.null(study_maxdate)){
-    study_maxdate <- max(tot_df$maxdate)
+  # If either `min_date` or `max_date` option was null, set to a date that
+  # will keep all monitors in the filtering.
+  if(is.null(date_max)){
+    date_max <- min(tot_df$maxdate)
   }
-  if(is.null(study_mindate)){
-    study_mindate <- min(tot_df$mindate)
+  if(is.null(date_min)){
+    date_min <- max(tot_df$mindate)
   }
 
-  # changing mindate and maxdate columns in station dataframe to date format
+  date_max <- lubridate::ymd(date_max)
+  date_min <- lubridate::ymd(date_min)
+
   tot_df <- dplyr::mutate(tot_df,
                           mindate = lubridate::ymd(mindate),
                           maxdate = lubridate::ymd(maxdate)) %>%
-
-    dplyr::filter(maxdate >= datemax & mindate <= datemin) %>%
-    dplyr::filter(datacoverage >= data_coverage)
-
-  ### Does this have to stay? Why do we need them as factors? ###
-  tot_df$fips <- as.factor(tot_df$fips)
-
-  tot_df <- dplyr::select(tot_df, id, fips)
-
-  # remove "GHCND:" from station id
-  tot_df$id <- gsub("GHCND:", "", tot_df$id)
+    dplyr::filter(maxdate >= date_max & mindate <= date_min) %>%
+    dplyr::filter(datacoverage >= data_coverage) %>%
+    dplyr::select(id, fips) %>%
+    dplyr::mutate(id = gsub("GHCND:", "", id))
 
   return(tot_df)
 }
@@ -112,8 +106,9 @@ fips_stations <- function(fips, date_min = NULL, date_max = NULL,
 #'
 #' @examples
 #' \dontrun{
-#' ex_df <- fips_stationsc("01073", "01089", "01097"), datemin = "1999-01-01",
-#'          datemax = "2012-12-31", datacov = 0.9)
+#' ex_df <- fips_stations(c("01073", "01089", "01097"),
+#'          date_min = "1999-01-01",
+#'          date_max = "2012-12-31", data_coverage = 0.9)
 #' weather_data <- weather_fips(ex_df)
 #' head(weather_data)
 #'}
@@ -123,8 +118,8 @@ weather_fips <- function(station_fips_df){
     # get weather info for each station
     dat <- rnoaa::ghcnd(stationid = tot_df$id[i])$data
     # relevant dates
-    dat <- dplyr::filter(dat, year >= lubridate::year(study_mindate) &
-                           year <= lubridate::year(study_maxdate))
+    dat <- dplyr::filter(dat, year >= lubridate::year(min_date) &
+                           year <= lubridate::year(max_date))
     # combine different stations into one df
     if (i == 1) {
       tot_dat <- dat
