@@ -1,10 +1,9 @@
-#' Create county-specific weather datasets for US counties
+#' NOAA NCDC station IDs per county.
 #'
-#' This function pulls daily precipiation, maximum and minimum temperatures for
-#' each county requested.
-#'
-#' \code{fips_stations} returns a dataframe showing daily maximum and minimum
-#' temperatures from 1999-2012 for each U.S. county present in its arguments.
+#' \code{fips_stations} returns a dataframe showing NOAA NCDC station IDs for
+#' each U.S. county present in its arguments. This function has options to
+#' filter stations based on start and end date of available data, as well as
+#' percent of data coverage.
 #'
 #' A NOAA Token is required to use this function, which interacts with the NCDC
 #' API. Request a Token from here: \url{http://www.ncdc.noaa.gov/cdo-web/token}.
@@ -12,29 +11,33 @@
 #' function.
 #'
 #' @param fips A vector of U.S. FIPS codes in numeric or factor format.
+#' @param date_min Accepts date in character, ISO format ("yyyy-mm-dd"). The
+#' dataframe returned will include only stations that have data for dates
+#' including and after the specified date.
+#' @param date_max Accepts date in character, ISO format ("yyyy-mm-dd"). The
+#' dataframe returned will include only stations that have data for dates
+#' including and before the specified date.
+#' @param data_coverage A numerical value ranging from 0 to 1. The dataframe
+#' returned will include only stations that have data coverage equal to or
+#' greater than the specified fraction.
 #'
 #' @examples
 #' \dontrun{
 #'  fips <- c(36081, 36085, 36087, 36119, 40017)
 #'  ex_df <- weather_fips(ex)
+#'
+#' fips_stations(c("01073", "01089", "01097"),
+#'    date_min = "1999-01-01", date_max = "2012-12-31", data_coverage = 0.9)
 #' }
 #'
-#' @study_mindate A character string giving the start date of the study period
-#'    for which the user wants to pull data (in the format "yyyy-mm-dd").
-#' @study_maxdate A character string giving the end date of the study period
-#'    for which the user wants to pull data (in the format "yyyy-mm-dd").
-#' @coverage_min A numeric value between 0 and 1 giving the threshold of
-#'    data coverage for a monitor to be kept.
 #' @importFrom dplyr %>%
 #'
 #' @export
-weather_fips <- function(fips, study_mindate = "1999-01-01",
-                         study_maxdate = "2012-12-31",
-                         coverage_min = 0.90){
-  browser()
+fips_stations <- function(fips, date_min = NULL, date_max = NULL,
+                         data_coverage = 0){
 
-  study_mindate <- lubridate::ymd(study_mindate)
-  study_maxdate <- lubridate::ymd(study_mindate)
+  study_mindate <- lubridate::ymd(date_min)
+  study_maxdate <- lubridate::ymd(date_max)
   vec <- as.data.frame(fips) %>%
     dplyr::mutate(FIPS = paste0("FIPS:", fips))
 
@@ -61,13 +64,22 @@ weather_fips <- function(fips, study_mindate = "1999-01-01",
     }
   }
 
+  # If either `min_date` or `max_date` option was null, set to equal the
+  # minimum or maximum date in the data you just pulled.
+  if(is.null(study_maxdate)){
+    study_maxdate <- max(tot_df$maxdate)
+  }
+  if(is.null(study_mindate)){
+    study_mindate <- min(tot_df$mindate)
+  }
+
   # changing mindate and maxdate columns in station dataframe to date format
   tot_df <- dplyr::mutate(tot_df,
                           mindate = lubridate::ymd(mindate),
                           maxdate = lubridate::ymd(maxdate)) %>%
-    dplyr::filter(maxdate >= study_maxdate &
-                    mindate <= study_mindate) %>%
-    dplyr::filter(datacoverage >= coverage_min)
+
+    dplyr::filter(maxdate >= datemax & mindate <= datemin) %>%
+    dplyr::filter(datacoverage >= data_coverage)
 
   ### Does this have to stay? Why do we need them as factors? ###
   tot_df$fips <- as.factor(tot_df$fips)
@@ -77,6 +89,36 @@ weather_fips <- function(fips, study_mindate = "1999-01-01",
   # remove "GHCND:" from station id
   tot_df$id <- gsub("GHCND:", "", tot_df$id)
 
+  return(tot_df)
+}
+
+#' Daily precipiation, maximum and minimum temperatures per county.
+#'
+#' \code{weather_fips} returns a dataframe showing GHCN-Daily weather data
+#' (precipitation in mm, and maximum and minumum temperatures in fahrenheit and
+#' celsius), given a dataframe of NOAA NCDC station IDs and corresponding U.S.
+#' county fips codes. (This dataframe could be obtained with the
+#' \code{fips_stations} function.)
+#'
+#' A NOAA Token is required to use this function, which interacts with the NCDC
+#' API. Request a Token from here: \url{http://www.ncdc.noaa.gov/cdo-web/token}.
+#' Then run the code \code{options(noaakey = "your key")} before using this
+#' function.
+#'
+#' @param station_fips_df A dataframe containing NCDC station IDs in character
+#' format ("USC00010764", for example) and corresponding fips codes in factor
+#' format. This dataframe coulld be obtained for a given vector of fips codes
+#' with the \code{fips_stations} function.
+#'
+#' @examples
+#' \dontrun{
+#' ex_df <- fips_stationsc("01073", "01089", "01097"), datemin = "1999-01-01",
+#'          datemax = "2012-12-31", datacov = 0.9)
+#' weather_data <- weather_fips(ex_df)
+#' head(weather_data)
+#'}
+weather_fips <- function(station_fips_df){
+  tot_df <- station_fips_df
   for (i in 1:length(tot_df$id)) {
     # get weather info for each station
     dat <- rnoaa::ghcnd(stationid = tot_df$id[i])$data
@@ -109,7 +151,7 @@ weather_fips <- function(fips, study_mindate = "1999-01-01",
   #
   # tried defining fips as ordered factor (makes no differnce)
 
-  tot_dat$fips <- factor(tot_dat$fips, levels = fips, ordered = TRUE)
+  # tot_dat$fips <- factor(tot_dat$fips, levels = fips, ordered = TRUE)
 
   # for c(36081, 36085, 36087, 36119, 40017):
   # weather info for 36119 are at the head and tail of the df, but rows
@@ -144,6 +186,7 @@ weather_fips <- function(fips, study_mindate = "1999-01-01",
 
   # TMAX is in "tenths of a degree C"
   tot_dat <- dplyr::mutate(tot_dat, TMAX_C = (tot_dat$TMAX)/10)
+
   tot_dat <- dplyr::mutate(tot_dat,
                            TMAX_F = weathermetrics::celsius.to.fahrenheit(
                              T.celsius = tot_dat$TMAX_C, round = 0))
@@ -152,6 +195,7 @@ weather_fips <- function(fips, study_mindate = "1999-01-01",
   tot_dat <- dplyr::mutate(tot_dat,
                            TMIN_F = weathermetrics::celsius.to.fahrenheit(
                              T.celsius = tot_dat$TMIN_C, round = 0))
+
   # PRCP is in 10ths of mm
   tot_dat <- dplyr::mutate(tot_dat, PRCP_mm = (tot_dat$PRCP)/10)
 
@@ -165,117 +209,3 @@ weather_fips <- function(fips, study_mindate = "1999-01-01",
 
   return(tot_dat)
 }
-
-#' Determine percent missing data for a FIPs code
-#'
-#' Given a particular fips code, this returns the percent of rows with missing
-#' data in the corresponding weather data frame
-#'
-#' @inheritParams weather_fips
-#'
-#' @examples
-#' \dontrun{
-#' x <- na_fips("01073")
-#' }
-#'
-#' @export
-na_fips <- function(fips){
-  a <- weather_fips(fips)
-  b <- na.omit(a)
-  percent <- (nrow(b) / nrow(a))
-  out <- data.frame("FIPS" = fips,
-                    "Percent_NA" = 1 - percent)
-  return(out)
-}
-
-#' Given a particular fips, this returns the percent of rows with missing data
-#' in the corresponding weather data frame per weather station
-#'
-#' @inheritParams weather_fips
-#'
-#' @note For 01073, three of the six stations have 100% of their rows with
-#'    missing data. We either want to average the remaining three, or choose one
-#'    of them.
-#'
-#' @examples
-#' \dontrun{
-#' y <- na_stations("01073")
-#'
-#' # averaging:
-#' test <- weather_fips("01073")
-#' na_stations("01073")
-#' test_st <- filter(test, id == "USC00010764" | id == "USC00016478" | id ==
-#'                     "USW00013876")
-#'
-#' test_avg <- plyr::ddply(test_st, .(fips, year, month, day),
-#'                         colwise(mean, .(PRCP_mm,
-#'                                         TMAX_C, TMAX_F, TMIN_C, TMIN_F)))
-#' }
-#'
-#' @export
-na_stations <- function(fips){
-  a <- weather_fips(fips)
-  a_st <- c(unique(a$id))
-  for(i in 1:length(a_st)){
-    perc_st <- (nrow(na.omit(subset(a, id == a_st[i]))) /
-                  nrow(subset(a, id == a_st[i])))
-    out <- data.frame("FIPS" = fips, "id" = a_st[i], "Percent_NA" = 1-perc_st)
-    if(i == 1){
-      dat <- out
-    } else {
-      dat <- rbind(dat, out)
-    }
-    if(length(dat$id) == length(a_st)){
-      dat_final <- dat
-    }
-  }
-  return(dat_final)
-}
-
-#'
-#' This function performs the same task as \code{\link{na_fips}} but for a
-#' vector of counties (identified with FIPS codes) rather than a single county.
-#'
-#' @param fvec A numeric or character vector of FIPS codes for US counties.
-#'
-#' @examples
-#' \dontrun{
-#'  fvec <- c("01073", "01089", "01097", "01101", "02020", "04013")
-#'  ok <- na_fips_fun(fvec)
-#' }
-#'
-#' @export
-na_fips_fun <- function(fvec){
-  for(i in 1:length(fvec)){
-    missing <- na_fips(fvec[i])
-    if(i == 1){
-      df <- missing
-    } else {
-      df <- rbind(df, missing)
-    }
-    if(length(df$FIPS) == length(fvec)){
-      df_final <- df
-    }
-  }
-  return(df_final)
-}
-
-#' This function does the same thing as \code{\link{na_stations}}, but for a
-#' vector counties (listed using their FIPS codes) rather than a single county.
-#'
-#' @examples
-#' \dontrun{
-#'  ok2 <- na_st_fun(fvec)
-#' }
-na_st_fun <- function(fvec){
-  for(i in 1:length(fvec)){
-    missing <- na_stations(fvec[i])
-    if(i == 1){
-      df <- missing
-    } else {
-      df <- rbind(df, missing)
-    }
-  }
-  return(df)
-}
-
