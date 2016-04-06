@@ -17,3 +17,6 @@ Imports:
     rnoaa >= '0.5.2',
     weathermetrics >= '1.2.0'
 RoxygenNote: 5.0.1
+Suggests: knitr,
+    rmarkdown
+VignetteBuilder: knitr
