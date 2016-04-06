@@ -11,33 +11,51 @@
 #' function.
 #'
 #' @param fips A vector of U.S. FIPS codes in numeric or factor format.
-#' @param datemin Accepts date in character, ISO format ("yyyy-mm-dd"). The
+#' @param date_min Accepts date in character, ISO format ("yyyy-mm-dd"). The
 #' dataframe returned will include only stations that have data for dates
 #' including and after the specified date.
-#' @param datemax Accepts date in character, ISO format ("yyyy-mm-dd"). The
+#' @param date_max Accepts date in character, ISO format ("yyyy-mm-dd"). The
 #' dataframe returned will include only stations that have data for dates
 #' including and before the specified date.
-#' @param datacov A numerical value ranging from 0 to 1. The dataframe returned
-#' will include only stations that have data coverage equal to or greater than
-#' the specified fraction.
+#' @param data_coverage A numerical value ranging from 0 to 1. The dataframe
+#' returned will include only stations that have data coverage equal to or
+#' greater than the specified fraction.
 #'
 #' @examples
 #' \dontrun{
-#'fips_stations(c("01073", "01089", "01097"), datemin = "1999-01-01", datemax =
-#'"2012-12-31", datacov = 0.9)
-#'}
-fips_stations <- function(fips, datemin = NULL, datemax = NULL, datacov = NULL){
-  vec <- as.data.frame(fips)
-  # add column with fips codes in 'FIPS:#####' format for ncdc_stations function
-  vec <- dplyr::mutate(vec, FIPS = paste0("FIPS:", fips))
+#'  fips <- c(36081, 36085, 36087, 36119, 40017)
+#'  ex_df <- fips_stations(fips)
+#'
+#' fips_stations(c("01073", "01089", "01097"),
+#'    date_min = "1999-01-01", date_max = "2012-12-31",
+#'    data_coverage = 0.9)
+#' }
+#'
+#' @importFrom dplyr %>%
+#'
+#' @export
+fips_stations <- function(fips, date_min = NULL, date_max = NULL,
+                         data_coverage = 0){
+
+  vec <- as.data.frame(fips) %>%
+    dplyr::mutate(FIPS = paste0("FIPS:", fips))
 
   # Create a dataframe that joins all the dataframes from `rnoaa` calls for
   # different fips together
   for (i in 1:length(fips)) {
-    # the max daily limit of 1000 for this function is a potential prob.
-    df <- rnoaa::ncdc_stations(datasetid = 'GHCND', locationid = vec$FIPS[i],
-                               limit = 1000)$data %>%
-      dplyr::mutate(fips = fips[i])
+    fip_stations <- rnoaa::ncdc_stations(datasetid = 'GHCND',
+                                         locationid = vec$FIPS[i],
+                               limit = 10)
+    df <- fip_stations$data
+    if(fip_stations$meta$totalCount > 10){
+      how_many_more <- fip_stations$meta$totalCount - 10
+      more_stations <- rnoaa::ncdc_stations(datasetid = 'GHCND',
+                                            locationid = vec$FIPS[i],
+                                            limit = how_many_more,
+                                            offset = 10 + 1)
+      df <- rbind(df, more_stations$data)
+    }
+    df <- dplyr::mutate(df, fips = fips[i])
     if (i == 1) {
       tot_df <- df
     } else {
@@ -45,40 +63,25 @@ fips_stations <- function(fips, datemin = NULL, datemax = NULL, datacov = NULL){
     }
   }
 
-  # changing mindate and maxdate columns in station dataframe to date format
+  # If either `min_date` or `max_date` option was null, set to a date that
+  # will keep all monitors in the filtering.
+  if(is.null(date_max)){
+    date_max <- min(tot_df$maxdate)
+  }
+  if(is.null(date_min)){
+    date_min <- max(tot_df$mindate)
+  }
+
+  date_max <- lubridate::ymd(date_max)
+  date_min <- lubridate::ymd(date_min)
+
   tot_df <- dplyr::mutate(tot_df,
                           mindate = lubridate::ymd(mindate),
                           maxdate = lubridate::ymd(maxdate)) %>%
-
-    # only want to run the next two lines of code if the datemax, datemin, and
-    # datacov options are present
-    #if(is.null(datemin)){
-    #  datemin <- "1900-01-01"
-    #} else {
-    #  dplyr::filter(tot_df, mindate <= datemin)
-    #}
-
-    #if(is.null(datemax)){
-    #  datemax <- "2100-12-31"
-    #} else {
-    #  dplyr::filter(tot_df, maxdate >= datemax)
-    #}
-
-    #if(is.null(datacov)){
-    #  datacov <- 0
-    #} else {
-    #  dplyr::filter(tot_df, datacoverage >= datacov)
-    #}
-
-    dplyr::filter(maxdate >= datemax & mindate <= datemin) %>%
-    dplyr::filter(datacoverage >= datacov)
-
-  tot_df$fips <- as.factor(tot_df$fips)
-
-  tot_df <- dplyr::select(tot_df, id, fips)
-
-  # remove "GHCND:" from station id
-  tot_df$id <- gsub("GHCND:", "", tot_df$id)
+    dplyr::filter(maxdate >= date_max & mindate <= date_min) %>%
+    dplyr::filter(datacoverage >= data_coverage) %>%
+    dplyr::select(id, fips) %>%
+    dplyr::mutate(id = gsub("GHCND:", "", id))
 
   return(tot_df)
 }
@@ -103,8 +106,9 @@ fips_stations <- function(fips, datemin = NULL, datemax = NULL, datacov = NULL){
 #'
 #' @examples
 #' \dontrun{
-#' ex_df <- fips_stationsc("01073", "01089", "01097"), datemin = "1999-01-01",
-#'          datemax = "2012-12-31", datacov = 0.9)
+#' ex_df <- fips_stations(c("01073", "01089", "01097"),
+#'          date_min = "1999-01-01",
+#'          date_max = "2012-12-31", data_coverage = 0.9)
 #' weather_data <- weather_fips(ex_df)
 #' head(weather_data)
 #'}
@@ -114,7 +118,8 @@ weather_fips <- function(station_fips_df){
     # get weather info for each station
     dat <- rnoaa::ghcnd(stationid = tot_df$id[i])$data
     # relevant dates
-    dat <- dplyr::filter(dat, year >= 1999 & year <= 2012)
+    dat <- dplyr::filter(dat, year >= lubridate::year(min_date) &
+                           year <= lubridate::year(max_date))
     # combine different stations into one df
     if (i == 1) {
       tot_dat <- dat
@@ -129,6 +134,7 @@ weather_fips <- function(station_fips_df){
   # reshape df
   # gather all variables expect for id, year, month, element, and fips, with
   # key variable = col and value variable = measurement
+  ### Can we use `select` for all of this instead of gathering and spreading?
   tot_dat <- tot_dat %>% tidyr::gather(col, measurement, -id, -year, -month,
                                        -element, -fips)
   # filter to isolate only relevant weather values
@@ -175,16 +181,16 @@ weather_fips <- function(station_fips_df){
 
   # TMAX is in "tenths of a degree C"
   tot_dat <- dplyr::mutate(tot_dat, TMAX_C = (tot_dat$TMAX)/10)
-  tot_dat <- dplyr::mutate(tot_dat, TMAX_F =
-                             weathermetrics::celsius.to.fahrenheit(T.celsius =
-                                                                tot_dat$TMAX_C,
-                                                                   round = 0))
+
+  tot_dat <- dplyr::mutate(tot_dat,
+                           TMAX_F = weathermetrics::celsius.to.fahrenheit(
+                             T.celsius = tot_dat$TMAX_C, round = 0))
   # same with TMIN
   tot_dat <- dplyr::mutate(tot_dat, TMIN_C = (tot_dat$TMIN)/10)
-  tot_dat <- dplyr::mutate(tot_dat, TMIN_F =
-                             weathermetrics::celsius.to.fahrenheit(T.celsius =
-                                                                tot_dat$TMIN_C,
-                                                                   round = 0))
+  tot_dat <- dplyr::mutate(tot_dat,
+                           TMIN_F = weathermetrics::celsius.to.fahrenheit(
+                             T.celsius = tot_dat$TMIN_C, round = 0))
+
   # PRCP is in 10ths of mm
   tot_dat <- dplyr::mutate(tot_dat, PRCP_mm = (tot_dat$PRCP)/10)
 
