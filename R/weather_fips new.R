@@ -103,9 +103,15 @@ average_weather <- function(weather_data, start_date = NULL, end_date = NULL){
                      count(prcp) as n_reporting
                      from df
                      group by date")
-  df$date <- format(as.POSIXct(df$date, format = '%Y-%m-%d'), format =
-                      '%Y-%m-%d')
-  df <- subset(df, date > as.Date(start_date))
-  df <- subset(df, date < as.Date(end_date))
-  return(df)
+
+  if(is.null(start_date)){
+    start_date <- min(df$date)
+  }
+  if(is.null(end_date)){
+    end_date <- max(df$date)
+  }
+
+    df <- subset(df, date > as.Date(start_date))
+    df <- filter(df, date < as.Date(end_date))
+    return(df)
 }
