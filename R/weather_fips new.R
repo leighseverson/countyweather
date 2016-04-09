@@ -17,7 +17,7 @@
 #' @export
 #' @examples
 #' \dontrun{
-#' df <- weather_fips("06037", 0.90, "1998-12-31", "2013-01-01")
+#' df <- weather_fips("06037", 0.90, "1999-01-01", "2012-12-31")
 #' }
 weather_fips <- function(fips, coverage_val, min_date, max_date){
 
@@ -82,13 +82,11 @@ filter_coverage <- function(coverage_df, percent_coverage){
 #' for any of those weather variables for that day.
 #'
 #' @param weather_data a \code{meteo_pull_monitors} data.frame
-#' @param start_date a date in "yyyy-mm-dd" format that is one day before the
-#' desired starting date of your dataset. For example, if you wanted your
-#' earliest day to be "1999-01-01", you would input "1998-12-31" for
+#' @param start_date a date in "yyyy-mm-dd" format - the earliest date you want
+#' in your dataset.
 #' \code{start_date}.
-#' @param end_date a date in "yyyy-mm-dd" formate that is one day after the
-#' desired ending date of your dataset. For example, if you wanted your latest
-#' day to be "2012-12-31", you would input "2013-01-01" for \code{start_date}.
+#' @param end_date a date in "yyyy-mm-dd" format - the lastest date you want in
+#' your dataset.
 #' @export
 #' @examples
 #' \dontrun{
@@ -104,6 +102,11 @@ average_weather <- function(weather_data, start_date = NULL, end_date = NULL){
                      from df
                      group by date")
 
+  start_date <- format(as.POSIXct(start_date, format = '%Y-%m-%d'), format =
+                                         '%Y-%m-%d')
+  end_date <- format(as.POSIXct(end_date, format = '%Y-%m-%d'), format =
+                         '%Y-%m-%d')
+
   if(is.null(start_date)){
     start_date <- min(df$date)
   }
@@ -111,7 +114,7 @@ average_weather <- function(weather_data, start_date = NULL, end_date = NULL){
     end_date <- max(df$date)
   }
 
-    df <- subset(df, date > as.Date(start_date))
-    df <- filter(df, date < as.Date(end_date))
+    df <- subset(df, date >= as.Date(start_date))
+    df <- subset(df, date <= as.Date(end_date))
     return(df)
 }
