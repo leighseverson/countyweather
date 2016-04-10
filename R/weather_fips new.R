@@ -7,13 +7,11 @@
 #' @param fips a U.S. FIPS code in character format
 #' @param coverage_val a number in the range of 0 to 1 that specifies the desired
 #' coverage.
-#' @param min_date a date in "yyyy-mm-dd" format that is one day before the
-#' desired starting date of your dataset. For example, if you wanted your
-#' earliest day to be "1999-01-01", you would input "1998-12-31" for
+#' @param start_date a date in "yyyy-mm-dd" format - the earliest date you want
+#' in your dataset.
 #' \code{start_date}.
-#' @param end_date a date in "yyyy-mm-dd" formate that is one day after the
-#' desired ending date of your dataset. For example, if you wanted your latest
-#' day to be "2012-12-31", you would input "2013-01-01" for \code{start_date}.
+#' @param end_date a date in "yyyy-mm-dd" format - the lastest date you want in
+#' your dataset.
 #' @export
 #' @examples
 #' \dontrun{
