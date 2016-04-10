@@ -9,7 +9,6 @@
 #' coverage.
 #' @param start_date a date in "yyyy-mm-dd" format - the earliest date you want
 #' in your dataset.
-#' \code{start_date}.
 #' @param end_date a date in "yyyy-mm-dd" format - the lastest date you want in
 #' your dataset.
 #' @export
@@ -82,7 +81,6 @@ filter_coverage <- function(coverage_df, percent_coverage){
 #' @param weather_data a \code{meteo_pull_monitors} data.frame
 #' @param start_date a date in "yyyy-mm-dd" format - the earliest date you want
 #' in your dataset.
-#' \code{start_date}.
 #' @param end_date a date in "yyyy-mm-dd" format - the lastest date you want in
 #' your dataset.
 #' @export
@@ -90,7 +88,7 @@ filter_coverage <- function(coverage_df, percent_coverage){
 #' \dontrun{
 #' monitors <- c("ASN00095063", "ASN00024025", "ASN00040112")
 #' obs <- meteo_pull_monitors(monitors)
-#' avg <- average_weather(obs, "1999-01-01", "2013-01-01")
+#' avg <- average_weather(obs, "1999-01-01", "2012-12-31")
 #' }
 average_weather <- function(weather_data, start_date = NULL, end_date = NULL){
   df <- na.omit(weather_data)
