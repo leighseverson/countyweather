@@ -4,28 +4,55 @@
 #' maximum and minimum temperature values for a particular county, date range,
 #' and specified "coverage."
 #'
-#' @param fips a U.S. FIPS code in character format
-#' @param coverage_val a number in the range of 0 to 1 that specifies the desired
-#' coverage.
-#' @param start_date a date in "yyyy-mm-dd" format - the earliest date you want
-#' in your dataset.
-#' @param end_date a date in "yyyy-mm-dd" format - the lastest date you want in
-#' your dataset.
-#' @export
+#' This function serves as a wrapper to several functions from the
+#' \code{rnoaa} package, which provide weather data from all relevant
+#' monitors in a county, and then this function filters and averages
+#' across monitors based on user-specified coverage specifications.
+#'
+#' @note Because this function uses the NOAA API to identify the weather
+#'    monitors within a US county, you will need to get an access token from
+#'    NOAA to use this function. Visit NOAA's token request page
+#'    (\url{http://www.ncdc.noaa.gov/cdo-web/token}) to request a token by
+#'    email, and then use the code
+#'    \code{options("noaakey" = "<key the NOAA emails you>")} to set up your
+#'    API access.
+#'
+#' @param fips A character string giving the five-digit U.S. FIPS county code
+#'    of the county for which the user wants to pull weather data.
+#' @param coverage_val A numeric value in the range of 0 to 1 that specifies the
+#'    desired percentage coverage for the weather variable (i.e., what percent
+#'    of each weather variable must be non-missing to include data from a
+#'    monitor when calculating daily values averaged across monitors. The
+#'    default is 0.90 (90% non-missing observations required to include a
+#'    monitor in averaging).
+#' @param start_date A character string giving the earliest date you want
+#'    in your dataset in "yyyy-mm-dd" format. -
+#' \code{start_date}.
+#' @param end_date A character string giving the latest date you want
+#'    in your dataset in "yyyy-mm-dd" format. -
+#'
+#' @return A dataframe with
+#'
 #' @examples
 #' \dontrun{
-#' df <- weather_fips("06037", 0.90, "1999-01-01", "2012-12-31")
+#' df <- weather_fips(fips = "06037", coverage_val = 0.90,
+#'                   min_date = "1999-01-01", max_date = "2012-12-31")
 #' }
+#'
+#' @export
 weather_fips <- function(fips, coverage_val, min_date, max_date){
 
   # get stations for 1 fips
   # fips_stations() from weather_fips function.R in countyweather
   stations <- fips_stations(fips)
 
-  # get titdy full dataset for all monitors
+  # get tidy full dataset for all monitors
   # clean_daily() and meteo_pull_monitors() from helpers_ghcnd.R in
-  # rnoaaopenscilabs
-  monitors <- meteo_pull_monitors(stations)
+  # openscilabs/rnoaa
+  monitors <- meteo_pull_monitors(monitors = stations,
+                                  date_min = min_date,
+                                  date_max = max_date,
+                                  var = c("tmin", "tmax", "prcp"))
 
   # calculate coverage for each variable (prcp, tmax, tmin)
   # meteo_coverage() from meteo_utils.R in rnoaaopenscilabs
