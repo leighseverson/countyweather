@@ -10,8 +10,8 @@ stations_per_county(fips)
 \item{fips}{A vector of U.S. FIPS codes in numeric or factor format.}
 }
 \description{
-\code{stations_per_county} returns a plot showing the number of GHCND weather
-stations for each U.S. county present in its arguments.
+\code{stations_per_county} returns a dataframe showing the number of GHCND
+weather stations for each U.S. county present in its arguments.
 }
 \details{
 A NOAA Token is required to use this function, which interacts with the NCDC
@@ -20,8 +20,8 @@ Then run the code \code{options(noaakey = "your key")} before using this
 function.
 }
 \note{
-A fips code could get excluded from the final dataframe because its weather
-stations:
+A fips code could get excluded from the final dataframe because its
+weather stations:
 \itemize{
 \item don't exist,
 \item don't start after Jan 1, 1999,
@@ -30,11 +30,12 @@ stations:
 }
 }
 \examples{
-vec7 <- c(36081, 36085, 36087, 36119, 40017)
-stations_per_county(vec7)
+\dontrun{
+vec <- c(36081, 36085, 36087, 36119, 40017)
+stations_per_county(vec)
+}
 
-returns an error - none of these fips had relevant stations
-\donttest{
+\dontrun{
 vec2 <- c("01073", "01089", "01097", "01101", "02020", "04013", "04019",
          "05119", "06001", "06013", "06019", "06029", "06037", "06065",
          "06067", "06071", "06073", "06075", "06077", "06081", "06085",
