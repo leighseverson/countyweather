@@ -30,10 +30,8 @@ stations:
 }
 }
 \examples{
-\dontrun{
-fips <- c(36081, 36085, 36087, 36119, 40017)
+vec7 <- c(36081, 36085, 36087, 36119, 40017)
 stations_per_county(vec7)
-}
 
 returns an error - none of these fips had relevant stations
 \donttest{

@@ -1,7 +1,7 @@
 #' Count of weather stations per county.
 #'
-#' \code{stations_per_county} returns a plot showing the number of GHCND weather
-#' stations for each U.S. county present in its arguments.
+#' \code{stations_per_county} returns a dataframe showing the number of GHCND
+#' weather stations for each U.S. county present in its arguments.
 #'
 #' A NOAA Token is required to use this function, which interacts with the NCDC
 #' API. Request a Token from here: \url{http://www.ncdc.noaa.gov/cdo-web/token}.
@@ -10,23 +10,21 @@
 #'
 #' @param fips A vector of U.S. FIPS codes in numeric or factor format.
 #'
-#' @note A fips code could get excluded from the final dataframe because its weather
-#' stations:
+#' @note A fips code could get excluded from the final dataframe because its
+#' weather stations:
 #' \itemize{
 #' \item don't exist,
 #' \item don't start after Jan 1, 1999,
 #' \item don't start before Dec. 31, 2012, and/or
 #' \item don't have a \% coverage of at least 0.9.
 #' }
-#'
 #' @examples
 #' \dontrun{
-#' fips <- c(36081, 36085, 36087, 36119, 40017)
-#' stations_per_county(vec7)
-#' }
+#' vec <- c(36081, 36085, 36087, 36119, 40017)
+#' stations_per_county(vec)
+#'}
 #'
-#' returns an error - none of these fips had relevant stations
-#' \donttest{
+#' \dontrun{
 #' vec2 <- c("01073", "01089", "01097", "01101", "02020", "04013", "04019",
 #'          "05119", "06001", "06013", "06019", "06029", "06037", "06065",
 #'          "06067", "06071", "06073", "06075", "06077", "06081", "06085",
@@ -67,6 +65,9 @@ stations_per_county <- function(fips){
       dplyr::filter(maxdate >= "2012-12-31" & mindate <= "1999-01-01") %>%
       dplyr::filter(datacoverage >= 0.90)
 
+    # change fips in tot_df to factor class to match fips in vec
+    tot_df$fips <- as.factor(tot_df$fips)
+
     # new dataframe with only fips code and # of corresponding weather stations
     out <- dplyr::group_by(tot_df, fips) %>%
       dplyr::summarize(nstations = n()) %>%
@@ -77,17 +78,3 @@ stations_per_county <- function(fips){
 
 }
 
-
-
-
-# problems:
-# 1. Trying to get fips codes without relevant stations into a separate df
-# If the output gives these with `nstations` of `0`, then we can get this by
-# just subsetting that output.
-# 2. Returning an empty dataframe instead of an error when the fips vector
-#    doesn't have any fips with relevant stations
-# I haven't checked yet if the revised function will do that in that case. We
-# should check.
-# 3. Getting the function to return a single dataframe (insead of a separate df
-#    for each fips code)
-# This should be working now.

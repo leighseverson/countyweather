@@ -35,55 +35,43 @@
 #'
 #' @export
 fips_stations <- function(fips, date_min = NULL, date_max = NULL,
-                         data_coverage = 0){
+                          data_coverage = 0){
 
-  vec <- as.data.frame(fips) %>%
-    dplyr::mutate(FIPS = paste0("FIPS:", fips))
-
-  # Create a dataframe that joins all the dataframes from `rnoaa` calls for
-  # different fips together
-  for (i in 1:length(fips)) {
-    fip_stations <- rnoaa::ncdc_stations(datasetid = 'GHCND',
-                                         locationid = vec$FIPS[i],
-                               limit = 10)
-    df <- fip_stations$data
-    if(fip_stations$meta$totalCount > 10){
-      how_many_more <- fip_stations$meta$totalCount - 10
-      more_stations <- rnoaa::ncdc_stations(datasetid = 'GHCND',
-                                            locationid = vec$FIPS[i],
-                                            limit = how_many_more,
-                                            offset = 10 + 1)
-      df <- rbind(df, more_stations$data)
-    }
-    df <- dplyr::mutate(df, fips = fips[i])
-    if (i == 1) {
-      tot_df <- df
-    } else {
-      tot_df <- rbind(tot_df, df)
-    }
+  FIPS <- paste0('FIPS:', fips)
+  station_ids <- rnoaa::ncdc_stations(datasetid = 'GHCND', locationid = FIPS,
+                                      limit = 10)
+  df <- station_ids$data
+  if(station_ids$meta$totalCount > 10){
+    how_many_more <- station_ids$meta$totalCount - 10
+    more_stations <- rnoaa::ncdc_stations(datasetid = 'GHCND',
+                                          locationid = FIPS,
+                                          limit = how_many_more,
+                                          offset = 10 + 1)
+    df <- rbind(df, more_stations$data)
   }
 
   # If either `min_date` or `max_date` option was null, set to a date that
   # will keep all monitors in the filtering.
   if(is.null(date_max)){
-    date_max <- min(tot_df$maxdate)
+    date_max <- min(df$maxdate)
   }
   if(is.null(date_min)){
-    date_min <- max(tot_df$mindate)
+    date_min <- max(df$mindate)
   }
 
   date_max <- lubridate::ymd(date_max)
   date_min <- lubridate::ymd(date_min)
 
-  tot_df <- dplyr::mutate(tot_df,
+  tot_df <- dplyr::mutate(df,
                           mindate = lubridate::ymd(mindate),
                           maxdate = lubridate::ymd(maxdate)) %>%
     dplyr::filter(maxdate >= date_max & mindate <= date_min) %>%
     dplyr::filter(datacoverage >= data_coverage) %>%
-    dplyr::select(id, fips) %>%
+    dplyr::select(id) %>%
     dplyr::mutate(id = gsub("GHCND:", "", id))
 
-  return(tot_df)
+  vec <- as.vector(tot_df$id)
+  return(vec)
 }
 
 #' Daily precipiation, maximum and minimum temperatures per county.
