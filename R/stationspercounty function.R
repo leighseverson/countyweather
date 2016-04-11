@@ -18,12 +18,12 @@
 #' \item don't start before Dec. 31, 2012, and/or
 #' \item don't have a \% coverage of at least 0.9.
 #' }
+#'
 #' @examples
 #' \dontrun{
 #' vec <- c(36081, 36085, 36087, 36119, 40017)
 #' stations_per_county(vec)
 #'}
-#'
 #' \dontrun{
 #' vec2 <- c("01073", "01089", "01097", "01101", "02020", "04013", "04019",
 #'          "05119", "06001", "06013", "06019", "06029", "06037", "06065",
