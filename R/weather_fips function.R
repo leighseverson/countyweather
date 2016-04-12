@@ -47,7 +47,8 @@ fips_stations <- function(fips, date_min = NULL, date_max = NULL,
                                           locationid = FIPS,
                                           limit = how_many_more,
                                           offset = 10 + 1)
-    df <- rbind(df, more_stations$data)
+    station_df <- rbind(df, more_stations$data); assign("station_df",
+                                                        station_df, .GlobalEnv)
   }
 
   # If either `min_date` or `max_date` option was null, set to a date that

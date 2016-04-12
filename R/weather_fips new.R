@@ -25,10 +25,10 @@
 #'    monitor when calculating daily values averaged across monitors. The
 #'    default is 0.90 (90% non-missing observations required to include a
 #'    monitor in averaging).
-#' @param start_date A character string giving the earliest date you want
+#' @param date_min A character string giving the earliest date you want
 #'    in your dataset in "yyyy-mm-dd" format. -
-#' \code{start_date}.
-#' @param end_date A character string giving the latest date you want
+#' \code{date_min}.
+#' @param date_max A character string giving the latest date you want
 #'    in your dataset in "yyyy-mm-dd" format. -
 #'
 #' @return A dataframe with
@@ -40,18 +40,18 @@
 #' }
 #'
 #' @export
-weather_fips <- function(fips, percent_coverage, min_date, max_date){
+weather_fips <- function(fips, percent_coverage, date_min, date_max){
 
   # get stations for 1 fips
   # fips_stations() from weather_fips function.R in countyweather
-  stations <- fips_stations(fips, date_min = min_date, date_max = max_date)
+  stations <- fips_stations(fips, date_min, date_max)
 
   # get tidy full dataset for all monitors
   # clean_daily() and meteo_pull_monitors() from helpers_ghcnd.R in
   # openscilabs/rnoaa
   monitors <- meteo_pull_monitors(monitors = stations,
-                                  date_min = min_date,
-                                  date_max = max_date,
+                                  date_min,
+                                  date_max,
                                   var = c("tmin", "tmax", "prcp"))
 
   # calculate coverage for each variable (prcp, tmax, tmin)
@@ -78,16 +78,15 @@ weather_fips <- function(fips, percent_coverage, min_date, max_date){
   return(averaged)
 }
 
+#' Average weather data across multiple stations
 ave_weather <- function(filtered_data){
   averaged_data <- gather(filtered_data, key, value, -id, -date) %>%
-    group_by(date, key) %>%
-    summarize(value = mean(value, na.rm = TRUE)) %>%
-    spread(key = key, value = value) %>%
-    ungroup()
+    ddply(c("date", "key"), summarize,
+          mean = mean(value, na.rm = TRUE)) %>%
+    spread(key = key, value = mean)
   n_reporting <- gather(filtered_data, key, value, -id, -date) %>%
-    group_by(date, key) %>%
-    summarize(n_reporting = sum(!is.na(value))) %>%
-    ungroup() %>%
+    ddply(c("date", "key"), summarize,
+          n_reporting = sum(!is.na(value))) %>%
     mutate(key = paste(key, "reporting", sep = "_")) %>%
     spread(key = key, value = n_reporting)
   averaged_data <- left_join(averaged_data, n_reporting,
@@ -119,53 +118,53 @@ filter_coverage <- function(coverage_df, percent_coverage){
   return(filtered)
 }
 
-#' Average weather data across multiple stations
+
+#' Plot of stations for a particular FIPS
 #'
-#' \code{average_weather} returns a data.frame with daily values for
-#' precipitation, maximum and minimum temperature averaged across multiple
-#' stations. The resulting data.frame has a column \code{n_reporing} showing the
-#' number of stations contributing to the average values for each day. Values for
-#' this column can range from 1 to the number of unique stations in your
-#' \code{meteo_pull_monitors} data.frame.
 #'
-#' If a station has missing data for either \code{prcp}, \code{tmax}, or
-#' \code{tmin} on a particular day, it will not contribute to the average value
-#' for any of those weather variables for that day.
 #'
-#' @param weather_data a \code{meteo_pull_monitors} data.frame
-#' @param start_date a date in "yyyy-mm-dd" format - the earliest date you want
-#' in your dataset.
-#' \code{start_date}.
-#' @param end_date a date in "yyyy-mm-dd" format - the lastest date you want in
-#' your dataset.
-#' @export
 #' @examples
 #' \dontrun{
-#' monitors <- c("ASN00095063", "ASN00024025", "ASN00040112")
-#' obs <- meteo_pull_monitors(monitors)
-#' avg <- average_weather(obs, "1999-01-01", "2013-01-01")
+#' ex <- stationmap_fips("08031", 0.90, "2000-01-01", "2000-12-31")
 #' }
-average_weather <- function(weather_data, start_date = NULL, end_date = NULL){
-  df <- na.omit(weather_data)
-  df <- sqldf::sqldf("select date, avg(prcp) as avg_prcp,
-                     avg(tmax) as avg_tmax, avg(tmin) as avg_tmin,
-                     count(prcp) as n_reporting
-                     from df
-                     group by date")
+stationmap_fips <- function(fips, percent_coverage, date_min, date_max){
+  stations <- fips_stations(fips, date_min, date_max)
+  monitors <- meteo_pull_monitors(monitors = stations,
+                                  date_min = date_min,
+                                  date_max = date_max,
+                                  var = c("tmin", "tmax", "prcp"))
+  coverage_df <- meteo_coverage(monitors, verbose = FALSE)
+  filtered <- filter_coverage(coverage_df, percent_coverage)
+  good_monitors <- unique(filtered$id)
 
-  start_date <- format(as.POSIXct(start_date, format = '%Y-%m-%d'), format =
-                                         '%Y-%m-%d')
-  end_date <- format(as.POSIXct(end_date, format = '%Y-%m-%d'), format =
-                         '%Y-%m-%d')
+  df <- mapping(station_df)
 
-  if(is.null(start_date)){
-    start_date <- min(df$date)
-  }
-  if(is.null(end_date)){
-    end_date <- max(df$date)
-  }
+  station_latlong <- filter(df, df$id %in% good_monitors)
 
-    df <- subset(df, date >= as.Date(start_date))
-    df <- subset(df, date <= as.Date(end_date))
-    return(df)
+  monitors <- filter(monitors, monitors$id %in% good_monitors)
+
+  perc_missing <- gather(monitors, key, value, -id, -date) %>%
+    ddply(c("id", "key"), summarize,
+          percent_missing = sum(is.na(value)) / length(value)) %>%
+    mutate(key = paste(key, "percent_missing", sep = "_")) %>%
+    spread(key = key, value = percent_missing)
+
+  final_df <- left_join(station_latlong, perc_missing, by = "id")
+
+  map <- ggmap::get_map(location = c(lon = final_df$lon[1],
+                                     lat = final_df$lat[1]),
+                        zoom = 9)
+  map <- ggmap::ggmap(map) +
+    geom_point(data = final_df, aes(x = lon, y = lat, color = prcp_percent_missing),
+               size = 3)
+  # prcp_percent_missing for example - prob want to be able to specify what
+  # weather variable you want here
+  return(map)
+}
+
+mapping <- function(ncdcdf){
+  df <- select(ncdcdf, longitude, latitude, id)
+  colnames(df) <- c("lon", "lat", "id")
+  df$id <- gsub("GHCND:", "", df$id)
+  return(df)
 }

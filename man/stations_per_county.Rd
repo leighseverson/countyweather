@@ -31,8 +31,13 @@ weather stations:
 }
 \examples{
 \dontrun{
+<<<<<<< HEAD
+fips <- c(36081, 36085, 36087, 36119, 40017)
+stations_per_county(vec7)
+=======
 vec <- c(36081, 36085, 36087, 36119, 40017)
 stations_per_county(vec)
+>>>>>>> 679875c0601fdaaba11e1dab356c1fa8771e35b0
 }
 
 \dontrun{

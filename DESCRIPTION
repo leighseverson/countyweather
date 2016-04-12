@@ -1,20 +1,29 @@
 Package: countyweather
 Type: Package
-Title: Obtains Meterologic Data for U.S. Counties
+Title: Compiles Meterologic Data for U.S. Counties
 Version: 0.0.9000
 Date: 2016-02-22
-Author: Rachel Severson
-Maintainer: Who to complain to <yourfault@somewhere.net>
+Authors@R: c(person("Rachel", "Severson",
+                  email = "rachel.severson@colostate.edu",
+                  role = c("aut", "cre")),
+             person("Brooke", "Anderson",
+                  email = "brooke.anderson@colostate.edu",
+                  role = c("aut")))
 Description: Interacts with NOAA data sources (including the NCDC API at
-  http://www.ncdc.noaa.gov/cdo-web/webservices/v2 and GHCND data), with
-  functions for obtaining precipitation and temperature data for U.S. counties.
-License: What license is it under?
+  http://www.ncdc.noaa.gov/cdo-web/webservices/v2 and GHCND data), using the
+  rnoaa package, to obtain and compile precipitation and temperature time series
+  for U.S. counties. This work was supported in part by grants from
+    the National Institute of Environmental Health Sciences (R00ES022631), the
+    National Science Foundation (1331399), and the Colorado State University
+    Water Center.
+License: GPL-2
 LazyData: TRUE
 Imports:
     dplyr (>= 0.4.3),
-    tidyr (>= 0.3.1),
     rgdal (>= 1.1.3),
     rnoaa (>= 0.5.2),
+    plyr (>= 1.8.3),
+    tidyr (>= 0.3.1),
     weathermetrics (>= 1.2.0)
 RoxygenNote: 5.0.1
 Suggests: knitr,
