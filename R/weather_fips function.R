@@ -65,7 +65,7 @@ fips_stations <- function(fips, date_min = NULL, date_max = NULL,
   tot_df <- dplyr::mutate(df,
                           mindate = lubridate::ymd(mindate),
                           maxdate = lubridate::ymd(maxdate)) %>%
-    dplyr::filter(maxdate >= date_max & mindate <= date_min) %>%
+    dplyr::filter(maxdate >= date_min & mindate <= date_max) %>%
     dplyr::filter(datacoverage >= data_coverage) %>%
     dplyr::select(id) %>%
     dplyr::mutate(id = gsub("GHCND:", "", id))
