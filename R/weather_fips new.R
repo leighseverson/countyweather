@@ -35,7 +35,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' df <- weather_fips(fips = "06037", coverage_val = 0.90,
+#' df <- weather_fips(fips = "06037", percent_coverage = 0.90,
 #'                   min_date = "1999-01-01", max_date = "2012-12-31")
 #' }
 #'
@@ -60,22 +60,39 @@ weather_fips <- function(fips, percent_coverage, min_date, max_date){
 
   # filter station dataset based on specified coverage
   filtered <- filter_coverage(coverage_df, percent_coverage)
+  good_monitors <- unique(filtered$id)
 
   # filter weather dataset based on stations w/ specified coverage
   filtered_data <- gather(monitors, key, value, -id, -date) %>%
     left_join(filtered, by = c("id", "key")) %>%
+    filter(id %in% good_monitors) %>%
     mutate(value = value * covered) %>%
     select(-covered) %>%
     spread(key = key, value = value)
 
-  # get rid of unwanted weather variables
-  selected_variables <- select(filtered_data, id, date, prcp, tmax, tmin)
-
   # average across stations, add a column for number of stations that contributed
   # to each daily average
-  averaged <- average_weather(selected_variables, min_date, max_date)
+  # averaged <- average_weather(filtered_data, min_date, max_date)
+  averaged <- ave_weather(filtered_data)
 
   return(averaged)
+}
+
+ave_weather <- function(filtered_data){
+  averaged_data <- gather(filtered_data, key, value, -id, -date) %>%
+    group_by(date, key) %>%
+    summarize(value = mean(value, na.rm = TRUE)) %>%
+    spread(key = key, value = value) %>%
+    ungroup()
+  n_reporting <- gather(filtered_data, key, value, -id, -date) %>%
+    group_by(date, key) %>%
+    summarize(n_reporting = sum(!is.na(value))) %>%
+    ungroup() %>%
+    mutate(key = paste(key, "reporting", sep = "_")) %>%
+    spread(key = key, value = n_reporting)
+  averaged_data <- left_join(averaged_data, n_reporting,
+                             by = "date")
+  return(averaged_data)
 }
 
 #' Filter stations based on "coverage" requirements
@@ -93,7 +110,12 @@ filter_coverage <- function(coverage_df, percent_coverage){
   filtered <- select(coverage_df, -start_date, -end_date, -total_obs) %>%
     gather(key, covered, -id)  %>%
     filter(covered >= percent_coverage) %>%
-    mutate(covered = 1)
+    mutate(covered = 1) %>%
+    group_by(id) %>%
+    mutate(good_monitor = sum(!is.na(covered)) > 0) %>%
+    ungroup() %>%
+    filter(good_monitor) %>%
+    select(-good_monitor)
   return(filtered)
 }
 
