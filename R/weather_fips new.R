@@ -78,6 +78,7 @@ weather_fips <- function(fips, percent_coverage, min_date, max_date){
   return(averaged)
 }
 
+#' Average weather data across multiple stations
 ave_weather <- function(filtered_data){
   averaged_data <- gather(filtered_data, key, value, -id, -date) %>%
     ddply(c("date", "key"), summarize,
@@ -117,52 +118,68 @@ filter_coverage <- function(coverage_df, percent_coverage){
   return(filtered)
 }
 
-#' Average weather data across multiple stations
+
+#' Plot of stations for a particular FIPS
 #'
-#' \code{average_weather} returns a data.frame with daily values for
-#' precipitation, maximum and minimum temperature averaged across multiple
-#' stations. The resulting data.frame has a column \code{n_reporing} showing the
-#' number of stations contributing to the average values for each day. Values for
-#' this column can range from 1 to the number of unique stations in your
-#' \code{meteo_pull_monitors} data.frame.
 #'
-#' If a station has missing data for either \code{prcp}, \code{tmax}, or
-#' \code{tmin} on a particular day, it will not contribute to the average value
-#' for any of those weather variables for that day.
 #'
-#' @param weather_data a \code{meteo_pull_monitors} data.frame
-#' @param start_date a date in "yyyy-mm-dd" format - the earliest date you want
-#' in your dataset.
-#' @param end_date a date in "yyyy-mm-dd" format - the lastest date you want in
-#' your dataset.
-#' @export
 #' @examples
 #' \dontrun{
-#' monitors <- c("ASN00095063", "ASN00024025", "ASN00040112")
-#' obs <- meteo_pull_monitors(monitors)
-#' avg <- average_weather(obs, "1999-01-01", "2012-12-31")
+#' stationmap_fips("08001", 0.90, "1990-01-01", "1990-12-31")
 #' }
-average_weather <- function(weather_data, start_date = NULL, end_date = NULL){
-  df <- na.omit(weather_data)
-  df <- sqldf::sqldf("select date, avg(prcp) as avg_prcp,
-                     avg(tmax) as avg_tmax, avg(tmin) as avg_tmin,
-                     count(prcp) as n_reporting
-                     from df
-                     group by date")
+stationmap_fips <- function(fips, percent_coverage, min_date, max_date){
+  stations <- fips_stations(fips, date_min = min_date, date_max = max_date)
+  monitors <- meteo_pull_monitors(monitors = stations,
+                                  date_min = min_date,
+                                  date_max = max_date,
+                                  var = c("tmax", "tmin", "prcp"))
+  coverage_df <- meteo_coverage(monitors, verbose = FALSE)
+  filtered <- filter_coverage(coverage_df, percent_coverage)
+  good_monitors <- unique(filtered$id)
 
-  start_date <- format(as.POSIXct(start_date, format = '%Y-%m-%d'), format =
-                                         '%Y-%m-%d')
-  end_date <- format(as.POSIXct(end_date, format = '%Y-%m-%d'), format =
-                         '%Y-%m-%d')
+  df <- latlong_df(good_monitors)
 
-  if(is.null(start_date)){
-    start_date <- min(df$date)
+  station_info <- filter(monitors, monitors$id %in% df$id)
+
+  station_info$id <- as.factor(station_info$id)
+  perc_missing <- gather(station_info, key, value, -id, -date) %>%
+    ddply(c("id", "key"), summarize,
+          percent_missing = sum(is.na(value)) / length(value)) %>%
+    mutate(key = paste(key, "percent_missing", sep = "_")) %>%
+    spread(key = key, value = percent_missing)
+
+  df <- left_join(df, perc_missing, by = "id")
+
+  map <- ggmap::get_map(location = c(lon = df$lon[1], lat = df$lat[1]),
+                        zoom = 9)
+  map <- ggmap::ggmap(map) +
+    geom_point(data = df, aes(x = lon, y = lat, color = prcp_percent_missing),
+               size = 3)
+  # prob want to be able to specify what variable you want color for
+  # in the funciton
+  return(map)
+}
+
+weather_var <- "prcp"
+
+
+mapping <- function(station){
+  slist <- gsub("^", "GHCND:", station)
+  latlong <- ncdc_stations(stationid = slist)$data
+  df <- select(latlong, longitude, latitude, id)
+  colnames(df) <- c("lon", "lat", "id")
+  df$id <- gsub("GHCND:", "", df$id)
+  return(df)
+}
+
+latlong_df <- function(station_list){
+  for(i in 1:length(station_list)){
+    data <- mapping(station_list[i])
+    if(i == 1){
+      df <- data
+    } else {
+      df <- rbind(df, data)
+    }
   }
-  if(is.null(end_date)){
-    end_date <- max(df$date)
-  }
-
-    df <- subset(df, date >= as.Date(start_date))
-    df <- subset(df, date <= as.Date(end_date))
-    return(df)
+  return(df)
 }
