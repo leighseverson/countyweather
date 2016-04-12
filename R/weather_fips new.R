@@ -80,14 +80,12 @@ weather_fips <- function(fips, percent_coverage, min_date, max_date){
 
 ave_weather <- function(filtered_data){
   averaged_data <- gather(filtered_data, key, value, -id, -date) %>%
-    group_by(date, key) %>%
-    summarize(value = mean(value, na.rm = TRUE)) %>%
-    spread(key = key, value = value) %>%
-    ungroup()
+    ddply(c("date", "key"), summarize,
+          mean = mean(value, na.rm = TRUE)) %>%
+    spread(key = key, value = mean)
   n_reporting <- gather(filtered_data, key, value, -id, -date) %>%
-    group_by(date, key) %>%
-    summarize(n_reporting = sum(!is.na(value))) %>%
-    ungroup() %>%
+    ddply(c("date", "key"), summarize,
+          n_reporting = sum(!is.na(value))) %>%
     mutate(key = paste(key, "reporting", sep = "_")) %>%
     spread(key = key, value = n_reporting)
   averaged_data <- left_join(averaged_data, n_reporting,
