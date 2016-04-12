@@ -125,58 +125,46 @@ filter_coverage <- function(coverage_df, percent_coverage){
 #'
 #' @examples
 #' \dontrun{
-#' stationmap_fips("08001", 0.90, "1990-01-01", "1990-12-31")
+#' ex <- stationmap_fips("08031", 0.90, "2000-01-01", "2000-12-31")
 #' }
 stationmap_fips <- function(fips, percent_coverage, date_min, date_max){
   stations <- fips_stations(fips, date_min, date_max)
   monitors <- meteo_pull_monitors(monitors = stations,
-                                  date_min,
-                                  date_max,
-                                  var = c("tmax", "tmin", "prcp"))
+                                  date_min = date_min,
+                                  date_max = date_max,
+                                  var = c("tmin", "tmax", "prcp"))
   coverage_df <- meteo_coverage(monitors, verbose = FALSE)
   filtered <- filter_coverage(coverage_df, percent_coverage)
   good_monitors <- unique(filtered$id)
 
-  df <- latlong_df(good_monitors)
+  df <- mapping(station_df)
 
-  station_info <- filter(monitors, monitors$id %in% df$id)
+  station_latlong <- filter(df, df$id %in% good_monitors)
 
-  perc_missing <- gather(station_info, key, value, -id, -date) %>%
+  monitors <- filter(monitors, monitors$id %in% good_monitors)
+
+  perc_missing <- gather(monitors, key, value, -id, -date) %>%
     ddply(c("id", "key"), summarize,
           percent_missing = sum(is.na(value)) / length(value)) %>%
     mutate(key = paste(key, "percent_missing", sep = "_")) %>%
     spread(key = key, value = percent_missing)
 
-  df <- left_join(df, perc_missing, by = "id")
+  final_df <- left_join(station_latlong, perc_missing, by = "id")
 
-  map <- ggmap::get_map(location = c(lon = df$lon[1], lat = df$lat[1]),
+  map <- ggmap::get_map(location = c(lon = final_df$lon[1],
+                                     lat = final_df$lat[1]),
                         zoom = 9)
   map <- ggmap::ggmap(map) +
-    geom_point(data = df, aes(x = lon, y = lat, color = prcp_percent_missing),
+    geom_point(data = final_df, aes(x = lon, y = lat, color = prcp_percent_missing),
                size = 3)
   # prcp_percent_missing for example - prob want to be able to specify what
   # weather variable you want here
   return(map)
 }
 
-
-mapping <- function(station){
-  slist <- gsub("^", "GHCND:", station)
-  latlong <- ncdc_stations(stationid = slist)$data
-  df <- select(latlong, longitude, latitude, id)
+mapping <- function(ncdcdf){
+  df <- select(ncdcdf, longitude, latitude, id)
   colnames(df) <- c("lon", "lat", "id")
   df$id <- gsub("GHCND:", "", df$id)
-  return(df)
-}
-
-latlong_df <- function(station_list){
-  for(i in 1:length(station_list)){
-    data <- mapping(station_list[i])
-    if(i == 1){
-      df <- data
-    } else {
-      df <- rbind(df, data)
-    }
-  }
   return(df)
 }
