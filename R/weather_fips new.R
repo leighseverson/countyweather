@@ -19,7 +19,7 @@
 #'
 #' @param fips A character string giving the five-digit U.S. FIPS county code
 #'    of the county for which the user wants to pull weather data.
-#' @param coverage_val A numeric value in the range of 0 to 1 that specifies the
+#' @param percent_coverage A numeric value in the range of 0 to 1 that specifies the
 #'    desired percentage coverage for the weather variable (i.e., what percent
 #'    of each weather variable must be non-missing to include data from a
 #'    monitor when calculating daily values averaged across monitors. The
@@ -40,11 +40,11 @@
 #' }
 #'
 #' @export
-weather_fips <- function(fips, coverage_val, min_date, max_date){
+weather_fips <- function(fips, percent_coverage, min_date, max_date){
 
   # get stations for 1 fips
   # fips_stations() from weather_fips function.R in countyweather
-  stations <- fips_stations(fips)
+  stations <- fips_stations(fips, date_min = min_date, date_max = max_date)
 
   # get tidy full dataset for all monitors
   # clean_daily() and meteo_pull_monitors() from helpers_ghcnd.R in
@@ -56,13 +56,17 @@ weather_fips <- function(fips, coverage_val, min_date, max_date){
 
   # calculate coverage for each variable (prcp, tmax, tmin)
   # meteo_coverage() from meteo_utils.R in rnoaaopenscilabs
-  coverage <- meteo_coverage(monitors, verbose = FALSE)
+  coverage_df <- meteo_coverage(monitors, verbose = FALSE)
 
   # filter station dataset based on specified coverage
-  filtered <- filter_coverage(coverage, coverage_val)
+  filtered <- filter_coverage(coverage_df, percent_coverage)
 
   # filter weather dataset based on stations w/ specified coverage
-  filtered_data <- filter(monitors, id %in% filtered$id)
+  filtered_data <- gather(monitors, key, value, -id, -date) %>%
+    left_join(filtered, by = c("id", "key")) %>%
+    mutate(value = value * covered) %>%
+    select(-covered) %>%
+    spread(key = key, value = value)
 
   # get rid of unwanted weather variables
   selected_variables <- select(filtered_data, id, date, prcp, tmax, tmin)
@@ -76,19 +80,20 @@ weather_fips <- function(fips, coverage_val, min_date, max_date){
 
 #' Filter stations based on "coverage" requirements
 #'
-#' \code{filter_coverage} filters precipitation, maximum and minumum temperature
-#' based on a specified value of coverage.
+#' \code{filter_coverage} filters available weather variables
+#' based on a specified required minimum coverage (i.e., percent non-missing
+#' daily observations).
 #'
 #' @param coverage_df a \code{meteo_coverage} data.frame
-#' @param percent_coverage a number ranging from 0 to 1. Resulting coverage for
-#' precipitation, maximum and minimum temperatures will be equal to or greater
-#' than the specified value.
+#' @inheritParams weather_fips
+#'
 #' @return a \code{data.frame} with stations that meet the specified coverage
 #' requirements for \code{prcp}, \code{tmax}, and \code{tmin}.
 filter_coverage <- function(coverage_df, percent_coverage){
-  filtered <- filter(coverage_df, prcp >= percent_coverage &
-                       tmax >= percent_coverage &
-                       tmin >= percent_coverage)
+  filtered <- select(coverage_df, -start_date, -end_date, -total_obs) %>%
+    gather(key, covered, -id)  %>%
+    filter(covered >= percent_coverage) %>%
+    mutate(covered = 1)
   return(filtered)
 }
 
