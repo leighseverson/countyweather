@@ -44,7 +44,8 @@ weather_fips <- function(fips, coverage_val, min_date, max_date){
 
   # get stations for 1 fips
   # fips_stations() from weather_fips function.R in countyweather
-  stations <- fips_stations(fips, data_coverage = coverage_val)
+  stations <- fips_stations(fips, data_coverage = coverage_val,
+                            date_min = min_date, date_max = max_date)
 
   # get tidy full dataset for all monitors
   # clean_daily() and meteo_pull_monitors() from helpers_ghcnd.R in
