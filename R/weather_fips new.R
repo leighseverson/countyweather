@@ -25,10 +25,10 @@
 #'    monitor when calculating daily values averaged across monitors. The
 #'    default is 0.90 (90% non-missing observations required to include a
 #'    monitor in averaging).
-#' @param start_date A character string giving the earliest date you want
+#' @param date_min A character string giving the earliest date you want
 #'    in your dataset in "yyyy-mm-dd" format. -
-#' \code{start_date}.
-#' @param end_date A character string giving the latest date you want
+#' \code{date_min}.
+#' @param date_max A character string giving the latest date you want
 #'    in your dataset in "yyyy-mm-dd" format. -
 #'
 #' @return A dataframe with
@@ -40,18 +40,18 @@
 #' }
 #'
 #' @export
-weather_fips <- function(fips, percent_coverage, min_date, max_date){
+weather_fips <- function(fips, percent_coverage, date_min, date_max){
 
   # get stations for 1 fips
   # fips_stations() from weather_fips function.R in countyweather
-  stations <- fips_stations(fips, date_min = min_date, date_max = max_date)
+  stations <- fips_stations(fips, date_min, date_max)
 
   # get tidy full dataset for all monitors
   # clean_daily() and meteo_pull_monitors() from helpers_ghcnd.R in
   # openscilabs/rnoaa
   monitors <- meteo_pull_monitors(monitors = stations,
-                                  date_min = min_date,
-                                  date_max = max_date,
+                                  date_min,
+                                  date_max,
                                   var = c("tmin", "tmax", "prcp"))
 
   # calculate coverage for each variable (prcp, tmax, tmin)
@@ -127,11 +127,11 @@ filter_coverage <- function(coverage_df, percent_coverage){
 #' \dontrun{
 #' stationmap_fips("08001", 0.90, "1990-01-01", "1990-12-31")
 #' }
-stationmap_fips <- function(fips, percent_coverage, min_date, max_date){
-  stations <- fips_stations(fips, date_min = min_date, date_max = max_date)
+stationmap_fips <- function(fips, percent_coverage, date_min, date_max){
+  stations <- fips_stations(fips, date_min, date_max)
   monitors <- meteo_pull_monitors(monitors = stations,
-                                  date_min = min_date,
-                                  date_max = max_date,
+                                  date_min,
+                                  date_max,
                                   var = c("tmax", "tmin", "prcp"))
   coverage_df <- meteo_coverage(monitors, verbose = FALSE)
   filtered <- filter_coverage(coverage_df, percent_coverage)
@@ -141,7 +141,6 @@ stationmap_fips <- function(fips, percent_coverage, min_date, max_date){
 
   station_info <- filter(monitors, monitors$id %in% df$id)
 
-  station_info$id <- as.factor(station_info$id)
   perc_missing <- gather(station_info, key, value, -id, -date) %>%
     ddply(c("id", "key"), summarize,
           percent_missing = sum(is.na(value)) / length(value)) %>%
@@ -155,12 +154,10 @@ stationmap_fips <- function(fips, percent_coverage, min_date, max_date){
   map <- ggmap::ggmap(map) +
     geom_point(data = df, aes(x = lon, y = lat, color = prcp_percent_missing),
                size = 3)
-  # prob want to be able to specify what variable you want color for
-  # in the funciton
+  # prcp_percent_missing for example - prob want to be able to specify what
+  # weather variable you want here
   return(map)
 }
-
-weather_var <- "prcp"
 
 
 mapping <- function(station){
