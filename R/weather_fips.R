@@ -72,7 +72,6 @@ weather_fips <- function(fips, percent_coverage, date_min, date_max){
 
   # average across stations, add a column for number of stations that contributed
   # to each daily average
-  # averaged <- average_weather(filtered_data, min_date, max_date)
   averaged <- ave_weather(filtered_data)
 
   return(averaged)
@@ -125,7 +124,7 @@ filter_coverage <- function(coverage_df, percent_coverage){
 #'
 #' @examples
 #' \dontrun{
-#' ex <- stationmap_fips("08031", 0.90, "2000-01-01", "2000-12-31")
+#' ex <- stationmap_fips("08031", 0.90, "2000-01-01", "2010-12-31")
 #' }
 stationmap_fips <- function(fips, percent_coverage, date_min, date_max){
   stations <- fips_stations(fips, date_min, date_max)
@@ -153,7 +152,7 @@ stationmap_fips <- function(fips, percent_coverage, date_min, date_max){
 
   map <- ggmap::get_map(location = c(lon = final_df$lon[1],
                                      lat = final_df$lat[1]),
-                        zoom = 9)
+                        zoom = 9, maptype = "toner")
   map <- ggmap::ggmap(map) +
     geom_point(data = final_df, aes(x = lon, y = lat, color = prcp_percent_missing),
                size = 3)
