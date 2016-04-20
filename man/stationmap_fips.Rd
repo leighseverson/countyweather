@@ -13,5 +13,6 @@ Plot of stations for a particular FIPS
 \dontrun{
 ex <- stationmap_fips("08031", 0.90, "2000-01-01", "2010-12-31")
 }
+
 }
 
