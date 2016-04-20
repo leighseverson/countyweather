@@ -12,5 +12,6 @@ streamflow(fips, date_min, date_max)
 \examples{
 fipsvec <- c(51059, 51061)
 test <- streamflow(fipsvec, "2000-04-12", "2005-04-13")
+
 }
 
