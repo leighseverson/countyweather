@@ -5,6 +5,8 @@
 #' @examples
 #' fipsvec <- c(51059, 51061)
 #' test <- streamflow(fipsvec, "2000-04-12", "2005-04-13")
+#'
+#' @export
 streamflow <- function(fips, date_min, date_max){
   fips <- paste(fips, collapse = ",")
   url <- paste0("http://waterservices.usgs.gov/nwis/site/?format=rdb&countyCd=",

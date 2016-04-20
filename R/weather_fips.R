@@ -78,6 +78,8 @@ weather_fips <- function(fips, percent_coverage, date_min, date_max){
 }
 
 #' Average weather data across multiple stations
+#'
+#' @export
 ave_weather <- function(filtered_data){
   averaged_data <- gather(filtered_data, key, value, -id, -date) %>%
     ddply(c("date", "key"), summarize,
@@ -104,6 +106,8 @@ ave_weather <- function(filtered_data){
 #'
 #' @return a \code{data.frame} with stations that meet the specified coverage
 #' requirements for \code{prcp}, \code{tmax}, and \code{tmin}.
+#'
+#' @export
 filter_coverage <- function(coverage_df, percent_coverage){
   filtered <- select(coverage_df, -start_date, -end_date, -total_obs) %>%
     gather(key, covered, -id)  %>%
@@ -126,6 +130,8 @@ filter_coverage <- function(coverage_df, percent_coverage){
 #' \dontrun{
 #' ex <- stationmap_fips("08031", 0.90, "2000-01-01", "2010-12-31")
 #' }
+#'
+#' @export
 stationmap_fips <- function(fips, percent_coverage, date_min, date_max){
   stations <- fips_stations(fips, date_min, date_max)
   monitors <- meteo_pull_monitors(monitors = stations,
@@ -161,6 +167,7 @@ stationmap_fips <- function(fips, percent_coverage, date_min, date_max){
   return(map)
 }
 
+#' Mapping function
 mapping <- function(ncdcdf){
   df <- select(ncdcdf, longitude, latitude, id)
   colnames(df) <- c("lon", "lat", "id")
