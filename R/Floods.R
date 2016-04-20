@@ -100,9 +100,6 @@ streamdata <- function(fips, date_min, date_max, stat_code = "00003"){
   return(df_clean)
 }
 
-
-
-
 #' Return average daily streamflow data for a particular county and date range.
 #'
 #' (This function is meant to return a data.frame with a "flood" column, showing
