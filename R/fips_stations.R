@@ -35,7 +35,7 @@
 #'
 #' @export
 fips_stations <- function(fips, date_min = NULL, date_max = NULL){
-
+  #browser()
   FIPS <- paste0('FIPS:', fips)
   station_ids <- rnoaa::ncdc_stations(datasetid = 'GHCND', locationid = FIPS,
                                       limit = 10)
@@ -62,7 +62,7 @@ fips_stations <- function(fips, date_min = NULL, date_max = NULL){
   date_max <- lubridate::ymd(date_max)
   date_min <- lubridate::ymd(date_min)
 
-  tot_df <- dplyr::mutate(df,
+  tot_df <- dplyr::mutate(station_df,
                           mindate = lubridate::ymd(mindate),
                           maxdate = lubridate::ymd(maxdate)) %>%
     dplyr::filter(maxdate >= date_min & mindate <= date_max) %>%
