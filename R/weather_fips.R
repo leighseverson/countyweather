@@ -36,12 +36,12 @@
 #' @examples
 #' \dontrun{
 #' df <- weather_fips(fips = "06037", percent_coverage = 0.90,
-#'                   min_date = "1999-01-01", max_date = "2012-12-31")
+#'                   date_min = "1999-01-01", date_max = "2012-12-31")
 #' }
 #'
 #' @export
 weather_fips <- function(fips, percent_coverage, date_min, date_max){
-
+  #browser()
   # get stations for 1 fips
   # fips_stations() from weather_fips function.R in countyweather
   stations <- fips_stations(fips, date_min, date_max)
