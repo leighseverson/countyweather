@@ -40,7 +40,8 @@
 #' }
 #'
 #' @export
-weather_fips <- function(fips, percent_coverage, date_min, date_max){
+weather_fips <- function(fips, percent_coverage, date_min, date_max,
+                         var = "all"){
   #browser()
   # get stations for 1 fips
   # fips_stations() from weather_fips function.R in countyweather
@@ -49,14 +50,15 @@ weather_fips <- function(fips, percent_coverage, date_min, date_max){
   # get tidy full dataset for all monitors
   # clean_daily() and meteo_pull_monitors() from helpers_ghcnd.R in
   # openscilabs/rnoaa
-  monitors <- meteo_pull_monitors(monitors = stations,
-                                  date_min,
-                                  date_max,
-                                  var = c("tmin", "tmax", "prcp"))
+  meteo_df <- meteo_pull_monitors(monitors = stations,
+                                  keep_flags = FALSE,
+                                  date_min = date_min,
+                                  date_max = date_max,
+                                  var = var)
 
   # calculate coverage for each variable (prcp, tmax, tmin)
   # meteo_coverage() from meteo_utils.R in rnoaaopenscilabs
-  coverage_df <- meteo_coverage(monitors, verbose = FALSE)
+  coverage_df <- meteo_coverage(meteo_df, verbose = FALSE)
 
   # filter station dataset based on specified coverage
   filtered <- filter_coverage(coverage_df, percent_coverage)
