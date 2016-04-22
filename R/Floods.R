@@ -46,16 +46,16 @@ streamstations <- function(fips, date_min, date_max, fraction_coverage = NULL){
   df$begin_date <- lubridate::ymd(df$begin_date)
   df$end_date <- lubridate::ymd(df$end_date)
 
-  df <- mutate(df, date_range = df$end_date - df$begin_date)
+  df <- dplyr::mutate(df, date_range = df$end_date - df$begin_date)
   df$date_range <- as.numeric(df$date_range)
   df$count_nu <- as.numeric(df$count_nu)
 
-  df <- mutate(df, perc_coverage = (count_nu/date_range))
-  if(is.null(percent_coverage)){
-    percent_coverage <- min(df$perc_coverage)
+  df <- dplyr::mutate(df, perc_coverage = (count_nu/date_range))
+  if(is.null(fraction_coverage)){
+    fraction_coverage <- min(df$perc_coverage)
   }
 
-  df <- filter(df, perc_coverage >= percent_coverage)
+  df <- filter(df, perc_coverage >= fraction_coverage)
 
   vec <- as.character(unique(df$site_no))
   return(vec)
@@ -129,7 +129,7 @@ streamfloods <- function(fips, date_min, date_max, stat_code){
   colnames(percentile90) <- c("staid", "percentileval", "dates", "qualcode")
   df <- inner_join(df_clean, percentile90)
 
-  df <- mutate(df, flood = NA)
+  df <- dplyr::mutate(df, flood = NA)
 
   for(i in 1:length(df$val)){
     if(df$val[i] >= df$percentileval[i]){
