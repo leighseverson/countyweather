@@ -95,6 +95,7 @@ ave_weather <- function(filtered_data){
   return(averaged_data)
 }
 
+
 #' Filter stations based on "coverage" requirements
 #'
 #' \code{filter_coverage} filters available weather variables
