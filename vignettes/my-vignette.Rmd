@@ -1,5 +1,5 @@
 ---
-title: "`countyweather` package vignette"
+title: "`countyweather` example"
 author: "Rachel Severson and G. Brooke Anderson"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -33,9 +33,8 @@ The `html_vignette` template includes a basic CSS theme. To override this theme 
 
 The figure sizes have been customised so that you can easily put two images side-by-side. 
 
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
+```{r}
+ex <- weather_fips("12086", 0.90, "1992-08-01", "1992-09-01")
 ```
 
 You can enable figure captions by `fig_caption: yes` in YAML:

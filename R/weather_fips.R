@@ -36,43 +36,42 @@
 #' @examples
 #' \dontrun{
 #' df <- weather_fips(fips = "06037", percent_coverage = 0.90,
-#'                   min_date = "1999-01-01", max_date = "2012-12-31")
+#'                   date_min = "1999-01-01", date_max = "2012-12-31",
+#'                   var = c("TMAX", "TMIN", "PRCP"))
 #' }
 #'
 #' @export
-weather_fips <- function(fips, percent_coverage, date_min, date_max){
-
+weather_fips <- function(fips, percent_coverage, date_min, date_max,
+                         var = "all"){
+  #browser()
   # get stations for 1 fips
   # fips_stations() from weather_fips function.R in countyweather
-  stations <- fips_stations(fips, date_min, date_max)
+  stations <- fips_stations(fips, date_min = date_min, date_max = date_max)
 
   # get tidy full dataset for all monitors
   # clean_daily() and meteo_pull_monitors() from helpers_ghcnd.R in
   # openscilabs/rnoaa
-  monitors <- meteo_pull_monitors(monitors = stations,
-                                  date_min,
-                                  date_max,
-                                  var = c("tmin", "tmax", "prcp"))
+  meteo_df <- meteo_pull_monitors(monitors = stations,
+                                  keep_flags = FALSE,
+                                  date_min = date_min,
+                                  date_max = date_max,
+                                  var = var)
 
   # calculate coverage for each variable (prcp, tmax, tmin)
   # meteo_coverage() from meteo_utils.R in rnoaaopenscilabs
-  coverage_df <- meteo_coverage(monitors, verbose = FALSE)
+  coverage_df <- meteo_coverage(meteo_df, verbose = FALSE)
 
   # filter station dataset based on specified coverage
   filtered <- filter_coverage(coverage_df, percent_coverage)
   good_monitors <- unique(filtered$id)
 
   # filter weather dataset based on stations w/ specified coverage
-  filtered_data <- gather(monitors, key, value, -id, -date) %>%
-    left_join(filtered, by = c("id", "key")) %>%
-    filter(id %in% good_monitors) %>%
-    mutate(value = value * covered) %>%
-    select(-covered) %>%
-    spread(key = key, value = value)
+  filtered_data <- filter(meteo_df, id %in% good_monitors)
 
   # average across stations, add a column for number of stations that contributed
   # to each daily average
   averaged <- ave_weather(filtered_data)
+  # omg - this step took ~48 minutes s
 
   return(averaged)
 }
@@ -82,8 +81,11 @@ weather_fips <- function(fips, percent_coverage, date_min, date_max){
 #' @export
 ave_weather <- function(filtered_data){
   averaged_data <- gather(filtered_data, key, value, -id, -date) %>%
+
     ddply(c("date", "key"), summarize,
           mean = mean(value, na.rm = TRUE)) %>%
+    #this step takes > 22 minutes to run!
+
     spread(key = key, value = mean)
   n_reporting <- gather(filtered_data, key, value, -id, -date) %>%
     ddply(c("date", "key"), summarize,
@@ -94,6 +96,7 @@ ave_weather <- function(filtered_data){
                              by = "date")
   return(averaged_data)
 }
+
 
 #' Filter stations based on "coverage" requirements
 #'
@@ -108,7 +111,12 @@ ave_weather <- function(filtered_data){
 #' requirements for \code{prcp}, \code{tmax}, and \code{tmin}.
 #'
 #' @export
-filter_coverage <- function(coverage_df, percent_coverage){
+filter_coverage <- function(coverage_df, percent_coverage = NULL){
+
+  if (is.null(percent_coverage)){
+    percent_coverage <- 0
+  }
+
   filtered <- select(coverage_df, -start_date, -end_date, -total_obs) %>%
     gather(key, covered, -id)  %>%
     filter(covered >= percent_coverage) %>%
