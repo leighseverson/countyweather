@@ -15,6 +15,8 @@ library(tidyr)
 
 ## want average hourly data for a particular fips, year, variables, and coverage
 
+fips <- "12086"
+
 # 1. get station list for a particular fips
 # probably want to use geocodes for this instead
 isd_fips_stations <- function(fips){
@@ -52,8 +54,17 @@ int_surface_data <- function(usaf_code, wban_code, year, var = "all"){
   # add date time (suggested by one of the rnoaa package vignette examples for isd())
   isd_df$date_time <- ymd_hm(sprintf("%s %s", as.character(isd_df$date), isd_df$time))
   # select variables
+
+  w_vars <- colnames(isd_df)
+
+  if(length(var) == 1 && var == "all"){
+    var <- w_vars[9:length(w_vars)]
+    remove <- c("date_time")
+    var <- var[!var%in%remove]
+  }
+
   cols <- c("usaf_station", "wban_station", "date_time", "latitude", "longitude")
-  subset_vars <- append(var, cols)
+  subset_vars <- append(cols, var)
   isd_df <- dplyr::select_(isd_df, .dots = subset_vars)
   # change misisng weather data values to NA - it looks like non-signed items are filled
   # with 9 (quality codes), 999 or 9999; signed items are positive filled (+9999 or +99999)
@@ -64,9 +75,10 @@ int_surface_data <- function(usaf_code, wban_code, year, var = "all"){
 }
 
 year <- 1992
-var <- c("wind_speed", "temperature")
-onest <- int_surface_data(ids$usaf[1], ids$wban[1], year, var)
-derp <- int_surface_data(ids$usaf[11], ids$wban[11], year, var)
+onest <- int_surface_data(ids$usaf[1], ids$wban[1], year, var = c("wind_speed",
+                                                                  "temperature"))
+derp <- int_surface_data(ids$usaf[11], ids$wban[11], year, var = c("wind_speed",
+                                                                   "temperature"))
 
 # 3. pull data for multiple monitors
 
