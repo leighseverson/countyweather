@@ -1,8 +1,8 @@
 #' Return average daily weather data for a particular county.
 #'
 #' \code{weather_fips} returns a data.frame of average daily precipitation,
-#' maximum and minimum temperature values for a particular county, date range,
-#' and specified "coverage."
+#' maximum and minimum temperature values for a particular county, radius,
+#' date range, and specified "coverage."
 #'
 #' This function serves as a wrapper to several functions from the
 #' \code{rnoaa} package, which provide weather data from all relevant
@@ -14,24 +14,29 @@
 #'    NOAA to use this function. Visit NOAA's token request page
 #'    (\url{http://www.ncdc.noaa.gov/cdo-web/token}) to request a token by
 #'    email, and then use the code
-#'    \code{options("noaakey" = "<key the NOAA emails you>")} to set up your
+#'    \code{options("noaakey" = "<key NOAA emails you>")} to set up your
 #'    API access.
 #'
 #' @param fips A character string giving the five-digit U.S. FIPS county code
 #'    of the county for which the user wants to pull weather data.
+#' @param radius A numeric vector giving a radius (in kilometers) within which
+#'    to search for monitors. (Optional.)
 #' @param percent_coverage A numeric value in the range of 0 to 1 that specifies the
 #'    desired percentage coverage for the weather variable (i.e., what percent
 #'    of each weather variable must be non-missing to include data from a
-#'    monitor when calculating daily values averaged across monitors. The
-#'    default is 0.90 (90% non-missing observations required to include a
-#'    monitor in averaging).
+#'    monitor when calculating daily values averaged across monitors. (Optional.)
 #' @param date_min A character string giving the earliest date you want
-#'    in your dataset in "yyyy-mm-dd" format. -
+#'    in your dataset in "yyyy-mm-dd" format. (Optional.)
 #' \code{date_min}.
 #' @param date_max A character string giving the latest date you want
-#'    in your dataset in "yyyy-mm-dd" format. -
+#'    in your dataset in "yyyy-mm-dd" format. (Optional.)
+#' @param var A character vector specifying desired weather variables. For
+#'    example, var = c("TMIN", "TMAX", "PRCP"). (Optional.)
 #'
-#' @return A dataframe with
+#' @return A dataframe of daily weather data averaged across multiple monitors,
+#'    as well as columns (\code{"var"_reporting} for each weather variable
+#'    showing the number of stations contributing to the average for that
+#'    variable for that day.
 #'
 #' @examples
 #' \dontrun{
@@ -80,18 +85,25 @@ weather_fips <- function(fips, radius = NULL, percent_coverage = NULL,
   return(averaged)
 }
 
-#' Average weather data across multiple stations
+#' Average weather data across multiple stations.
+#'
+#' \code{ave_weather} returns a dataframe with daily weather averaged across
+#'    stations, as well as columns showing the number of stations contributing
+#'    to the average for each variable and each day.
+#'
+#' @param weather_data A dataframe with daily weather observations. This
+#'    dataframe is returned from \code{meteo_pull_monitors}.
 #'
 #' @export
-ave_weather <- function(filtered_data){
-  averaged_data <- gather(filtered_data, key, value, -id, -date) %>%
+ave_weather <- function(weather_data){
+  averaged_data <- gather(weather_data, key, value, -id, -date) %>%
 
     ddply(c("date", "key"), summarize,
           mean = mean(value, na.rm = TRUE)) %>%
     #this step takes > 22 minutes to run!
 
     spread(key = key, value = mean)
-  n_reporting <- gather(filtered_data, key, value, -id, -date) %>%
+  n_reporting <- gather(weather_data, key, value, -id, -date) %>%
     ddply(c("date", "key"), summarize,
           n_reporting = sum(!is.na(value))) %>%
     mutate(key = paste(key, "reporting", sep = "_")) %>%
@@ -101,18 +113,18 @@ ave_weather <- function(filtered_data){
   return(averaged_data)
 }
 
-
-#' Filter stations based on "coverage" requirements
+#' Filter stations based on "coverage" requirements.
 #'
 #' \code{filter_coverage} filters available weather variables
 #' based on a specified required minimum coverage (i.e., percent non-missing
 #' daily observations).
 #'
-#' @param coverage_df a \code{meteo_coverage} data.frame
+#' @param coverage_df a \code{meteo_coverage} dataframe
 #' @inheritParams weather_fips
 #'
-#' @return a \code{data.frame} with stations that meet the specified coverage
-#' requirements for \code{prcp}, \code{tmax}, and \code{tmin}.
+#' @return a \code{dataframe} with stations that meet the specified coverage
+#'    requirements for weather variables included in the dataframe present in
+#'    this function's arguments.
 #'
 #' @export
 filter_coverage <- function(coverage_df, percent_coverage = NULL){
@@ -133,6 +145,48 @@ filter_coverage <- function(coverage_df, percent_coverage = NULL){
   return(filtered)
 }
 
+#' Search for stations located within a specified radius for a particular
+#' U.S. county.
+#'
+#' @return A character vector listing station ids which are located within
+#'    the specified radius centered in the specified county.
+#'
+#' @export
+station_radius <- function(fips, radius){
+  url <- paste0("http://www2.census.gov/geo/docs/reference/",
+                "codes/files/national_county.txt")
+  county_names <- read.csv(url, header = FALSE, colClasses = "character")
+  colnames(county_names) <- c("state", "state_fips", "county_fips", "county",
+                              "fips_class")
+  non_fifty <- c("VI", "UM", "PR", "MP", "GU", "AS")
+  county_names <- county_names[!county_names$state %in% non_fifty, ]
+  county_names$state <- state.name[match(county_names$state,state.abb)]
+  county_names <- transform(county_names, fips_code = paste(state_fips,
+                                                            county_fips,
+                                                            sep = ""),
+                            name = paste(county, state, sep = ", "))
+  county_names <- select(county_names, fips_code, county, state, name)
+
+  fipsname <- filter(county_names, fips_code == fips)$name
+  fipsname <- as.character(fipsname)
+
+  lonlat <- ggmap::geocode(location = fipsname, output = c("latlon"))
+
+
+  FIPS <- paste0('FIPS:', fips)
+  station_df <- ncdc_stations(datasetid = 'GHCND', locationid = FIPS)$data;
+      assign("station_df", station_df, .GlobalEnv)
+
+
+  station_df <- meteo_distance(station_data = station_df,
+                                 lat = lonlat$lat,
+                                 long = lonlat$lon,
+                                 radius = radius)
+  stations <- unique(station_list$id)
+  stations <- stations[!is.na(stations)]
+  stations <- gsub("GHCND:", "", stations)
+  return(stations)
+}
 
 #' Plot of stations for a particular FIPS
 #'
@@ -180,6 +234,7 @@ stationmap_fips <- function(fips, percent_coverage, date_min, date_max){
 }
 
 #' Mapping function
+#' @export
 mapping <- function(ncdcdf){
   df <- select(ncdcdf, longitude, latitude, id)
   colnames(df) <- c("lon", "lat", "id")
@@ -187,38 +242,4 @@ mapping <- function(ncdcdf){
   return(df)
 }
 
-
-#' radius function using meteo_distance()
-#'
-#' @export
-station_radius <- function(fips, radius){
-  url <- paste0("http://www2.census.gov/geo/docs/reference/",
-                "codes/files/national_county.txt")
-  county_names <- read.csv(url, header = FALSE, colClasses = "character")
-  colnames(county_names) <- c("state", "state_fips", "county_fips", "county",
-                              "fips_class")
-  non_fifty <- c("VI", "UM", "PR", "MP", "GU", "AS")
-  county_names <- county_names[!county_names$state %in% non_fifty, ]
-  county_names$state <- state.name[match(county_names$state,state.abb)]
-  county_names <- transform(county_names, fips_code = paste(state_fips,
-                                                            county_fips,
-                                                            sep = ""),
-                            name = paste(county, state, sep = ", "))
-  county_names <- select(county_names, fips_code, county, state, name)
-
-  fipsname <- filter(county_names, fips_code == fips)$name
-  fipsname <- as.character(fipsname)
-
-  lonlat <- ggmap::geocode(location = fipsname, output = c("latlon"))
-
-  stationlist <- ghcnd_stations()$data
-
-  station_list <- meteo_distance(station_data = stationlist,
-                                    lat = lonlat$lat,
-                                    long = lonlat$lon,
-                                    radius = radius)
-  stations <- unique(station_list$id)
-  stations <- stations[!is.na(stations)]
-  return(stations)
-}
 
