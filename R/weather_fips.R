@@ -198,13 +198,20 @@ station_radius <- function(fips, radius){
 #' }
 #'
 #' @export
-stationmap_fips <- function(fips, percent_coverage, date_min, date_max){
-  stations <- fips_stations(fips, date_min, date_max)
-  monitors <- meteo_pull_monitors(monitors = stations,
+stationmap_fips <- function(fips, radius = NULL, percent_coverage = NULL,
+                            date_min = NULL, date_max = NULL, var = "all"){
+  # filter stations
+  if (is.null(radius)){
+    stations <- fips_stations(fips, date_min = date_min, date_max = date_max)
+  } else {
+    stations <- station_radius(fips = fips, radius = radius)
+  }
+  meteo_df <- meteo_pull_monitors(monitors = stations,
+                                  keep_flags = FALSE,
                                   date_min = date_min,
                                   date_max = date_max,
-                                  var = c("tmin", "tmax", "prcp"))
-  coverage_df <- meteo_coverage(monitors, verbose = FALSE)
+                                  var = var)
+  coverage_df <- meteo_coverage(meteo_df, verbose = FALSE)
   filtered <- filter_coverage(coverage_df, percent_coverage)
   good_monitors <- unique(filtered$id)
 
@@ -212,9 +219,9 @@ stationmap_fips <- function(fips, percent_coverage, date_min, date_max){
 
   station_latlong <- filter(df, df$id %in% good_monitors)
 
-  monitors <- filter(monitors, monitors$id %in% good_monitors)
+  meteo_df_filtered <- filter(meteo_df, meteo_df$id %in% good_monitors)
 
-  perc_missing <- gather(monitors, key, value, -id, -date) %>%
+  perc_missing <- gather(meteo_df_filtered, key, value, -id, -date) %>%
     ddply(c("id", "key"), summarize,
           percent_missing = sum(is.na(value)) / length(value)) %>%
     mutate(key = paste(key, "percent_missing", sep = "_")) %>%
@@ -224,10 +231,16 @@ stationmap_fips <- function(fips, percent_coverage, date_min, date_max){
 
   map <- ggmap::get_map(location = c(lon = final_df$lon[1],
                                      lat = final_df$lat[1]),
-                        zoom = 9, maptype = "toner")
-  map <- ggmap::ggmap(map) +
-    geom_point(data = final_df, aes(x = lon, y = lat, color = prcp_percent_missing),
-               size = 3)
+                        zoom = 9, maptype = "roadmap")
+  map <- ggmap(map)
+    # geom_point(data = final_df, aes(x = lon, y = lat, color = prcp_percent_missing),
+    #           size = 4)
+
+  map_overlay <- map + geom_polygon(aes(x = longitude, y = latitude),
+                                    data = polygon_df)
+  # LOL
+
+
   # prcp_percent_missing for example - prob want to be able to specify what
   # weather variable you want here
   return(map)
@@ -243,3 +256,25 @@ mapping <- function(ncdcdf){
 }
 
 
+library(maps)
+county.fips$fips <- sprintf("%05d", county.fips$fips)
+polyname <- filter(county.fips, fips == "12086")$polyname
+
+polygon_list <- map("county", region = polyname)
+polygon_list$x <- na.omit(polygon_list$x)
+polygon_list$y <- na.omit(polygon_list$y)
+
+names(polygon_list)[1] <- "longitude"
+names(polygon_list)[2] <- "latitude"
+
+long <- unlist(polygon_list[1], use.names = FALSE)
+lat <- unlist(polygon_list[2], use.names = FALSE)
+
+polygon_df <- data.frame(longitude = long, latitude = lat)
+
+fips <- "12086"
+radius <- 10
+percent_coverage <- 0.90
+date_min <- "2010-01-01"
+date_max <- "2010-02-01"
+var <- "PRCP"
