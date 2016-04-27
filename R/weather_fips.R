@@ -35,18 +35,22 @@
 #'
 #' @examples
 #' \dontrun{
-#' df <- weather_fips(fips = "06037", percent_coverage = 0.90,
-#'                   date_min = "1999-01-01", date_max = "2012-12-31",
-#'                   var = c("TMAX", "TMIN", "PRCP"))
+#' df <- weather_fips(fips = "12086", radius = 10,
+#'                    percent_coverage = 0.90, date_min = "2010-01-01",
+#'                    date_max = "2010-02-01", var = c("TMAX", "TMIN", "PRCP"))
 #' }
 #'
 #' @export
-weather_fips <- function(fips, percent_coverage, date_min, date_max,
-                         var = "all"){
+weather_fips <- function(fips, radius = NULL, percent_coverage = NULL,
+                         date_min = NULL, date_max = NULL, var = "all"){
   #browser()
   # get stations for 1 fips
-  # fips_stations() from weather_fips function.R in countyweather
-  stations <- fips_stations(fips, date_min = date_min, date_max = date_max)
+  if (is.null(radius)){
+    stations <- fips_stations(fips, date_min = date_min, date_max = date_max)
+  } else {
+    stations <- station_radius(fips = fips, radius = radius)
+  }
+  # want radius to be the default? Like not optional?
 
   # get tidy full dataset for all monitors
   # clean_daily() and meteo_pull_monitors() from helpers_ghcnd.R in
@@ -182,3 +186,39 @@ mapping <- function(ncdcdf){
   df$id <- gsub("GHCND:", "", df$id)
   return(df)
 }
+
+
+#' radius function using meteo_distance()
+#'
+#' @export
+station_radius <- function(fips, radius){
+  url <- paste0("http://www2.census.gov/geo/docs/reference/",
+                "codes/files/national_county.txt")
+  county_names <- read.csv(url, header = FALSE, colClasses = "character")
+  colnames(county_names) <- c("state", "state_fips", "county_fips", "county",
+                              "fips_class")
+  non_fifty <- c("VI", "UM", "PR", "MP", "GU", "AS")
+  county_names <- county_names[!county_names$state %in% non_fifty, ]
+  county_names$state <- state.name[match(county_names$state,state.abb)]
+  county_names <- transform(county_names, fips_code = paste(state_fips,
+                                                            county_fips,
+                                                            sep = ""),
+                            name = paste(county, state, sep = ", "))
+  county_names <- select(county_names, fips_code, county, state, name)
+
+  fipsname <- filter(county_names, fips_code == fips)$name
+  fipsname <- as.character(fipsname)
+
+  lonlat <- ggmap::geocode(location = fipsname, output = c("latlon"))
+
+  stationlist <- ghcnd_stations()$data
+
+  station_list <- meteo_distance(station_data = stationlist,
+                                    lat = lonlat$lat,
+                                    long = lonlat$lon,
+                                    radius = radius)
+  stations <- unique(station_list$id)
+  stations <- stations[!is.na(stations)]
+  return(stations)
+}
+
