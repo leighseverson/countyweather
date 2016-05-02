@@ -21,12 +21,8 @@ fips <- "12086"
 # probably want to use geocodes for this instead
 isd_fips_stations <- function(fips){
   census_data <- read.csv('http://www2.census.gov/geo/docs/reference/cenpop2010/county/CenPop2010_Mean_CO.txt')
-  state <- census_data$STATEFP
-  county <- census_data$COUNTYFP
-
-  state[str_length(state) == 1] <- paste0(0, state[str_length(state) == 1])
-  county[str_length(county) == 1] <- paste0(00, county[str_length(county) == 1])
-  county[str_length(county) == 2] <- paste0(0, county[str_length(county) == 2])
+  state <- sprintf("%02d", census_data$STATEFP)
+  county <- sprintf("%03d", census_data$COUNTYFP)
 
   FIPS <- paste0(state,county)
   census_data$FIPS <- FIPS
