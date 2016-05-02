@@ -240,8 +240,9 @@ station_radius <- function(fips, radius = NULL){
 #'
 #' @examples
 #' \dontrun{
-#' ex <- stationmap_fips(fips = "08031", radius = 0.20, percent_coverage = 0.90,
-#' date_min = "2010-01-01", date_max = "2010-02-01", var = "PRCP")
+#' ex <- stationmap_fips(fips = "08031", radius = 15, percent_coverage = 0.90,
+#'                       date_min = "2010-01-01", date_max = "2010-02-01",
+#'                       var = "PRCP")
 #' }
 #' @export
 stationmap_fips <- function(fips, radius = NULL, percent_coverage = NULL,
@@ -253,10 +254,8 @@ stationmap_fips <- function(fips, radius = NULL, percent_coverage = NULL,
     stations <- station_radius(fips = fips, radius = radius)
   }
 
-  test <- unlist(stations)
-
   # meteo_pull_monitors() from helpers_ghcnd.R in ropenscilabs/rnoaa
-  meteo_df <- meteo_pull_monitors(monitors = test,
+  meteo_df <- meteo_pull_monitors(monitors = stations,
                                   keep_flags = FALSE,
                                   date_min = date_min,
                                   date_max = date_max,
