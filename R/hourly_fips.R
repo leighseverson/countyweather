@@ -34,7 +34,7 @@ fips <- "12086"
 #'
 #' @examples
 #' \dontrun{
-#' isd_fips_stations(fips = "12086")
+#' ids <- isd_fips_stations(fips = "12086")
 #' }
 #'
 #' @export
@@ -54,10 +54,28 @@ isd_fips_stations <- function(fips){
   return(stations)
 }
 
-ids <- isd_fips_stations(fips)
-
-# 2. get hourly data for a single monitor
-
+#' Get hourly data for a single monitor
+#'
+#' This function wraps the \code{isd} function from the \code{rnoaa} package.
+#'
+#' @param usaf_code A character string with a six-digit [usaf?] code for the
+#'    monitor.
+#' @param wban_code A character string with a five-digiv [wban?] code for the
+#'    monitor.
+#' @param year A four-digit numeric giving the year for which to pull data.
+#' @param var A character vector listing the weather variables to pull. Choices
+#'    include ...
+#'
+#' @examples
+#' \dontrun{
+#' ids <- isd_fips_stations(fips = "12086")
+#' onest <- int_surface_data(usaf_code = ids$usaf[1], wban_code = ids$wban[1],
+#'                           year = 1992, var = c("wind_speed", "temperature"))
+#' derp <- int_surface_data(usaf_code = ids$usaf[11], wban_code = ids$wban[11],
+#'                          year = year, var = c("wind_speed", "temperature"))
+#' }
+#'
+#' @export
 int_surface_data <- function(usaf_code, wban_code, year, var = "all"){
   isd_df <- rnoaa::isd(usaf = usaf_code, wban = wban_code, year = year)$data
   # add date time (suggested by one of the rnoaa package vignette examples for isd())
@@ -83,11 +101,7 @@ int_surface_data <- function(usaf_code, wban_code, year, var = "all"){
   return(isd_df)
 }
 
-year <- 1992
-onest <- int_surface_data(ids$usaf[1], ids$wban[1], year, var = c("wind_speed",
-                                                                  "temperature"))
-derp <- int_surface_data(ids$usaf[11], ids$wban[11], year, var = c("wind_speed",
-                                                                   "temperature"))
+
 
 # 3. pull data for multiple monitors
 
