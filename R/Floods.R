@@ -92,12 +92,17 @@ streamdata <- function(fips, date_min, date_max, stat_code = "00003"){
   test <- sapply(ids, FUN = waterData::importDVs, stat = stat_code,
                  sdate = date_min,
                  edate = date_max)
+
   df <- do.call(rbind, lapply(ids, function(ids) waterData::importDVs(
     staid = ids, stat = stat_code, sdate = date_min,
     edate = date_max)))
 
   df_clean <- cleanUp(df, task = "fix")
-  return(df_clean)
+
+  ave <- ddply(df_clean, c("dates"), summarize,
+               mean = mean(val, na.rm = TRUE))
+
+  return(ave)
 }
 
 #' Return average daily streamflow data for a particular county and date range.
