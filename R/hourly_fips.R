@@ -20,24 +20,18 @@ fips <- "12086"
 # 1. get station list for a particular fips
 # probably want to use geocodes for this instead
 isd_fips_stations <- function(fips){
-  census_data <- read.csv('http://www2.census.gov/geo/docs/reference/cenpop2010/county/CenPop2010_Mean_CO.txt')
+  census_data <- read.csv(paste0("http://www2.census.gov/geo/docs/reference/",
+                                 "cenpop2010/county/CenPop2010_Mean_CO.txt"))
   state <- sprintf("%02d", census_data$STATEFP)
   county <- sprintf("%03d", census_data$COUNTYFP)
-
   FIPS <- paste0(state,county)
-  census_data$FIPS <- FIPS
 
-  lat <- census_data$LATITUDE
-  lon <- census_data$LONGITUDE
+  loc_fips <- which(FIPS == fips)
+  lat_FIPS <- census_data[loc_fips, "LATITUDE"]
+  lon_FIPS <- census_data[loc_fips, "LONGITUDE"]
 
-  your_fips <- fips
-  row_num <- which(grepl(your_fips, census_data$FIPS))
-
-  lat_FIPS <- lat[row_num]
-  lon_FIPS <- lon[row_num]
-
-  stations <- isd_stations_search(lat = lat_FIPS, lon = lon_FIPS,
-                                  radius = 50)
+  stations <- noaa::isd_stations_search(lat = lat_FIPS, lon = lon_FIPS,
+                                        radius = 50)
   return(stations)
 }
 
