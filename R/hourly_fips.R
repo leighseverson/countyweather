@@ -17,8 +17,27 @@ library(tidyr)
 
 fips <- "12086"
 
-# 1. get station list for a particular fips
-# probably want to use geocodes for this instead
+#' Get station list for a particular fips
+#'
+#' This function serves as a wrapper to that function, allowing you to search
+#' by FIPS code rather than having to know the latitude and longitude of the
+#' center of each county.
+#'
+#' @param fips A five-digit FIPS county code.
+#'
+#' @return A dataframe of monitors within a given radius of the
+#'    population-weighted center of the county specified by the FIPS code.
+#'    This will have the same dataframe format as the output from the
+#'    \code{isd_stations_search} function in the \code{rnoaa} package.
+#'
+#' @note We probably want to use geocodes for this instead.
+#'
+#' @examples
+#' \dontrun{
+#' isd_fips_stations(fips = "12086")
+#' }
+#'
+#' @export
 isd_fips_stations <- function(fips){
   census_data <- read.csv(paste0("http://www2.census.gov/geo/docs/reference/",
                                  "cenpop2010/county/CenPop2010_Mean_CO.txt"))
@@ -30,7 +49,7 @@ isd_fips_stations <- function(fips){
   lat_FIPS <- census_data[loc_fips, "LATITUDE"]
   lon_FIPS <- census_data[loc_fips, "LONGITUDE"]
 
-  stations <- noaa::isd_stations_search(lat = lat_FIPS, lon = lon_FIPS,
+  stations <- rnoaa::isd_stations_search(lat = lat_FIPS, lon = lon_FIPS,
                                         radius = 50)
   return(stations)
 }
