@@ -1,5 +1,5 @@
 ---
-title: "`countyweather` example"
+title: "`countyweather` Example"
 author: "Rachel Severson and G. Brooke Anderson"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -9,51 +9,69 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-# 
+```{r}
+library(countyweather)
+```
 
-Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
+# `weather_fips` function 
 
-- Never uses retina figures
-- Has a smaller default figure size
-- Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style
+For a particular U.S. county, `weather_fips()` returns a dataframe showing daily weather values averaged across multiple weather stations, as well as a map showing the location of weather stations that are contributing to the average values. 
 
-## Vignette Info
+The function has options to further filter weather stations: 
 
-Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
+* `radius` specifies the radius (in km) within which you want to search for stations in a county, a minumum fraction of coverage. 
+* `percent_coverage` is a number between 0 and 1 that will filter stations based on the amount of missing data they have for each weather variable. For example, specifiying `percent_coverage = 0.90` would return data from stations that have weather data for at least 90% of the dates in your date range (or in the range of dates the monitors have been active, if a date range is not specified). 
+* `date_min` and `date_max` can be used to return monitors that have data for a particular range of dates. 
+* `vec` lets you specify desired weather variables. For example, if you were interested in precipitation and temperature, you could specify `vec = c("PRCP", "TMIN", "TMAX")`. 
 
-## Styles
+For example, if we were interested in pulling daily precipitation data for Miami during Hurricane Andrew, we would try the following: 
 
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
+```{r warning=FALSE, message=FALSE}
+andrew <- weather_fips(fips = "12086", percent_coverage = 0.90, date_min = "1992-08-01", 
+                       date_max = "1992-08-31", var = "PRCP")
+```
 
-    output: 
-      rmarkdown::html_vignette:
-        css: mystyles.css
+The 5-digit FIPS code for Miami-Dade county is 12086, and we specify that we only want data from stations that have at least 90% non-missing data for our date range. Hurricane Andrew made landfall on August 24, and dissapated on August 28 - we'll pull data for month of August, but we could also choose to focus on those particular days. 
 
-## Figures
-
-The figure sizes have been customised so that you can easily put two images side-by-side. 
+We can look at the time-series data:
 
 ```{r}
-ex <- weather_fips("12086", 0.90, "1992-08-01", "1992-09-01")
+head(andrew$data)
 ```
 
-You can enable figure captions by `fig_caption: yes` in YAML:
+The `prcp_reporting` column shows the number of stations contribuing to the average for that day. 
 
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
-
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
-
-## More Examples
-
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
-
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
+```{r}
+ggplot(andrew$data, aes(x = date, y = prcp)) + geom_line() + theme_minimal()
 ```
 
-Also a quote using `>`:
+We can also look at the locations of the weather stations in Miami-Dade County that are contrubuting to the average precipitation values each day: 
 
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
+```{r}
+andrew$plot
+```
+
+# `streamdata` function 
+
+If we were interested in looking at flooding data for Miami-Dade county during Hurricane Andrew, we could use the `streamdata` function, which pulls USGS streamflow data. 
+
+```{r}
+andrew_streams <- streamdata(fips = "12086", date_min = "1992-08-01", date_max = "1992-08-31")
+```
+
+```{r}
+head(andrew_streams)
+```
+
+```{r}
+ggplot(andrew_streams, aes(x = dates, y = mean)) + geom_line() + theme_minimal()
+```
+
+Ideally, we would like to be able to compare our daily streamflow measurements to a distribution of measurements. For example, if a daily value is greater than or equal to the 90th percentile, we would say there was flooding on that day. 
+
+# `hourly_fips` function 
+
+
+
+
+
