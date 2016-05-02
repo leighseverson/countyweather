@@ -66,6 +66,14 @@ isd_fips_stations <- function(fips){
 #' @param var A character vector listing the weather variables to pull. Choices
 #'    include ...
 #'
+#' @return This function returns the same type of dataframe as that returned
+#'    by the \code{isd} function from the \code{rnoaa} package, but with the
+#'    dataframe limited to the selected weather variables.
+#'
+#' @reference
+#' For more information on this dataset, see
+#' \url{ftp://ftp.ncdc.noaa.gov/pub/data/noaa/ish-format-document.pdf}.
+#'
 #' @examples
 #' \dontrun{
 #' ids <- isd_fips_stations(fips = "12086")
@@ -79,7 +87,9 @@ isd_fips_stations <- function(fips){
 int_surface_data <- function(usaf_code, wban_code, year, var = "all"){
   isd_df <- rnoaa::isd(usaf = usaf_code, wban = wban_code, year = year)$data
   # add date time (suggested by one of the rnoaa package vignette examples for isd())
-  isd_df$date_time <- ymd_hm(sprintf("%s %s", as.character(isd_df$date), isd_df$time))
+  isd_df$date_time <- lubridate::ymd_hm(sprintf("%s %s",
+                                                as.character(isd_df$date),
+                                                isd_df$time))
   # select variables
 
   w_vars <- colnames(isd_df)
@@ -87,28 +97,38 @@ int_surface_data <- function(usaf_code, wban_code, year, var = "all"){
   if(length(var) == 1 && var == "all"){
     var <- w_vars[9:length(w_vars)]
     remove <- c("date_time")
-    var <- var[!var%in%remove]
+    var <- var[!(var %in% remove)]
   }
 
-  cols <- c("usaf_station", "wban_station", "date_time", "latitude", "longitude")
+  cols <- c("usaf_station", "wban_station", "date_time",
+            "latitude", "longitude")
   subset_vars <- append(cols, var)
   isd_df <- dplyr::select_(isd_df, .dots = subset_vars)
   # change misisng weather data values to NA - it looks like non-signed items are filled
   # with 9 (quality codes), 999 or 9999; signed items are positive filled (+9999 or +99999)
   # ftp://ftp.ncdc.noaa.gov/pub/data/noaa/ish-format-document.pdf
-  isd_df[,var][isd_df[,var] > 900] <- NA
+  isd_df[ ,var][isd_df[ ,var] > 900] <- NA
 
   return(isd_df)
 }
 
 
 
-# 3. pull data for multiple monitors
-
+#' Pull hourly data for multiple monitors
+#'
+#' @inheritParams isd_fips_stations
+#' @inheritParams int_surface_data
+#'
+#' @examples
+#' \dontrun{
+#' stationdata <- isd_monitors_data(fips = "12086", year = 1992,
+#'                                  var = c("wind_speed", "temperature"))
+#' }
+#'
+#' @export
 isd_monitors_data <- function(fips, year, var = "all"){
   ids <- isd_fips_stations(fips)
   safe_int <- purrr::safely(int_surface_data)
-
 
     mult_stations <- mapply(safe_int, usaf_code = ids$usaf, wban_code =
                               ids$wban, year = year, var = var)
@@ -135,8 +155,7 @@ isd_monitors_data <- function(fips, year, var = "all"){
   return(st_out_df)
 }
 
-stationdata <- isd_monitors_data("12086", 1992, var = c("wind_speed",
-                                                        "temperature"))
+
 
 # 4. average across stations
 
