@@ -7,11 +7,6 @@
 #' weather in "data".
 #'
 #' @inheritParams weather_fips_df
-#' @param shapefile_dir This is the absolute or relative pathname for the
-#'    directory where the U.S. Census Cartographic Boundary Shapefile (Counties)
-#'    is saved. The cb_2014_us_county_5m.zip file can be downloaded from
-#'    \url{https://www.census.gov/geo/maps-data/data/cbf/cbf_counties.html}.
-#'    (Optional.)
 #'
 #' @return A list with two elements. The first element ("data") is a dataframe
 #'    of daily weather data averaged across multiple stations, as well as
@@ -20,28 +15,23 @@
 #'    day. The second element ("plot") is a plot showing points for all weather
 #'    stations for a particular county satisfying the conditions present in
 #'    \code{weather_fips}'s arguments (radius, percent_coverage, date_min,
-#'    date_max, and/or var). If you have downloaded the U.S. Census Cartographic
-#'    Boundary Shapefile (cb_2014_us_county_5m.zip) and include the
-#'    \code{shapefile_dir} argument, the resulting plot will include an outline
-#'    of the county indicated in the function's \code{fips} argument.
+#'    date_max, and/or var).
 #'
 #' @example
 #' \dontrun{
 #' ex <- weather_fips("08031", radius = 15, percent_coverage = 0.90,
-#' date_min = "2010-01-01", date_max = "2010-02-01", var = "PRCP",
-#' shapefile_dir = "/Users/rachelseverson1/Desktop/LD/cb_2014_us_county_5m")
+#' date_min = "2010-01-01", date_max = "2010-02-01", var = "PRCP")
 #'
 #' data <- ex$data
 #' plot <- ex$plot
 #' }
 #' @export
 weather_fips <- function(fips, radius = NULL, percent_coverage = NULL,
-                         date_min = NULL, date_max = NULL, var = "all",
-                         shapefile_dir = NULL){
+                         date_min = NULL, date_max = NULL, var = "all"){
   data <- weather_fips_df(fips, radius, percent_coverage, date_min, date_max,
                           var)
-  plot <- stationmap_fips(fips, radius, percent_coverage,
-                          date_min, date_max, var, shapefile_dir)
+  plot <- stationmap_fips(fips, radius, percent_coverage, date_min, date_max,
+                          var)
   list <- list("data" = data, "plot" = plot)
   return(list)
 }
@@ -242,20 +232,11 @@ station_radius <- function(fips, radius = NULL){
 
 #' Plot weather stations for a particular county
 #'
-#' @param shapefile_dir This is the absolute or relative pathname for the
-#'    directory where the U.S. Census Cartographic Boundary Shapefile (Counties)
-#'    is saved. The cb_2014_us_county_5m.zip file can be downloaded from
-#'    \url{https://www.census.gov/geo/maps-data/data/cbf/cbf_counties.html}.
-#'    (Optional.)
 #' @inheritParams weather_fips_df
 #'
 #' @return A plot showing points for all weather stations for a particular
 #'    county satisfying the conditions present in \code{stationmap_fips}'s
-#'    arguments (radius, percent_coverage, date_min, date_max, and/or var). If
-#'    you have downloaded the U.S. Census Cartographic Boundary Shapefile
-#'    cb_2014_us_county_5m.zip and include the \code{shapefile_dir} argument,
-#'    the resulting plot will include an outline of the county indicated in the
-#'    function's \code{fips} argument.
+#'    arguments (radius, percent_coverage, date_min, date_max, and/or var).
 #'
 #' @examples
 #' \dontrun{
@@ -264,16 +245,18 @@ station_radius <- function(fips, radius = NULL){
 #' }
 #' @export
 stationmap_fips <- function(fips, radius = NULL, percent_coverage = NULL,
-                            date_min = NULL, date_max = NULL, var = "all",
-                            shapefile_dir = NULL){
+                            date_min = NULL, date_max = NULL, var = "all"){
   # pull stations
   if (is.null(radius)){
     stations <- fips_stations(fips, date_min = date_min, date_max = date_max)
   } else {
     stations <- station_radius(fips = fips, radius = radius)
   }
+
+  test <- unlist(stations)
+
   # meteo_pull_monitors() from helpers_ghcnd.R in ropenscilabs/rnoaa
-  meteo_df <- meteo_pull_monitors(monitors = stations,
+  meteo_df <- meteo_pull_monitors(monitors = test,
                                   keep_flags = FALSE,
                                   date_min = date_min,
                                   date_max = date_max,
@@ -305,64 +288,37 @@ stationmap_fips <- function(fips, radius = NULL, percent_coverage = NULL,
   # running station_radius())
   station_radius(fips = fips, radius = radius)
 
-  # this initial zoom = 9 will later be cropped based on the county polygon
-  # or station locations.
-  getmap <- ggmap::get_map(location = c(lon = central_latlong$lon,
-                                     lat = central_latlong$lat),
-                        zoom = 9, maptype = "roadmap", color = "bw")
-  map <- ggmap(getmap)
+  data("df_pop_county")
 
-  if(!is.null(shapefile_dir)){
+  census_csv <- paste0("http://www2.census.gov/geo/docs/reference/cenpop2010/",
+                       "county/CenPop2010_Mean_CO.txt")
+  census_data <- read.csv(census_csv)
+  census_data$COUNTYFP <- sprintf("%03d", census_data$COUNTYFP)
+  census_data <- mutate(census_data, choro_fips = paste0(census_data$STATEFP,
+                                                         census_data$COUNTYFP))
 
-    shp <- rgdal::readOGR(shapefile_dir, "cb_2014_us_county_5m")
-    shp@data$GEOID <- as.character(shp@data$GEOID)
+  census_data$state_long <- sprintf("%02d", census_data$STATEFP)
+  census_data$fips <- paste0(census_data$state_long, census_data$COUNTYFP)
 
-    dat <- shp@data
-    dat <- mutate(dat, id = c(0:3232))
-    dat <- select(dat, GEOID, id)
-    dat$id <- as.character(dat$id)
-    shp_df <- broom::tidy(shp)
-    shp <- full_join(shp_df, dat, by = "id")
+  row_num <- which(grepl(fips, census_data$fips))
 
-    county_pol <- filter(shp, GEOID == fips)
+  census_data$cname <- paste0(census_data$COUNAME, " County, ")
+  census_data$name <- paste0(census_data$cname, census_data$STNAME)
+  census_data <- select(census_data, -cname, -state_long)
 
-    xlim_min <- min(county_pol$long) - 0.1
-    xlim_max <- max(county_pol$long) + 0.1
-    ylim_min <- min(county_pol$lat) - 0.1
-    ylim_max <- max(county_pol$lat) + 0.1
+  choro_fips <- census_data[row_num, 8]
+  title <- census_data[row_num, 10]
 
-    map_overlay <- map + geom_polygon(data = county_pol,
-                                      aes(x = long, y = lat),
-                                      fill = "white", colour = "black",
-                                      alpha = 0, size = 1) +
-      geom_point(data = final_df, aes(x = lon, y = lat), colour = "blue4",
-                 size = 5)
+  map <- county_choropleth(df_pop_county, title = "", legend = "",
+                           num_colors = 1, state_zoom = NULL,
+                           county_zoom = choro_fips, reference_map = TRUE)
 
-    # map with county polygon overlaid
-    map_cropped <- map_overlay + scale_x_continuous(limits = c(xlim_min,
-                                                               xlim_max),
-                                                    expand = c(0, 0)) +
-                                 scale_y_continuous(limits = c(ylim_min,
-                                                               ylim_max),
-                                                    expand = c(0, 0))
-  } else {
+  map <- map + geom_point(data = final_df, aes(x = lon, y = lat),
+                          colour = "black", size = 5) +
+    theme(legend.position = "none") +
+    ggtitle(title)
 
-    xlim_min <- min(final_df$lon) - 0.1
-    xlim_max <- max(final_df$lon) + 0.1
-    ylim_min <- min(final_df$lat) - 0.1
-    ylim_max <- max(final_df$lat) + 0.1
-
-    # map without county polygon overlaid
-    map_cropped <- map + geom_point(data = final_df, aes(x = lon, y = lat),
-                                    colour = "blue4", size = 5) +
-      scale_x_continuous(limits = c(xlim_min, xlim_max),
-                         expand = c(0, 0)) +
-      scale_y_continuous(limits = c(ylim_min, ylim_max),
-                         expand = c(0, 0))
-  }
-
-  return(map_cropped)
-
+  return(map)
 }
 
 #' Return a dataframe with station IDs, and longitude and latitude for each
