@@ -9,11 +9,1486 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r}
+```{r warning=FALSE, message=FALSE, results='hide', echo=FALSE}
 library(countyweather)
+library(ggplot2)
+library(dplyr)
+library(rgdal)
+library(rnoaa)
+library(tidyr)
+library(weathermetrics)
+library(knitr)
+library(plyr)
+library(ggmap)
+library(lubridate)
+library(purrr)
+library(devtools)
+library(maps)
+library(sp)
+library(leaflet)
+library(broom)
+library(choroplethr)
+library(waterData)
+options(noaakey = "PbGEAVHwjtNNuqVxSYLKMFBvQLHCvAZq")
+
+#' Pull GHCND weather data for multiple weather monitors
+#'
+#' This function takes a vector of one or more weather station IDs. It will pull
+#' the weather data from the Global Historical Climatology Network's daily
+#' data (GHCND) for each of the stations and join them together in a single tidy
+#' dataframe. For any weather stations that the user calls that are not
+#' available by ftp from GHCND, the function will return a warning
+#' giving the station ID.
+#'
+#' @param monitors A character vector listing the station IDs for all
+#'    weather stations the user would like to pull. To get a full and
+#'    current list of stations, the user can use the \code{\link{ghcnd_stations}}
+#'    function. To identify stations within a certain radius of a location, the
+#'    user can use the \code{\link{meteo_nearby_stations}} function.
+#' @inheritParams meteo_tidy_ghcnd
+#' @inheritParams ghcnd_search
+#'
+#' @return A data frame of daily weather data for multiple weather monitors,
+#'    converted to a tidy format. All weather variables may not exist for all
+#'    weather stations. Examples of variables returned are:
+#'    \itemize{
+#'    \item \code{id}: Character string with the weather station site id
+#'    \item \code{date}: Date of the observation
+#'    \item \code{prcp}: Precipitation, in mm
+#'    \item \code{tavg}: Average temperature, in degrees Celsius
+#'    \item \code{tmax}: Maximum temperature, in degrees Celsius
+#'    \item \code{tmin}: Minimum temperature, in degrees Celsius
+#'    \item \code{awnd}: Average daily wind speed, in meters / second
+#'    \item \code{wsfg}: Peak gust wind speed, in meters / second
+#'    }
+#'    There are other possible weather variables in the Global Historical
+#'    Climatology Network; see
+#'    \url{http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt} for a full
+#'    list. If the \code{var} argument is something other than "all", then
+#'    only variables included in that argument will be included in the output
+#'    data frame. The variables \code{prcp}, \code{tmax}, \code{tmin}, and \code{tavg}
+#'    have all been converted from tenths of their metric to the metric (e.g.,
+#'    from tenths of degrees Celsius to degrees Celsius). All other variables
+#'    are in the units specified in the linked file.
+#'
+#' @note The weather flags, which are kept by specifying
+#' \code{keep_flags = TRUE} are:
+#' \itemize{
+#' \item \code{*_mflag}: Measurement flag, which gives some information on how
+#'    the observation was measured.
+#' \item \code{*_qflag}: Quality flag, which gives quality information on the
+#'    measurement, like if it failed to pass certain quality checks.
+#' \item \code{*_sflag}: Source flag. This gives some information on the
+#'    weather collection system (e.g., U.S. Cooperative Summary of the Day,
+#'    Australian Bureau of Meteorology) the weather observation comes from.
+#' }
+#' More information on the interpretation of these flags can be found in the
+#' README file for the NCDC's Daily Global Historical Climatology Network's
+#' data at \url{http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt}.
+#'
+#' @note This function may take a while to run.
+#'
+#' @author Brooke Anderson \email{brooke.anderson@@colostate.edu}
+#'
+#' @references
+#'
+#' For more information about the data pulled with this function, see:
+#'
+#' Menne, M.J., I. Durre, R.S. Vose, B.E. Gleason, and T.G. Houston, 2012:
+#' An overview of the Global Historical Climatology Network-Daily Database.
+#' Journal of Atmospheric and Oceanic Technology, 29, 897-910,
+#' doi:10.1175/JTECH-D-11-00103.1.
+#'
+#' @examples
+#' \dontrun{
+#'
+#' monitors <- c("ASN00003003", "ASM00094299", "ASM00094995", "ASM00094998")
+#' all_monitors_clean <- meteo_pull_monitors(monitors)
+#'
+#' }
+#'
+#' @export
+meteo_pull_monitors <- function(monitors, keep_flags = FALSE, date_min = NULL,
+                                date_max = NULL, var = "all"){
+  monitors <- unique(monitors)
+  
+  safe_meteo_tidy_ghcnd <- purrr::safely(meteo_tidy_ghcnd)
+  all_monitors_clean <- lapply(monitors, safe_meteo_tidy_ghcnd,
+                               keep_flags = keep_flags, date_min = date_min,
+                               date_max = date_max, var = var)
+  
+  #check_station <- sapply(all_monitors_clean, function(x) is.null(x$result))
+  #bad_stations <- monitors[check_station]
+  #if(length(bad_stations) > 0){
+  #  warning(paste("The following stations could not be pulled from",
+  #                "the GHCN ftp:\n", paste(bad_stations, collapse = ", "),
+  #                "\nAny other monitors were successfully pulled from GHCN."))
+  #}
+  
+  all_monitors_out <- lapply(all_monitors_clean, #[!check_station],
+                             function(x) x$result)
+  all_monitors_out <- suppressWarnings(dplyr::bind_rows(all_monitors_out))
+  return(all_monitors_out)
+}
+
+#' Create a tidy GHCND dataset from a single monitor
+#'
+#' This function inputs an object created by \code{\link{ghcnd}} and cleans up
+#' the data into a tidy form.
+#'
+#' @param keep_flags TRUE / FALSE for whether the user would like to keep all the flags
+#'    for each weather variable. The default is to not keep the flags (FALSE).
+#'    See the note below for more information on these flags.
+#' @inheritParams ghcnd_search
+#'
+#' @return A data frame of daily weather data for a single weather monitor,
+#'    converted to a tidy format. All weather variables may not exist for all
+#'    weather stations. Examples of variables returned are:
+#'    \itemize{
+#'    \item \code{id}: Character string with the weather station site id
+#'    \item \code{date}: Date of the observation
+#'    \item \code{prcp}: Precipitation, in mm
+#'    \item \code{tavg}: Average temperature, in degrees Celsius
+#'    \item \code{tmax}: Maximum temperature, in degrees Celsius
+#'    \item \code{tmin}: Minimum temperature, in degrees Celsius
+#'    \item \code{awnd}: Average daily wind speed, in meters / second
+#'    \item \code{wsfg}: Peak gust wind speed, in meters / second
+#'    }
+#'    There are other possible weather variables in the Global Historical
+#'    Climatology Network; see
+#'    \url{http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt} for a full
+#'    list. The variables \code{prcp}, \code{tmax}, \code{tmin}, and \code{tavg}
+#'    have all been converted from tenths of their metric to the metric (e.g.,
+#'    from tenths of degrees Celsius to degrees Celsius). All other variables
+#'    are in the units specified in the linked file.
+#'
+#' @note The weather flags, which are kept by specifying
+#' \code{keep_flags = TRUE} are:
+#' \itemize{
+#' \item \code{*_mflag}: Measurement flag, which gives some information on how
+#'    the observation was measured.
+#' \item \code{*_qflag}: Quality flag, which gives quality information on the
+#'    measurement, like if it failed to pass certain quality checks.
+#' \item \code{*_sflag}: Source flag. This gives some information on the
+#'    weather collection system (e.g., U.S. Cooperative Summary of the Day,
+#'    Australian Bureau of Meteorology) the weather observation comes from.
+#' }
+#' More information on the interpretation of these flags can be found in the
+#' README file for the NCDC's Daily Global Historical Climatology Network's
+#' data at \url{http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt}.
+#'
+#' @author Brooke Anderson \email{brooke.anderson@@colostate.edu}
+#'
+#' @seealso \code{\link{meteo_pull_monitors}}
+#'
+#' @examples
+#' \dontrun{
+#' # One station in Australia is ASM00094275
+#' cleaned_df <- meteo_tidy_ghcnd(stationid = "ASN00003003")
+#' }
+#'
+#' @importFrom dplyr %>%
+#'
+#' @export
+meteo_tidy_ghcnd <- function(stationid, keep_flags = FALSE, var = "all",
+                             date_min = NULL, date_max = NULL){
+  
+  dat <- suppressWarnings(ghcnd_search(stationid = stationid, var = var,
+                                       date_min = date_min,
+                                       date_max = date_max)) %>%
+    lapply(meteo_tidy_ghcnd_element, keep_flags = keep_flags)
+  cleaned_df <- do.call(rbind.data.frame, dat) %>%
+    tidyr::spread_("key", "value")
+  
+  which_vars_tenths <- which(colnames(cleaned_df) %in%
+                               c("prcp", "tmax", "tmin", "tavg"))
+  cleaned_df <- dplyr::tbl_df(cleaned_df)
+  # All these variables are in tenths of units
+  cleaned_df[, which_vars_tenths] <- vapply(cleaned_df[, which_vars_tenths],
+                                            FUN.VALUE = numeric(nrow(cleaned_df)),
+                                            FUN = function(x){
+                                              x <- ifelse(x == -9999, NA, x)
+                                              x <- as.numeric(x) / 10
+                                            })
+  
+  which_other_vars <- which(colnames(cleaned_df) %in%
+                              c("snow", "snwd"))
+  cleaned_df[, which_other_vars] <- vapply(cleaned_df[, which_other_vars],
+                                           FUN.VALUE = numeric(nrow(cleaned_df)),
+                                           FUN = function(x){
+                                             x <- ifelse(x == -9999, NA, x)
+                                             x <- as.numeric(x)
+                                           })
+  return(cleaned_df)
+}
+
+#' Restructure element of ghcnd_search list
+#'
+#' This function restructures a single element of the list object created
+#' by \code{\link{ghcnd_search}}, to add a column giving the variable name
+#' (\code{key}) and change the name of the variable column to \code{value}.
+#' These changes facilitate combining all elements from the list created by
+#' \code{\link{ghcnd_search}}, to create a tidy dataframe of the weather
+#' observations from the station.
+#'
+#' @param x A dataframe with daily observations for a single monitor for a
+#'    single weather variable. This dataframe is one of the elements returned
+#'    by \code{\link{ghcnd_search}}.
+#' @inheritParams meteo_tidy_ghcnd
+#'
+#' @return A dataframe reformatted to allow easy aggregation of all weather
+#'    variables for a single monitor.
+#'
+#' @author Brooke Anderson \email{brooke.anderson@@colostate.edu}
+meteo_tidy_ghcnd_element <- function(x, keep_flags = FALSE){
+  var_name <- colnames(x)[2]
+  if(keep_flags){
+    flag_locs <- grep("flag", colnames(x))
+    colnames(x)[flag_locs] <- paste(colnames(x)[flag_locs], var_name, sep = "_")
+    x <- tidyr::gather_(x, "key", "value",
+                        gather_cols =  dplyr::select_vars(names(x), -id, -date))
+  } else {
+    x <- dplyr::select_(x, "-ends_with('flag')")
+    x <- tidyr::gather_(x, "key", "value",
+                        gather_cols =  dplyr::select_vars(names(x), -id, -date))
+  }
+  return(x)
+}
+
+#' Determine the "coverage" for a station data frame
+#'
+#' Call this function after pulling down observations for a set of stations
+#' to retrieve the "coverage" (i.e. how complete each field is). If either
+#' or both \code{obs_start_date} or \code{obs_end_date} are specified,
+#' the coverage test will be limited to that date range.
+#'
+#' There is an \code{autoplot} method for the output of this function.
+#' @importFrom scales comma
+#' @param meteo_df an \emph{meteo} \code{data.frame}
+#' @param obs_start_date specify either or both (obs_start_date, obs_end_date) to constrain
+#'        coverate tests. These should be \code{Date} objects.
+#' @param obs_end_date specify either or both (obs_start_date, obs_end_date) to constrain
+#'        coverate tests. These should be \code{Date} objects.
+#' @param verbose if \code{TRUE} will display the coverage summary along
+#'        with returning the coverage data.frame
+#' @return a \code{data.frame} with the coverage for each station, minimally
+#' containing: \preformatted{
+#' $ id         (chr)
+#' $ start_date (time)
+#' $ end_date   (time)
+#' $ total_obs  (int)
+#' }
+#' with additional fields (and their coverage percent) depending on what
+#' was available for the weather station.
+#' @export
+#' @examples
+#' monitors <- c("ASN00095063", "ASN00024025", "ASN00040112", "ASN00041023",
+#'              "ASN00009998", "ASN00066078", "ASN00003069", "ASN00090162",
+#'              "ASN00040126", "ASN00058161")
+#' obs <- meteo_pull_monitors(monitors)
+#' obs_covr <- meteo_coverage(obs)
+#' autoplot(obs_covr)
+meteo_coverage <- function(meteo_df,
+                           obs_start_date=NULL,
+                           obs_end_date=NULL,
+                           verbose=FALSE) {
+  
+  if (!is.null(obs_start_date)) {
+    dots <- list(~as.Date(date) >= obs_start_date)
+    meteo_df <- dplyr::filter_(meteo_df, .dots = dots)
+  }
+  
+  if (!is.null(obs_end_date)) {
+    dots <- list(~as.Date(date) <= obs_end_date)
+    meteo_df <- dplyr::filter_(meteo_df, .dots = dots)
+  }
+  
+  dplyr::group_by_(meteo_df, ~id) %>%
+    dplyr::do({
+      rng <- range(.$date)
+      dat <- data.frame(start_date = rng[1],
+                        end_date = rng[2],
+                        total_obs = nrow(.), stringsAsFactors=FALSE)
+      if (verbose) cat(sprintf("Station Id: %s\n", .$id[1]))
+      if (verbose) cat(sprintf("\n  Date range for observations: %s\n\n",
+                               paste0(as.character(rng), sep="", collapse=" to ")))
+      if (verbose) cat(sprintf("  Total number of observations: %s\n\n",
+                               scales::comma(nrow(.))))
+      meteo_cols <- dplyr::setdiff(colnames(.), c("id", "date"))
+      col_cov <- lapply(meteo_cols, function(x, n) {
+        if (verbose) cat(sprintf("  Column %s completeness: %5s\n",
+                                 formatC(sprintf("'%s'", x), width = (n+2)),
+                                 scales::percent(sum(!is.na(.[,x])) / nrow(.))))
+        sum(!is.na(.[,x])) / nrow(.)
+      }, max(vapply(colnames(.), nchar, numeric(1), USE.NAMES=FALSE)))
+      if (verbose) cat("\n")
+      col_cov <- setNames(cbind.data.frame(col_cov, stringsAsFactors=FALSE), meteo_cols)
+      dplyr::bind_cols(dat, col_cov)
+    }) -> out
+  class(out) <- c("meteo_coverage", class(out))
+  if (verbose) return(invisible(out))
+  out
+}
+
+autoplot.meteo_coverage <- function(df) {
+  
+  gg <- ggplot2::ggplot(df)
+  gg <- gg + ggplot2::geom_segment(data = df, ggplot2::aes(x = reorder(id, start_date),
+                                                           xend = reorder(id, start_date),
+                                                           y = start_date, yend = end_date))
+  gg <- gg + ggplot2::scale_x_discrete(expand = c(0, 0.25))
+  gg <- gg + ggplot2::scale_y_datetime(expand = c(0, 0))
+  gg <- gg + ggplot2::coord_flip()
+  gg <- gg + ggplot2::labs(x = NULL, y = NULL, title = "Time coverage by station")
+  gg <- gg + ggplot2::theme_bw(base_family = "Arial Narrow")
+  gg <- gg + ggplot2::theme(panel.grid = element_line(color="#b2b2b2", size=0.1))
+  gg <- gg + ggplot2::theme(panel.grid.major.x = element_line(color = "#b2b2b2", size = 0.1))
+  gg <- gg + ggplot2::theme(panel.grid.major.y = element_blank())
+  gg <- gg + ggplot2::theme(panel.grid.minor = element_blank())
+  gg <- gg + ggplot2::theme(panel.border = element_blank())
+  gg <- gg + ggplot2::theme(axis.ticks = element_blank())
+  gg <- gg + ggplot2::theme(plot.title = element_text(margin = margin(b = 12)))
+  ggtime <- gg
+  
+  df_long <- tidyr::gather(dplyr::select(df, -start_date, -end_date, -total_obs),
+                           observation, value, -id)
+  
+  gg <- ggplot2::ggplot(df_long)
+  gg <- gg + ggplot2::geom_segment(aes(x = 0, xend = value,
+                                       y = observation, yend = observation, group = id))
+  gg <- gg + ggplot2::scale_x_continuous(labels = percent, limits = c(0, 1))
+  gg <- gg + ggplot2::facet_wrap(~id, scales = "free_x")
+  gg <- gg + ggplot2::labs(x = NULL, y = NULL, title = "Observation coverage by station")
+  gg <- gg + ggplot2::theme_bw(base_family = "Arial Narrow")
+  gg <- gg + ggplot2::theme(panel.grid = element_line(color = "#b2b2b2", size = 0.1))
+  gg <- gg + ggplot2::theme(panel.grid.major.x = element_line(color = "#b2b2b2", size = 0.1))
+  gg <- gg + ggplot2::theme(panel.grid.major.y = element_blank())
+  gg <- gg + ggplot2::theme(panel.grid.minor = element_blank())
+  gg <- gg + ggplot2::theme(panel.border = element_blank())
+  gg <- gg + ggplot2::theme(axis.ticks = element_blank())
+  gg <- gg + ggplot2::theme(plot.title = element_text(margin = margin(b = 12)))
+  gg <- gg + ggplot2::theme(strip.background = element_blank())
+  gg <- gg + ggplot2::theme(strip.text = element_text(hjust = 0))
+  gg <- gg + ggplot2::theme(panel.margin.x = grid::unit(12, "pt"))
+  gg <- gg + ggplot2::theme(panel.margin.y = grid::unit(8, "pt"))
+  gg <- gg + ggplot2::theme(plot.margin = margin(t = 30, b = 5, l = 20, r = 20))
+  ggobs <- gg
+  
+  gridExtra::grid.arrange(ggtime, ggobs, ncol=1, heights=c(0.4, 0.6))
+  
+}
+
+
+#' Find weather monitors near locations
+#'
+#' This function inputs a dataframe with latitudes and longitudes of locations
+#' and creates a dataframe with monitors within a certain radius of those
+#' locations. The function can also be used, with the \code{limit} argument, to pull
+#' a certain number of the closest weather monitors to each location.
+#' The weather monitor IDs in the output dataframe can be used with other
+#' \code{rnoaa} functions to pull data from all available weather stations near
+#' a location (e.g., \code{\link{meteo_pull_monitors}}).
+#'
+#' Great circle distance is used to determine whether a weather monitor is
+#' within the required radius.
+#'
+#' @param lat_lon_df A dataframe that contains the latitude, longitude, and
+#'    a unique identifier for each location (\code{id}). For an example of the
+#'    proper format for this dataframe, see the examples below. Latitude and
+#'    longitude must both be in units of decimal degrees. Southern latitudes
+#'    and Western longitudes should be given as negative values.
+#' @param lat_colname A character string giving the name of the latitude column
+#'    in the \code{lat_lon_df} dataframe.
+#' @param lon_colname A character string giving the name of the longitude column
+#'    in the \code{lat_lon_df} dataframe.
+#' @param station_data The output of \code{ghcnd_stations()[[1]]}, which is
+#'    a current list of weather stations available through NOAA for the GHCND
+#'    dataset. The format of this is a dataframe
+#'    with one row per weather station. Latitude and longitude for the station
+#'    locations should be in columns with the names "latitude" and "longitude",
+#'    consistent with the output from \code{ghcnd_stations()[[1]]}. To save time, run the
+#'    \code{ghcnd_stations} call and save the output to an object, rather than
+#'    rerunning the default every time (see the examples in
+#'    \code{\link{meteo_nearby_stations}}).
+#' @param year_min A numeric value giving the earliest year from which you
+#'    ultimately want weather data (e.g., 2013, if you only are interested in
+#'    data from 2013 and later).
+#' @param year_max A numeric value giving the latest year from which you
+#'    ultimately want weather data.
+#' @param radius A numeric vector giving the radius (in kilometers) within which
+#'    to search for monitors near a location.
+#' @param limit An integer giving the maximum number of monitors to include for
+#'    each location. The [x] closest monitors will be kept. Default is NULL
+#'    (pull everything available, within the radius if the radius is specified).
+#' @inheritParams ghcnd_search
+#'
+#' @return A list containing dataframes with the sets of unique weather stations within
+#'    the search radius for each location. Site IDs for the weather stations
+#'    given in this dataframe can be used in conjunction with other functions in the
+#'    \code{rnoaa} package to pull weather data for the station. The dataframe
+#'    for each location includes:
+#'    \itemize{
+#'    \item \code{id}: The weather station ID, which can be used in other
+#'    functions to pull weather data from the station;
+#'    \item \code{name}: The weather station name;
+#'    \item \code{latitude}: The station's latitude, in decimal degrees. Southern
+#'    latitudes will be negative;
+#'    \item \code{longitude}: The station's longitude, in decimal degrees. Western
+#'    longitudes will be negative;
+#'    \item \code{distance}: The station's distance, in kilometers, from the
+#'    location.
+#'    }
+#'
+#' @note By default, this function will pull the full station list from NOAA
+#'    to use to identify nearby locations. If you will be creating lists of
+#'    monitors nearby several stations, you can save some time by using the
+#'    \code{\link{ghcnd_stations}} function separately to create an object
+#'    with all stations and then use the argument \code{station_data} in
+#'    this function to reference that object, rather than using this function's
+#'    defaults (see examples).
+#'
+#' @seealso The weather monitor IDs generated by this function can be used in
+#'    other functions in the \code{rnoaa} package, like
+#'    \code{\link{meteo_pull_monitors}} and \code{\link{meteo_tidy_ghcnd}}, to
+#'    pull weather data from weather monitors near a location.
+#'
+#' @author Alex Simmons \email{a2.simmons@@qut.edu.au},
+#'    Brooke Anderson \email{brooke.anderson@@colostate.edu}
+#'
+#' @examples
+#' \dontrun{
+#'
+#' station_data <- ghcnd_stations()[[1]] # Takes a while to run
+#'
+#' lat_lon_df <- data.frame(id = c("sydney", "brisbane"),
+#'                          latitude = c(-33.8675, -27.4710),
+#'                          longitude = c(151.2070, 153.0234))
+#' nearby_stations <-  meteo_nearby_stations(lat_lon_df = lat_lon_df,
+#'                     station_data = station_data, radius = 10)
+#'
+#' miami <- data.frame(id = "miami", latitude = 25.7617, longitude = -80.1918)
+#'
+#' # Get all stations within 50 kilometers
+#' meteo_nearby_stations(lat_lon_df = miami, station_data = station_data,
+#'                       radius = 50, var = c("PRCP", "TMAX"),
+#'                       year_min = 1992, year_max = 1992)
+#' # Get the closest 10 monitors
+#' meteo_nearby_stations(lat_lon_df = miami, station_data = station_data,
+#'                       limit = 10, var = c("PRCP", "TMAX"),
+#'                       year_min = 1992, year_max = 1992)
+#' }
+#'
+#' @importFrom dplyr %>%
+#'
+#' @export
+meteo_nearby_stations <- function(lat_lon_df, lat_colname = "latitude",
+                                  lon_colname = "longitude",
+                                  station_data = ghcnd_stations()[[1]],
+                                  var = "all", year_min = NULL,
+                                  year_max = NULL, radius = NULL,
+                                  limit = NULL){
+  
+  var <- tolower(var)
+  
+  # Handle generic values for `var`, `year_min`, and `year_max` arguments
+  if(is.null(year_min)) year_min <- min(station_data$first_year, na.rm = TRUE)
+  if(is.null(year_max)) year_max <- max(station_data$last_year, na.rm = TRUE)
+  if(length(var) == 1 && var == "all"){
+    var <- unique(station_data$element)
+  }
+  
+  dots <- list(~last_year >= year_min & first_year <= year_max &
+                 element %in% toupper(var) & !is.na(element))
+  station_data <- dplyr::filter_(station_data, .dots = dots) %>%
+    dplyr::select_(~id, ~name, ~latitude, ~longitude) %>%
+    dplyr::distinct_()
+  
+  location_stations <- as.data.frame(lat_lon_df) %>%
+    split(.[, lat_colname], .[, lon_colname]) %>%
+    purrr::map(function(x) {
+      station_ids <- meteo_distance(station_data = station_data,
+                                    lat = x[ , lat_colname],
+                                    long = x[ , lon_colname],
+                                    radius = radius,
+                                    limit = limit)
+      return(station_ids)
+    })
+  names(location_stations) <- lat_lon_df$id
+  return(location_stations)
+}
+
+#' Find all monitors within a radius of a location
+#'
+#' This function will identify all weather stations with a specified radius of
+#' a location. If no radius is given, the function will return a dataframe
+#' of all available monitors, sorted by distance to the location. The
+#' \code{limit} argument can be used to limit the output dataframe to the [x]
+#' closest monitors to the location.
+#'
+#' @param lat Latitude of the location. Southern latitudes should be given
+#'    as negative values.
+#' @param long Longitude of the location. Western longitudes should be given as
+#'    negative values.
+#' @param units Units of the latitude and longitude values. Possible values
+#'    are:
+#'    \itemize{
+#'    \item \code{deg}: Degrees (default);
+#'    \item \code{rad}: Radians.
+#'    }
+#' @inheritParams meteo_nearby_stations
+#'
+#' @return A dataframe of weather stations near the location. This is the
+#'    single-location version of the return value for
+#'    \code{\link{meteo_nearby_stations}}.
+#'
+#' @author Alex Simmons \email{a2.simmons@@qut.edu.au},
+#'    Brooke Anderson \email{brooke.anderson@@colostate.edu}
+#'
+#' @export
+meteo_distance <- function(station_data, lat, long,
+                           units = 'deg', radius = NULL, limit = NULL) {
+  
+  data <- meteo_process_geographic_data(
+    station_data = station_data,
+    lat = lat,
+    long = long
+  )
+  
+  if(!is.null(radius)) {
+    data <- data[data$distance < radius, ]
+  }
+  
+  if(!is.null(limit)) {
+    data <- data[1:min(limit, nrow(data)), ]
+  }
+  return(data)
+}
+
+#' Calculate the distances between a location and all available stations
+#'
+#' This function takes a single location and a dataset of available weather stations
+#' and calculates the distance between the location and each of the stations,
+#' using the great circle method. A new column is added to the dataset of
+#' available weather stations giving the distance between each station and
+#' the input location. The station dataset is then sorted from closest to
+#' furthest distance to the location and returned as the function output.
+#'
+#' @inheritParams meteo_distance
+#'
+#' @return The \code{station_data} dataframe that is input, but with a
+#'    \code{distance} column added that gives the distance to the location
+#'    (in kilometers), and re-ordered by distance between each station and
+#'    the location (closest weather stations first).
+#'
+#' @author Alex Simmons \email{a2.simmons@@qut.edu.au},
+#'    Brooke Anderson \email{brooke.anderson@@colostate.edu}
+#'
+#' @export
+meteo_process_geographic_data <- function(station_data,
+                                          lat,
+                                          long,
+                                          units = 'deg') {
+  
+  # Convert headers to lowercase for consistency across code
+  names(station_data) <- tolower(names(station_data))
+  
+  # Caluclate distance between points
+  station_data$distance <- meteo_spherical_distance(lat1 = lat, long1 = long,
+                                                    lat2 = station_data$latitude,
+                                                    long2 = station_data$longitude,
+                                                    units = "deg")
+  
+  # Sort data into ascending order by distance column
+  station_data <- dplyr::arrange_(station_data, ~ distance)
+  
+  return(station_data)
+} # End meteo_process_geographic_data
+
+#' Calculate the distance between two locations
+#'
+#' This function uses the haversine formula to calculate the great circle
+#' distance between two locations, identified by their latitudes and longitudes.
+#'
+#' @param lat1 Latitude of the first location.
+#' @param long1 Longitude of the first location.
+#' @param lat2 Latitude of the second location.
+#' @param long2 Longitude of the second location.
+#' @inheritParams meteo_distance
+#'
+#' @return A numeric value giving the distance (in kilometers) between the
+#'    pair of locations.
+#'
+#' @note This function assumes an earth radius of 6,371 km.
+#'
+#' @author Alex Simmons \email{a2.simmons@@qut.edu.au},
+#'    Brooke Anderson \email{brooke.anderson@@colostate.edu}
+#'
+#' @examples
+#'
+#' meteo_spherical_distance(lat1 = -27.4667, long1 = 153.0217,
+#'                          lat2 = -27.4710, long2 = 153.0234)
+#'
+#' @export
+meteo_spherical_distance <- function(lat1, long1, lat2, long2, units = 'deg') {
+  
+  radius_earth <- 6371
+  
+  # Convert angle values into radians
+  if (units == 'deg') {
+    lat1 <- deg2rad(lat1)
+    long1 <- deg2rad(long1)
+    lat2 <- deg2rad(lat2)
+    long2 <- deg2rad(long2)
+  } else if(units != 'rad'){
+    stop("The `units` argument must be `deg` or `rad`.")
+  }
+  
+  # Determine distance using the haversine formula, assuming a spherical earth
+  a <- sin((lat2 - lat1) / 2) ^ 2 + cos(lat1) * cos(lat2) *
+    sin((long2 - long1) / 2) ^ 2
+  
+  d <- 2 * atan2(sqrt(a), sqrt(1 - a)) * radius_earth
+  return(d)
+  
+} # End calculate_spherical_distance
+
+#' Convert from degrees to radians
+#'
+#' @param deg A numeric vector in units of degrees.
+#'
+#' @return The input numeric vector, converted to units of radians.
+deg2rad <- function(deg) {
+  return(deg*pi/180)
+} # End deg2rad
+
+weather_fips <- function(fips, radius = NULL, percent_coverage = NULL,
+                         date_min = NULL, date_max = NULL, var = "all"){
+  data <- weather_fips_df(fips, radius, percent_coverage, date_min, date_max,
+                          var)
+  plot <- stationmap_fips(fips, radius, percent_coverage, date_min, date_max,
+                          var)
+  list <- list("data" = data, "plot" = plot)
+  return(list)
+}
+
+#' Return average daily weather data for a particular county.
+#'
+#' \code{weather_fips_df} returns a dataframe of average daily weather values
+#' for a particular county, radius, date range, and/or specified "coverage."
+#'
+#' This function serves as a wrapper to several functions from the \code{rnoaa}
+#' package, which provides weather data from all relevant stations in a county.
+#' This function filters and averages across stations based on user-specified
+#' coverage specifications.
+#'
+#' @note Because this function uses the NOAA API to identify the weather
+#'    monitors within a US county, you will need to get an access token from
+#'    NOAA to use this function. Visit NOAA's token request page
+#'    (\url{http://www.ncdc.noaa.gov/cdo-web/token}) to request a token by
+#'    email, and then use the code
+#'    \code{options("noaakey" = "<key NOAA emails you>")} to set up your
+#'    API access.
+#'
+#' @param fips A character string giving the five-digit U.S. FIPS county code
+#'    of the county for which the user wants to pull weather data.
+#' @param radius A numeric vector giving a radius (in kilometers) within which
+#'    to search for monitors. (Optional.) If this argument is NULL,
+#'    \code{weather_fips_df} will begin its search with all stations within the
+#'    specified county.
+#' @param percent_coverage A numeric value in the range of 0 to 1 that specifies
+#'    the desired percentage coverage for the weather variable (i.e., what
+#'    percent of each weather variable must be non-missing to include data from
+#'    a monitor when calculating daily values averaged across monitors.
+#'    (Optional.)
+#' @param date_min A character string giving the earliest date you want
+#'    in your dataset in "yyyy-mm-dd" format. (Optional.)
+#' \code{date_min}.
+#' @param date_max A character string giving the latest date you want
+#'    in your dataset in "yyyy-mm-dd" format. (Optional.)
+#' @param var A character vector specifying desired weather variables. For
+#'    example, var = c("TMIN", "TMAX", "PRCP"). (Optional.)
+#'
+#' @return A dataframe of daily weather data averaged across multiple monitors,
+#'    as well as columns (\code{"var"_reporting}) for each weather variable
+#'    showing the number of stations contributing to the average for that
+#'    variable on that day.
+#'
+#' @examples
+#' \dontrun{
+#' df <- weather_fips_df(fips = "12086", radius = 10,
+#'                    percent_coverage = 0.90, date_min = "2010-01-01",
+#'                    date_max = "2010-02-01", var = c("TMAX", "TMIN", "PRCP"))
+#' }
+#' @export
+weather_fips_df <- function(fips, radius = NULL, percent_coverage = NULL,
+                         date_min = NULL, date_max = NULL, var = "all"){
+
+  # get stations for 1 fips
+  if (is.null(radius)){
+    stations <- fips_stations(fips, date_min = date_min, date_max = date_max)
+  } else {
+    stations <- station_radius(fips = fips, radius = radius)
+  }
+
+  # get tidy full dataset for all monitors
+  # meteo_pull_monitors() from helpers_ghcnd.R in ropenscilabs/rnoaa
+  meteo_df <- meteo_pull_monitors(monitors = stations,
+                                  keep_flags = FALSE,
+                                  date_min = date_min,
+                                  date_max = date_max,
+                                  var = var)
+
+  # calculate coverage for each weather variable
+  # meteo_coverage() from meteo_utils.R in ropenscilabs/rnoaa
+  coverage_df <- meteo_coverage(meteo_df, verbose = FALSE)
+
+  # filter station dataset based on specified coverage
+  filtered <- filter_coverage(coverage_df, percent_coverage)
+  good_monitors <- unique(filtered$id)
+
+  # filter weather dataset based on stations with specified coverage
+  filtered_data <- filter(meteo_df, id %in% good_monitors)
+
+  # average across stations, add a column for number of stations that
+  # contributed to each daily average
+  averaged <- ave_weather(filtered_data)
+
+  return(averaged)
+}
+
+#' Average weather data across multiple stations.
+#'
+#' \code{ave_weather} returns a dataframe with daily weather averaged across
+#'    stations, as well as columns showing the number of stations contributing
+#'    to the average for each variable and each day.
+#'
+#' @param weather_data A dataframe with daily weather observations. This
+#'    dataframe is returned from the function \code{meteo_pull_monitors}.
+#'
+#' @export
+ave_weather <- function(weather_data){
+
+  averaged_data <- gather(weather_data, key, value, -id, -date) %>%
+    ddply(c("date", "key"), summarize,
+          mean = mean(value, na.rm = TRUE)) %>%
+    spread(key = key, value = mean)
+
+  n_reporting <- gather(weather_data, key, value, -id, -date) %>%
+    ddply(c("date", "key"), summarize,
+          n_reporting = sum(!is.na(value))) %>%
+    mutate(key = paste(key, "reporting", sep = "_")) %>%
+    spread(key = key, value = n_reporting)
+
+  averaged_data <- left_join(averaged_data, n_reporting,
+                             by = "date")
+  return(averaged_data)
+}
+
+#' Filter stations based on "coverage" requirements.
+#'
+#' \code{filter_coverage} filters available weather variables
+#' based on a specified required minimum coverage (i.e., percent non-missing
+#' daily observations).
+#'
+#' @param coverage_df a \code{meteo_coverage} dataframe
+#' @param percent_coverage A numeric value in the range of 0 to 1 that specifies
+#'    the desired percentage coverage for the weather variable (i.e., what
+#'    percent of each weather variable must be non-missing to include data from
+#'    a monitor when calculating daily values averaged across monitors.
+#'    (Optional.)
+#'
+#' @return a \code{dataframe} with stations that meet the specified coverage
+#'    requirements for weather variables included in the dataframe present in
+#'    this function's arguments.
+#'
+#' @export
+filter_coverage <- function(coverage_df, percent_coverage = NULL){
+
+  if (is.null(percent_coverage)){
+    percent_coverage <- 0
+  }
+
+  filtered <- select(coverage_df, -start_date, -end_date, -total_obs) %>%
+    gather(key, covered, -id)  %>%
+    filter(covered >= percent_coverage) %>%
+    mutate(covered = 1) %>%
+    group_by(id) %>%
+    mutate(good_monitor = sum(!is.na(covered)) > 0) %>%
+    ungroup() %>%
+    filter(good_monitor) %>%
+    select(-good_monitor)
+  return(filtered)
+}
+
+#' Search for stations located within a specified radius for a particular
+#' U.S. county.
+#'
+#' @return A character vector listing station ids which are located within
+#'    the specified radius centered in the specified county.
+#'
+#' @export
+station_radius <- function(fips, radius = NULL){
+  url <- paste0("http://www2.census.gov/geo/docs/reference/",
+                "codes/files/national_county.txt")
+  county_names <- read.csv(url, header = FALSE, colClasses = "character")
+  colnames(county_names) <- c("state", "state_fips", "county_fips", "county",
+                              "fips_class")
+  non_fifty <- c("VI", "UM", "PR", "MP", "GU", "AS")
+  county_names <- county_names[!county_names$state %in% non_fifty, ]
+  county_names$state <- state.name[match(county_names$state,state.abb)]
+  county_names <- transform(county_names, fips_code = paste(state_fips,
+                                                            county_fips,
+                                                            sep = ""),
+                            name = paste(county, state, sep = ", "))
+  county_names <- select(county_names, fips_code, county, state, name)
+
+  fipsname <- filter(county_names, fips_code == fips)$name
+  fipsname <- as.character(fipsname)
+
+  central_latlong <- ggmap::geocode(location = fipsname, output = c("latlon"));
+  assign("central_latlong", central_latlong, .GlobalEnv)
+
+
+  FIPS <- paste0('FIPS:', fips)
+  station_df <- rnoaa::ncdc_stations(datasetid = 'GHCND',
+                                     locationid = FIPS)$data;
+      assign("station_df", station_df, .GlobalEnv)
+
+  # meteo_distance from meteo_distance.R in ropenscilabs/rnoaa
+  station_df <- meteo_distance(station_data = station_df,
+                                 lat = central_latlong$lat,
+                                 long = central_latlong$lon,
+                                 radius = radius)
+  stations <- unique(station_df$id)
+  stations <- stations[!is.na(stations)]
+  stations <- gsub("GHCND:", "", stations)
+  return(stations)
+}
+
+#' Plot weather stations for a particular county
+#'
+#' @inheritParams weather_fips_df
+#'
+#' @return A plot showing points for all weather stations for a particular
+#'    county satisfying the conditions present in \code{stationmap_fips}'s
+#'    arguments (radius, percent_coverage, date_min, date_max, and/or var).
+#'
+#' @examples
+#' \dontrun{
+#' ex <- stationmap_fips(fips = "08031", radius = 15, percent_coverage = 0.90,
+#'                       date_min = "2010-01-01", date_max = "2010-02-01",
+#'                       var = "PRCP")
+#' }
+#' @export
+stationmap_fips <- function(fips, radius = NULL, percent_coverage = NULL,
+                            date_min = NULL, date_max = NULL, var = "all"){
+  # pull stations
+  if (is.null(radius)){
+    stations <- fips_stations(fips, date_min = date_min, date_max = date_max)
+  } else {
+    stations <- station_radius(fips = fips, radius = radius)
+  }
+
+  # meteo_pull_monitors() from helpers_ghcnd.R in ropenscilabs/rnoaa
+  meteo_df <- meteo_pull_monitors(monitors = stations,
+                                  keep_flags = FALSE,
+                                  date_min = date_min,
+                                  date_max = date_max,
+                                  var = var)
+  coverage_df <- meteo_coverage(meteo_df, verbose = FALSE)
+  filtered <- filter_coverage(coverage_df, percent_coverage)
+  good_monitors <- unique(filtered$id)
+
+  # in case radius is not NULL, still need to run fips_stations() to
+  # get station_df (which is in the global environment after running the
+  # fips_stations() function)
+  fips_stations(fips, date_min = date_min, date_max = date_max)
+  df <- mapping(station_df)
+
+  station_latlong <- filter(df, df$id %in% good_monitors)
+
+  meteo_df_filtered <- filter(meteo_df, meteo_df$id %in% good_monitors)
+
+  # not currently using this perc_missing df for anything
+  perc_missing <- gather(meteo_df_filtered, key, value, -id, -date) %>%
+    ddply(c("id", "key"), summarize,
+          percent_missing = sum(is.na(value)) / length(value)) %>%
+    mutate(key = paste(key, "percent_missing", sep = "_")) %>%
+    spread(key = key, value = percent_missing)
+
+  final_df <- left_join(station_latlong, perc_missing, by = "id")
+
+  # run station_radius() to get central_latlong (in global environment after
+  # running station_radius())
+  station_radius(fips = fips, radius = radius)
+
+  data("df_pop_county")
+
+  census_csv <- paste0("http://www2.census.gov/geo/docs/reference/cenpop2010/",
+                       "county/CenPop2010_Mean_CO.txt")
+  census_data <- read.csv(census_csv)
+  census_data$COUNTYFP <- sprintf("%03d", census_data$COUNTYFP)
+  census_data <- mutate(census_data, choro_fips = paste0(census_data$STATEFP,
+                                                         census_data$COUNTYFP))
+
+  census_data$state_long <- sprintf("%02d", census_data$STATEFP)
+  census_data$fips <- paste0(census_data$state_long, census_data$COUNTYFP)
+
+  row_num <- which(grepl(fips, census_data$fips))
+
+  census_data$cname <- paste0(census_data$COUNAME, " County, ")
+  census_data$name <- paste0(census_data$cname, census_data$STNAME)
+  census_data <- select(census_data, -cname, -state_long)
+
+  choro_fips <- census_data[row_num, 8]
+  title <- census_data[row_num, 10]
+
+  map <- county_choropleth(df_pop_county, title = "", legend = "",
+                           num_colors = 1, state_zoom = NULL,
+                           county_zoom = choro_fips, reference_map = TRUE)
+
+  map <- map + geom_point(data = final_df, aes(x = lon, y = lat),
+                          colour = "black", size = 5) +
+    theme(legend.position = "none") +
+    ggtitle(title)
+
+  return(map)
+}
+
+#' Return a dataframe with station IDs, and longitude and latitude for each
+#' station.
+#'
+#' @param ncdcdf A dataframe obtained using the \code{ncdc_stations} function
+#'    in the rnoaa package, with the \code{datasetid} argument set to 'GHCND',
+#'    the \code{locationid} set to a U.S. county FIPS code (in the format
+#'    'FIPS:08031', for example). This dataframe can be obtained using the
+#'    \code{station_fips} function. After running \code{station_fips}, the
+#'    \code{station_df} will be in your global environment.
+#'
+#' @export
+mapping <- function(station_df){
+  df <- select(station_df, longitude, latitude, id)
+  colnames(df) <- c("lon", "lat", "id")
+  df$id <- gsub("GHCND:", "", df$id)
+  return(df)
+}
+#' USGS Daily Streamflow data per US counties
+#'
+
+#'
+#' @export
+streamstations <- function(fips, date_min, date_max, fraction_coverage = NULL){
+  fips <- paste(fips, collapse = ",")
+  url <- paste0("http://waterservices.usgs.gov/nwis/site/?format=rdb&countyCd=",
+                fips, "&startDT=", date_min, "&endDT=", date_max,
+                "&outputDataTypeCd=dv&parameterCd=00060&siteType=ST")
+
+  df <- read.table(url, sep = "\t", comment.char = "#", header = TRUE)
+  df <- df[-1, ]
+
+  df$begin_date <- lubridate::ymd(df$begin_date)
+  df$end_date <- lubridate::ymd(df$end_date)
+
+  df <- dplyr::mutate(df, date_range = df$end_date - df$begin_date)
+  df$date_range <- as.numeric(df$date_range)
+  df$count_nu <- as.numeric(df$count_nu)
+
+  df <- dplyr::mutate(df, perc_coverage = (count_nu/date_range))
+  if(is.null(fraction_coverage)){
+    fraction_coverage <- min(df$perc_coverage)
+  }
+
+  df <- filter(df, perc_coverage >= fraction_coverage)
+
+  vec <- as.character(unique(df$site_no))
+  return(vec)
+}
+
+#' Return average daily streamflow data for a particular county and date range.
+
+#'
+#' @export
+streamdata <- function(fips, date_min, date_max, stat_code = "00003"){
+  ids <- streamstations(fips, date_min, date_max)
+
+  test <- sapply(ids, FUN = waterData::importDVs, stat = stat_code,
+                 sdate = date_min,
+                 edate = date_max)
+  
+  df <- do.call(rbind, lapply(ids, function(ids) waterData::importDVs(
+    staid = ids, stat = stat_code, sdate = date_min,
+    edate = date_max)))
+
+  df_clean <- cleanUp(df, task = "fix")
+  
+  ave <- ddply(df_clean, c("dates"), summarize, 
+               mean = mean(val, na.rm = TRUE)) 
+  
+  return(ave)
+}
+
+#' Return average daily streamflow data for a particular county and date range.
+
+#'
+#'
+#' @export
+streamfloods <- function(fips, date_min, date_max, stat_code){
+  ids <- streamstations(fips, date_min, date_max)
+
+  test <- sapply(ids, FUN = waterData::importDVs, stat = stat_code,
+                 sdate = date_min,
+                 edate = date_max)
+  df <- do.call(rbind, lapply(ids, function(ids) waterData::importDVs(
+    staid = ids, stat = stat_code, sdate = date_min,
+    edate = date_max)))
+
+  df_clean <- cleanUp(df, task = "fix")
+
+
+  percentile90 <- purrr::safely(importDVs(ids[1], stat = "01900",
+                                          sdate = date_min,
+                                          edate = date_max))
+  colnames(percentile90) <- c("staid", "percentileval", "dates", "qualcode")
+  df <- inner_join(df_clean, percentile90)
+
+  df <- dplyr::mutate(df, flood = NA)
+
+  for(i in 1:length(df$val)){
+    if(df$val[i] >= df$percentileval[i]){
+      df$flood[i] = 1
+    } else {
+      df$flood[i] = 0
+    }
+  }
+  return(df)
+}
+
+#' Return average daily weather data and a plot showing the location of weather
+#' stations for a particular county.
+
+#' }
+#' @export
+weather_fips <- function(fips, radius = NULL, percent_coverage = NULL,
+                         date_min = NULL, date_max = NULL, var = "all"){
+  data <- weather_fips_df(fips, radius, percent_coverage, date_min, date_max,
+                          var)
+  plot <- stationmap_fips(fips, radius, percent_coverage, date_min, date_max,
+                          var)
+  list <- list("data" = data, "plot" = plot)
+  return(list)
+}
+
+#' Return average daily weather data for a particular county.
+#'
+#' \code{weather_fips_df} returns a dataframe of average daily weather values
+#' }
+#' @export
+weather_fips_df <- function(fips, radius = NULL, percent_coverage = NULL,
+                         date_min = NULL, date_max = NULL, var = "all"){
+
+  # get stations for 1 fips
+  if (is.null(radius)){
+    stations <- fips_stations(fips, date_min = date_min, date_max = date_max)
+  } else {
+    stations <- station_radius(fips = fips, radius = radius)
+  }
+
+  # get tidy full dataset for all monitors
+  # meteo_pull_monitors() from helpers_ghcnd.R in ropenscilabs/rnoaa
+  meteo_df <- meteo_pull_monitors(monitors = stations,
+                                  keep_flags = FALSE,
+                                  date_min = date_min,
+                                  date_max = date_max,
+                                  var = var)
+
+  # calculate coverage for each weather variable
+  # meteo_coverage() from meteo_utils.R in ropenscilabs/rnoaa
+  coverage_df <- meteo_coverage(meteo_df, verbose = FALSE)
+
+  # filter station dataset based on specified coverage
+  filtered <- filter_coverage(coverage_df, percent_coverage)
+  good_monitors <- unique(filtered$id)
+
+  # filter weather dataset based on stations with specified coverage
+  filtered_data <- filter(meteo_df, id %in% good_monitors)
+
+  # average across stations, add a column for number of stations that
+  # contributed to each daily average
+  averaged <- ave_weather(filtered_data)
+
+  return(averaged)
+}
+
+#' Average weather data across multiple stations.
+
+#'
+#' @export
+ave_weather <- function(weather_data){
+
+  averaged_data <- gather(weather_data, key, value, -id, -date) %>%
+    ddply(c("date", "key"), summarize,
+          mean = mean(value, na.rm = TRUE)) %>%
+    spread(key = key, value = mean)
+
+  n_reporting <- gather(weather_data, key, value, -id, -date) %>%
+    ddply(c("date", "key"), summarize,
+          n_reporting = sum(!is.na(value))) %>%
+    mutate(key = paste(key, "reporting", sep = "_")) %>%
+    spread(key = key, value = n_reporting)
+
+  averaged_data <- left_join(averaged_data, n_reporting,
+                             by = "date")
+  return(averaged_data)
+}
+
+#' Filter stations based on "coverage" requirements.
+
+#' @export
+filter_coverage <- function(coverage_df, percent_coverage = NULL){
+
+  if (is.null(percent_coverage)){
+    percent_coverage <- 0
+  }
+
+  filtered <- select(coverage_df, -start_date, -end_date, -total_obs) %>%
+    gather(key, covered, -id)  %>%
+    filter(covered >= percent_coverage) %>%
+    mutate(covered = 1) %>%
+    group_by(id) %>%
+    mutate(good_monitor = sum(!is.na(covered)) > 0) %>%
+    ungroup() %>%
+    filter(good_monitor) %>%
+    select(-good_monitor)
+  return(filtered)
+}
+
+#' Search for stations located within a specified radius for a particular
+#' U.S. county.
+#'
+#' @return A character vector listing station ids which are located within
+#'    the specified radius centered in the specified county.
+#'
+#' @export
+station_radius <- function(fips, radius = NULL){
+  url <- paste0("http://www2.census.gov/geo/docs/reference/",
+                "codes/files/national_county.txt")
+  county_names <- read.csv(url, header = FALSE, colClasses = "character")
+  colnames(county_names) <- c("state", "state_fips", "county_fips", "county",
+                              "fips_class")
+  non_fifty <- c("VI", "UM", "PR", "MP", "GU", "AS")
+  county_names <- county_names[!county_names$state %in% non_fifty, ]
+  county_names$state <- state.name[match(county_names$state,state.abb)]
+  county_names <- transform(county_names, fips_code = paste(state_fips,
+                                                            county_fips,
+                                                            sep = ""),
+                            name = paste(county, state, sep = ", "))
+  county_names <- select(county_names, fips_code, county, state, name)
+
+  fipsname <- filter(county_names, fips_code == fips)$name
+  fipsname <- as.character(fipsname)
+
+  central_latlong <- ggmap::geocode(location = fipsname, output = c("latlon"));
+  assign("central_latlong", central_latlong, .GlobalEnv)
+
+
+  FIPS <- paste0('FIPS:', fips)
+  station_df <- rnoaa::ncdc_stations(datasetid = 'GHCND',
+                                     locationid = FIPS)$data;
+      assign("station_df", station_df, .GlobalEnv)
+
+  # meteo_distance from meteo_distance.R in ropenscilabs/rnoaa
+  station_df <- meteo_distance(station_data = station_df,
+                                 lat = central_latlong$lat,
+                                 long = central_latlong$lon,
+                                 radius = radius)
+  stations <- unique(station_df$id)
+  stations <- stations[!is.na(stations)]
+  stations <- gsub("GHCND:", "", stations)
+  return(stations)
+}
+
+#' Plot weather stations for a particular county
+#'
+#' @inheritParams weather_fips_df
+#'
+#' @return A plot showing points for all weather stations for a particular
+#'    county satisfying the conditions present in \code{stationmap_fips}'s
+#'    arguments (radius, percent_coverage, date_min, date_max, and/or var).
+#'
+#' @examples
+#' \dontrun{
+#' ex <- stationmap_fips(fips = "08031", radius = 15, percent_coverage = 0.90,
+#'                       date_min = "2010-01-01", date_max = "2010-02-01",
+#'                       var = "PRCP")
+#' }
+#' @export
+stationmap_fips <- function(fips, radius = NULL, percent_coverage = NULL,
+                            date_min = NULL, date_max = NULL, var = "all"){
+  # pull stations
+  if (is.null(radius)){
+    stations <- fips_stations(fips, date_min = date_min, date_max = date_max)
+  } else {
+    stations <- station_radius(fips = fips, radius = radius)
+  }
+
+  # meteo_pull_monitors() from helpers_ghcnd.R in ropenscilabs/rnoaa
+  meteo_df <- meteo_pull_monitors(monitors = stations,
+                                  keep_flags = FALSE,
+                                  date_min = date_min,
+                                  date_max = date_max,
+                                  var = var)
+  coverage_df <- meteo_coverage(meteo_df, verbose = FALSE)
+  filtered <- filter_coverage(coverage_df, percent_coverage)
+  good_monitors <- unique(filtered$id)
+
+  # in case radius is not NULL, still need to run fips_stations() to
+  # get station_df (which is in the global environment after running the
+  # fips_stations() function)
+  fips_stations(fips, date_min = date_min, date_max = date_max)
+  df <- mapping(station_df)
+
+  station_latlong <- filter(df, df$id %in% good_monitors)
+
+  meteo_df_filtered <- filter(meteo_df, meteo_df$id %in% good_monitors)
+
+  # not currently using this perc_missing df for anything
+  perc_missing <- gather(meteo_df_filtered, key, value, -id, -date) %>%
+    ddply(c("id", "key"), summarize,
+          percent_missing = sum(is.na(value)) / length(value)) %>%
+    mutate(key = paste(key, "percent_missing", sep = "_")) %>%
+    spread(key = key, value = percent_missing)
+
+  final_df <- left_join(station_latlong, perc_missing, by = "id")
+
+  # run station_radius() to get central_latlong (in global environment after
+  # running station_radius())
+  station_radius(fips = fips, radius = radius)
+
+  data("df_pop_county")
+
+  census_csv <- paste0("http://www2.census.gov/geo/docs/reference/cenpop2010/",
+                       "county/CenPop2010_Mean_CO.txt")
+  census_data <- read.csv(census_csv)
+  census_data$COUNTYFP <- sprintf("%03d", census_data$COUNTYFP)
+  census_data <- mutate(census_data, choro_fips = paste0(census_data$STATEFP,
+                                                         census_data$COUNTYFP))
+
+  census_data$state_long <- sprintf("%02d", census_data$STATEFP)
+  census_data$fips <- paste0(census_data$state_long, census_data$COUNTYFP)
+
+  row_num <- which(grepl(fips, census_data$fips))
+
+  census_data$cname <- paste0(census_data$COUNAME, " County, ")
+  census_data$name <- paste0(census_data$cname, census_data$STNAME)
+  census_data <- select(census_data, -cname, -state_long)
+
+  choro_fips <- census_data[row_num, 8]
+  title <- census_data[row_num, 10]
+
+  map <- county_choropleth(df_pop_county, title = "", legend = "",
+                           num_colors = 1, state_zoom = NULL,
+                           county_zoom = choro_fips, reference_map = TRUE)
+
+  map <- map + geom_point(data = final_df, aes(x = lon, y = lat),
+                          colour = "black", size = 5) +
+    theme(legend.position = "none") +
+    ggtitle(title)
+
+  return(map)
+}
+
+#' Return a dataframe with station IDs, and longitude and latitude for each
+#' station.
+
+#'
+#' @export
+mapping <- function(station_df){
+  df <- select(station_df, longitude, latitude, id)
+  colnames(df) <- c("lon", "lat", "id")
+  df$id <- gsub("GHCND:", "", df$id)
+  return(df)
+}
+#' NOAA NCDC station IDs per county.
+#'
+
+#'
+#' @importFrom dplyr %>%
+#'
+#' @export
+fips_stations <- function(fips, date_min = NULL, date_max = NULL){
+  #browser()
+  FIPS <- paste0('FIPS:', fips)
+  station_ids <- rnoaa::ncdc_stations(datasetid = 'GHCND', locationid = FIPS,
+                                      limit = 10)
+  df <- station_ids$data
+  if(station_ids$meta$totalCount > 10){
+    how_many_more <- station_ids$meta$totalCount - 10
+    more_stations <- rnoaa::ncdc_stations(datasetid = 'GHCND',
+                                          locationid = FIPS,
+                                          limit = how_many_more,
+                                          offset = 10 + 1)
+    station_df <- rbind(df, more_stations$data); assign("station_df",
+                                                        station_df, .GlobalEnv)
+  }
+
+  # If either `min_date` or `max_date` option was null, set to a date that
+  # will keep all monitors in the filtering.
+  if(is.null(date_max)){
+    date_max <- min(df$maxdate)
+  }
+  if(is.null(date_min)){
+    date_min <- max(df$mindate)
+  }
+
+  date_max <- lubridate::ymd(date_max)
+  date_min <- lubridate::ymd(date_min)
+
+  tot_df <- dplyr::mutate(station_df,
+                          mindate = lubridate::ymd(mindate),
+                          maxdate = lubridate::ymd(maxdate)) %>%
+    dplyr::filter(maxdate >= date_min & mindate <= date_max) %>%
+    dplyr::select(id) %>%
+    dplyr::mutate(id = gsub("GHCND:", "", id))
+
+  vec <- as.vector(tot_df$id)
+  return(vec)
+}
+
+# need to move these to description
+library(devtools)
+library(rnoaa)
+library(countyweather)
+library(ggplot2)
+library(dplyr)
+library(countyweather)
+library(lubridate)
+library(stringr)
+library(geojsonio)
+library(lawn)
+library(plyr)
+library(tidyr)
+
+
+## want average hourly data for a particular fips, year, variables, and coverage
+
+
+
+# 1. get station list for a particular fips
+# probably want to use geocodes for this instead
+isd_fips_stations <- function(fips){
+  census_data <- read.csv('http://www2.census.gov/geo/docs/reference/cenpop2010/county/CenPop2010_Mean_CO.txt')
+  state <- census_data$STATEFP
+  county <- census_data$COUNTYFP
+
+  state[str_length(state) == 1] <- paste0(0, state[str_length(state) == 1])
+  county[str_length(county) == 1] <- paste0(00, county[str_length(county) == 1])
+  county[str_length(county) == 2] <- paste0(0, county[str_length(county) == 2])
+
+  FIPS <- paste0(state,county)
+  census_data$FIPS <- FIPS
+
+  lat <- census_data$LATITUDE
+  lon <- census_data$LONGITUDE
+
+  your_fips <- fips
+  row_num <- which(grepl(your_fips, census_data$FIPS))
+
+  lat_FIPS <- lat[row_num]
+  lon_FIPS <- lon[row_num]
+
+  stations <- isd_stations_search(lat = lat_FIPS, lon = lon_FIPS,
+                                  radius = 50)
+  return(stations)
+}
+
+#ids <- isd_fips_stations(fips)
+
+# 2. get hourly data for a single monitor
+
+int_surface_data <- function(usaf_code, wban_code, year, var = "all"){
+  isd_df <- rnoaa::isd(usaf = usaf_code, wban = wban_code, year = year)$data
+  # add date time (suggested by one of the rnoaa package vignette examples for isd())
+  isd_df$date_time <- ymd_hm(sprintf("%s %s", as.character(isd_df$date), isd_df$time))
+  # select variables
+
+  w_vars <- colnames(isd_df)
+
+  if(length(var) == 1 && var == "all"){
+    var <- w_vars[9:length(w_vars)]
+    remove <- c("date_time")
+    var <- var[!var%in%remove]
+  }
+
+  cols <- c("usaf_station", "wban_station", "date_time", "latitude", "longitude")
+  subset_vars <- append(cols, var)
+  isd_df <- dplyr::select_(isd_df, .dots = subset_vars)
+  # change misisng weather data values to NA - it looks like non-signed items are filled
+  # with 9 (quality codes), 999 or 9999; signed items are positive filled (+9999 or +99999)
+  # ftp://ftp.ncdc.noaa.gov/pub/data/noaa/ish-format-document.pdf
+  isd_df[,var][isd_df[,var] > 900] <- NA
+
+  return(isd_df)
+}
+
+#year <- 1992
+#onest <- int_surface_data(ids$usaf[1], ids$wban[1], year, var = c("wind_speed",
+#                                                                  "temperature"))
+#derp <- int_surface_data(ids$usaf[11], ids$wban[11], year, var = c("wind_speed",
+#                                                                   "temperature"))
+
+# 3. pull data for multiple monitors
+
+isd_monitors_data <- function(fips, year, var = "all"){
+  ids <- isd_fips_stations(fips)
+  safe_int <- purrr::safely(int_surface_data)
+
+
+    mult_stations <- mapply(safe_int, usaf_code = ids$usaf, wban_code =
+                              ids$wban, year = year, var = var)
+
+  # problem with mapply only allowing one variable in var argument - if
+  # var = c("wind_speed", "temperature") it only includes wind_speed, for
+  # example
+
+
+  check_df <- data.frame(st = c(1:length(ids)), bool = NA)
+  for(i in 1:length(ids)){
+    if(length(mult_stations[[i]]$usaf_station) == 0){
+      check_df$bool[i] = TRUE
+    } else {
+      check_df$bool[i] = FALSE
+    }
+  }
+
+  good_st <- filter(check_df, bool == FALSE)
+
+  st_out_list <- lapply(good_st$st, function(x) mult_stations[[x]])
+
+  st_out_df <- dplyr::bind_rows(st_out_list)
+  return(st_out_df)
+}
+
+#stationdata <- isd_monitors_data("12086", 1992, var = c("wind_speed"))
+
+# 4. average across stations
+
+ave_hourly <- function(stationdata){
+  averaged <- ddply(stationdata, c("date_time"), summarize, mean =
+                      mean(wind_speed, na.rm = TRUE))
+  #(not finished)
+}
+
+#average_data <- ave_hourly(stationdata)
+
+#aug_ave <- with(average_data, subset(average_data, average_data$date_time > 
+#                                       as.POSIXct('1992-08-01 00:00:00') & 
+#                                       average_data$date_time < 
+#                                       as.POSIXct('1992-08-31 00:00:00')))
+
+#ggplot(aug_ave, aes(x = date_time, y = mean)) + geom_line() + theme_minimal()
 ```
 
-# `weather_fips` function 
+## `weather_fips` function 
 
 For a particular U.S. county, `weather_fips()` returns a dataframe showing daily weather values averaged across multiple weather stations, as well as a map showing the location of weather stations that are contributing to the average values. 
 
@@ -51,7 +1526,7 @@ We can also look at the locations of the weather stations in Miami-Dade County t
 andrew$plot
 ```
 
-# `streamdata` function 
+## `streamdata` function 
 
 If we were interested in looking at flooding data for Miami-Dade county during Hurricane Andrew, we could use the `streamdata` function, which pulls USGS streamflow data. 
 
@@ -69,7 +1544,25 @@ ggplot(andrew_streams, aes(x = dates, y = mean)) + geom_line() + theme_minimal()
 
 Ideally, we would like to be able to compare our daily streamflow measurements to a distribution of measurements. For example, if a daily value is greater than or equal to the 90th percentile, we would say there was flooding on that day. 
 
-# `hourly_fips` function 
+## `hourly_fips` function 
+
+`hourly_fips` is similar to `weather_fips`, but it returns hourly values instead of daily. 
+
+```{r warning=FALSE, message=FALSE} 
+fips <- "12086"
+year <- 1992
+ids <- isd_fips_stations(fips)
+stationdata <- isd_monitors_data("12086", 1992, var = c("wind_speed"))
+
+average_data <- ave_hourly(stationdata)
+
+aug_ave <- with(average_data, subset(average_data, average_data$date_time > 
+                                       as.POSIXct('1992-08-01 00:00:00') & 
+                                       average_data$date_time < 
+                                       as.POSIXct('1992-08-31 00:00:00')))
+
+ggplot(aug_ave, aes(x = date_time, y = mean)) + geom_line() + theme_minimal()
+```
 
 
 
