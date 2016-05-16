@@ -19,23 +19,23 @@ Description: Interacts with NOAA data sources (including the NCDC API at
 License: GPL-2
 LazyData: TRUE
 Imports:
+    broom (>= 0.4.0),
+    choroplethr (>= 3.5.2),
+    choroplethrMaps (>= 1.0),
     dplyr (>= 0.4.3),
-    rgdal (>= 1.1.3),
-    rnoaa (>= 0.5.2),
-    plyr (>= 1.8.3),
-    tidyr (>= 0.3.1),
-    weathermetrics (>= 1.2.0),
-    waterData (>= 1.0.4),
     geojsonio(),
     ggmap (>= 2.6.1),
     ggplot2(),
     lawn(),
     lubridate (>= 1.5.6),
+    plyr (>= 1.8.3),
     purrr (>= 0.2.1),
-    broom (>= 0.4.0),
-    choroplethr (>= 3.5.2),
-    choroplethrMaps (>= 1.0),
-    stringr()
+    rgdal (>= 1.1.3),
+    rnoaa (>= 0.5.2),
+    stringr(),
+    tidyr (>= 0.3.1),
+    waterData (>= 1.0.4),
+    weathermetrics (>= 1.2.0)
 RoxygenNote: 5.0.1
 Suggests: knitr,
     rmarkdown
