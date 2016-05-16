@@ -1,22 +1,3 @@
-# need to move these to description
-library(devtools)
-library(rnoaa)
-library(countyweather)
-library(ggplot2)
-library(dplyr)
-library(countyweather)
-library(lubridate)
-library(stringr)
-library(geojsonio)
-library(lawn)
-library(plyr)
-library(tidyr)
-
-
-## want average hourly data for a particular fips, year, variables, and coverage
-
-fips <- "12086"
-
 #' Get station list for a particular fips
 #'
 #' This function serves as a wrapper to that function, allowing you to search
@@ -157,8 +138,7 @@ isd_monitors_data <- function(fips, year, var = "all"){
 
 
 
-# 4. average across stations
-
+#' Average across hourly stations
 ave_hourly <- function(stationdata){
   averaged <- ddply(stationdata, c("date_time",
                                    "variable"), summarize, mean =
@@ -167,26 +147,24 @@ ave_hourly <- function(stationdata){
 }
 
 
-
-
 # for filtering based on coverage (moved from isd_fips_stations())
-n_missing <- do.call("rbind", sapply(var, FUN = function(i) sum(is.na(isd_df[,i])),
-                                     simplify = FALSE))
-n_missing <- as.data.frame(n_missing)
-n_missing <- add_rownames(n_missing, "VALUE")
-colnames(n_missing) <- c("variable", "n_missing")
-
-n_total <- do.call("rbind", sapply(var, FUN = function(i) nrow(isd_df[,i]),
-                                   simplify = FALSE))
-n_total <- as.data.frame(n_total)
-n_total <- add_rownames(n_total, "VALUE")
-colnames(n_total) <- c("variable", "n_total")
-
-df <- full_join(n_missing, n_total, by = "variable")
-df <- mutate(df, frac_missing = n_missing/n_total, coverage = 1-(n_missing/n_total))
-
-isd_df <- gather(isd_df, "variable", "value", 1:length(var))
-isd_df <- left_join(isd_df, df, by = "variable")
-isd_df <- select(isd_df, -n_missing, -n_total, -frac_missing)
-isd_df_coverage <- isd_df[isd_df$coverage > frac_coverage,]
-isd_df_coverage <- select(isd_df_coverage, -coverage)
+# n_missing <- do.call("rbind", sapply(var, FUN = function(i) sum(is.na(isd_df[,i])),
+#                                      simplify = FALSE))
+# n_missing <- as.data.frame(n_missing)
+# n_missing <- add_rownames(n_missing, "VALUE")
+# colnames(n_missing) <- c("variable", "n_missing")
+#
+# n_total <- do.call("rbind", sapply(var, FUN = function(i) nrow(isd_df[,i]),
+#                                    simplify = FALSE))
+# n_total <- as.data.frame(n_total)
+# n_total <- add_rownames(n_total, "VALUE")
+# colnames(n_total) <- c("variable", "n_total")
+#
+# df <- full_join(n_missing, n_total, by = "variable")
+# df <- mutate(df, frac_missing = n_missing/n_total, coverage = 1-(n_missing/n_total))
+#
+# isd_df <- gather(isd_df, "variable", "value", 1:length(var))
+# isd_df <- left_join(isd_df, df, by = "variable")
+# isd_df <- select(isd_df, -n_missing, -n_total, -frac_missing)
+# isd_df_coverage <- isd_df[isd_df$coverage > frac_coverage,]
+# isd_df_coverage <- select(isd_df_coverage, -coverage)
