@@ -1,6 +1,6 @@
 #' USGS Daily Streamflow data per US counties
 #'
-#' \code{streamstations} returns a vector of U.S. Geological Survey (USGS)
+#' \code{stream_stations} returns a vector of U.S. Geological Survey (USGS)
 #' station identification numbers for a given US county, date range, and percent
 #' coverage.
 #'
@@ -31,10 +31,10 @@
 #'  greater than the specified fraction. (Optional.)
 #'
 #' @examples
-#' ex <- streamstations("47157", "2011-01-01", "2011-12-31")
+#' ex <- stream_stations("47157", "2011-01-01", "2011-12-31")
 #'
 #' @export
-streamstations <- function(fips, date_min, date_max, fraction_coverage = NULL){
+stream_stations <- function(fips, date_min, date_max, fraction_coverage = NULL){
   fips <- paste(fips, collapse = ",")
   url <- paste0("http://waterservices.usgs.gov/nwis/site/?format=rdb&countyCd=",
                 fips, "&startDT=", date_min, "&endDT=", date_max,
@@ -63,7 +63,7 @@ streamstations <- function(fips, date_min, date_max, fraction_coverage = NULL){
 
 #' Return average daily streamflow data for a particular county and date range.
 #'
-#' \code{streamdata} returns a data.frame showing USGS station IDs, mean daily
+#' \code{stream_data} returns a data.frame showing USGS station IDs, mean daily
 #' streamflow values, dates, and a quantification code. This function applies
 #' the \code{importDVs} function from the waterData package for all of the USGS
 #' stations for a given FIPS code.
@@ -80,14 +80,14 @@ streamstations <- function(fips, date_min, date_max, fraction_coverage = NULL){
 #' here:
 #' \url{http://help.waterdata.usgs.gov/code/stat_cd_nm_query?stat_nm_cd=%25&fmt=html}.
 #' Not all statistics are available at every gage. The default for stat_code in
-#' \code{streamdata} is set to "00003", which gives daily mean values.
+#' \code{stream_data} is set to "00003", which gives daily mean values.
 #'
 #' @examples
-#' ex <- streamdata("47157", "2011-01-01", "2011-12-31")
+#' ex <- stream_data("47157", "2011-01-01", "2011-12-31")
 #'
 #' @export
-streamdata <- function(fips, date_min, date_max, stat_code = "00003"){
-  ids <- streamstations(fips, date_min, date_max)
+stream_data <- function(fips, date_min, date_max, stat_code = "00003"){
+  ids <- stream_stations(fips, date_min, date_max)
 
   test <- sapply(ids, FUN = waterData::importDVs, stat = stat_code,
                  sdate = date_min,
@@ -115,8 +115,8 @@ streamdata <- function(fips, date_min, date_max, stat_code = "00003"){
 #'
 #'
 #' @export
-streamfloods <- function(fips, date_min, date_max, stat_code){
-  ids <- streamstations(fips, date_min, date_max)
+stream_floods <- function(fips, date_min, date_max, stat_code){
+  ids <- stream_stations(fips, date_min, date_max)
 
   test <- sapply(ids, FUN = waterData::importDVs, stat = stat_code,
                  sdate = date_min,
