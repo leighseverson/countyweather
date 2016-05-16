@@ -2,17 +2,49 @@
 % Please edit documentation in R/weather_fips.R
 \name{stationmap_fips}
 \alias{stationmap_fips}
-\title{Plot of stations for a particular FIPS}
+\title{Plot weather stations for a particular county}
 \usage{
-stationmap_fips(fips, percent_coverage, date_min, date_max)
+stationmap_fips(fips, radius = NULL, percent_coverage = NULL,
+  date_min = NULL, date_max = NULL, var = "all")
+}
+\arguments{
+\item{fips}{A character string giving the five-digit U.S. FIPS county code
+of the county for which the user wants to pull weather data.}
+
+\item{radius}{A numeric vector giving a radius (in kilometers) within which
+to search for monitors. (Optional.) If this argument is NULL,
+\code{weather_fips_df} will begin its search with all stations within the
+specified county.}
+
+\item{percent_coverage}{A numeric value in the range of 0 to 1 that specifies
+the desired percentage coverage for the weather variable (i.e., what
+percent of each weather variable must be non-missing to include data from
+a monitor when calculating daily values averaged across monitors.
+(Optional.)}
+
+\item{date_min}{A character string giving the earliest date you want
+   in your dataset in "yyyy-mm-dd" format. (Optional.)
+\code{date_min}.}
+
+\item{date_max}{A character string giving the latest date you want
+in your dataset in "yyyy-mm-dd" format. (Optional.)}
+
+\item{var}{A character vector specifying desired weather variables. For
+example, var = c("TMIN", "TMAX", "PRCP"). (Optional.)}
+}
+\value{
+A plot showing points for all weather stations for a particular
+   county satisfying the conditions present in \code{stationmap_fips}'s
+   arguments (radius, percent_coverage, date_min, date_max, and/or var).
 }
 \description{
-Plot of stations for a particular FIPS
+Plot weather stations for a particular county
 }
 \examples{
 \dontrun{
-ex <- stationmap_fips("08031", 0.90, "2000-01-01", "2010-12-31")
+ex <- stationmap_fips(fips = "08031", radius = 15, percent_coverage = 0.90,
+                      date_min = "2010-01-01", date_max = "2010-02-01",
+                      var = "PRCP")
 }
-
 }
 

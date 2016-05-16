@@ -17,7 +17,7 @@
 #'    \code{weather_fips}'s arguments (radius, percent_coverage, date_min,
 #'    date_max, and/or var).
 #'
-#' @example
+#' @examples
 #' \dontrun{
 #' ex <- weather_fips("08031", radius = 15, percent_coverage = 0.90,
 #' date_min = "2010-01-01", date_max = "2010-02-01", var = "PRCP")
