@@ -17,42 +17,79 @@ library(tidyr)
 
 fips <- "12086"
 
-# 1. get station list for a particular fips
-# probably want to use geocodes for this instead
+#' Get station list for a particular fips
+#'
+#' This function serves as a wrapper to that function, allowing you to search
+#' by FIPS code rather than having to know the latitude and longitude of the
+#' center of each county.
+#'
+#' @param fips A five-digit FIPS county code.
+#'
+#' @return A dataframe of monitors within a given radius of the
+#'    population-weighted center of the county specified by the FIPS code.
+#'    This will have the same dataframe format as the output from the
+#'    \code{isd_stations_search} function in the \code{rnoaa} package.
+#'
+#' @note We probably want to use geocodes for this instead.
+#'
+#' @examples
+#' \dontrun{
+#' ids <- isd_fips_stations(fips = "12086")
+#' }
+#'
+#' @export
 isd_fips_stations <- function(fips){
-  census_data <- read.csv('http://www2.census.gov/geo/docs/reference/cenpop2010/county/CenPop2010_Mean_CO.txt')
-  state <- census_data$STATEFP
-  county <- census_data$COUNTYFP
-
-  state[str_length(state) == 1] <- paste0(0, state[str_length(state) == 1])
-  county[str_length(county) == 1] <- paste0(00, county[str_length(county) == 1])
-  county[str_length(county) == 2] <- paste0(0, county[str_length(county) == 2])
-
+  census_data <- read.csv(paste0("http://www2.census.gov/geo/docs/reference/",
+                                 "cenpop2010/county/CenPop2010_Mean_CO.txt"))
+  state <- sprintf("%02d", census_data$STATEFP)
+  county <- sprintf("%03d", census_data$COUNTYFP)
   FIPS <- paste0(state,county)
-  census_data$FIPS <- FIPS
 
-  lat <- census_data$LATITUDE
-  lon <- census_data$LONGITUDE
+  loc_fips <- which(FIPS == fips)
+  lat_FIPS <- census_data[loc_fips, "LATITUDE"]
+  lon_FIPS <- census_data[loc_fips, "LONGITUDE"]
 
-  your_fips <- fips
-  row_num <- which(grepl(your_fips, census_data$FIPS))
-
-  lat_FIPS <- lat[row_num]
-  lon_FIPS <- lon[row_num]
-
-  stations <- isd_stations_search(lat = lat_FIPS, lon = lon_FIPS,
-                                  radius = 50)
+  stations <- rnoaa::isd_stations_search(lat = lat_FIPS, lon = lon_FIPS,
+                                        radius = 50)
   return(stations)
 }
 
-ids <- isd_fips_stations(fips)
-
-# 2. get hourly data for a single monitor
-
+#' Get hourly data for a single monitor
+#'
+#' This function wraps the \code{isd} function from the \code{rnoaa} package.
+#'
+#' @param usaf_code A character string with a six-digit [usaf?] code for the
+#'    monitor.
+#' @param wban_code A character string with a five-digiv [wban?] code for the
+#'    monitor.
+#' @param year A four-digit numeric giving the year for which to pull data.
+#' @param var A character vector listing the weather variables to pull. Choices
+#'    include ...
+#'
+#' @return This function returns the same type of dataframe as that returned
+#'    by the \code{isd} function from the \code{rnoaa} package, but with the
+#'    dataframe limited to the selected weather variables.
+#'
+#' @reference
+#' For more information on this dataset, see
+#' \url{ftp://ftp.ncdc.noaa.gov/pub/data/noaa/ish-format-document.pdf}.
+#'
+#' @examples
+#' \dontrun{
+#' ids <- isd_fips_stations(fips = "12086")
+#' onest <- int_surface_data(usaf_code = ids$usaf[1], wban_code = ids$wban[1],
+#'                           year = 1992, var = c("wind_speed", "temperature"))
+#' derp <- int_surface_data(usaf_code = ids$usaf[11], wban_code = ids$wban[11],
+#'                          year = year, var = c("wind_speed", "temperature"))
+#' }
+#'
+#' @export
 int_surface_data <- function(usaf_code, wban_code, year, var = "all"){
   isd_df <- rnoaa::isd(usaf = usaf_code, wban = wban_code, year = year)$data
   # add date time (suggested by one of the rnoaa package vignette examples for isd())
-  isd_df$date_time <- ymd_hm(sprintf("%s %s", as.character(isd_df$date), isd_df$time))
+  isd_df$date_time <- lubridate::ymd_hm(sprintf("%s %s",
+                                                as.character(isd_df$date),
+                                                isd_df$time))
   # select variables
 
   w_vars <- colnames(isd_df)
@@ -60,35 +97,41 @@ int_surface_data <- function(usaf_code, wban_code, year, var = "all"){
   if(length(var) == 1 && var == "all"){
     var <- w_vars[9:length(w_vars)]
     remove <- c("date_time")
-    var <- var[!var%in%remove]
+    var <- var[!(var %in% remove)]
   }
 
-  cols <- c("usaf_station", "wban_station", "date_time", "latitude", "longitude")
+  cols <- c("usaf_station", "wban_station", "date_time",
+            "latitude", "longitude")
   subset_vars <- append(cols, var)
   isd_df <- dplyr::select_(isd_df, .dots = subset_vars)
   # change misisng weather data values to NA - it looks like non-signed items are filled
   # with 9 (quality codes), 999 or 9999; signed items are positive filled (+9999 or +99999)
   # ftp://ftp.ncdc.noaa.gov/pub/data/noaa/ish-format-document.pdf
-  isd_df[,var][isd_df[,var] > 900] <- NA
+  isd_df[ ,var][isd_df[ ,var] > 900] <- NA
 
   return(isd_df)
 }
 
-year <- 1992
-onest <- int_surface_data(ids$usaf[1], ids$wban[1], year, var = c("wind_speed",
-                                                                  "temperature"))
-derp <- int_surface_data(ids$usaf[11], ids$wban[11], year, var = c("wind_speed",
-                                                                   "temperature"))
 
-# 3. pull data for multiple monitors
 
+#' Pull hourly data for multiple monitors
+#'
+#' @inheritParams isd_fips_stations
+#' @inheritParams int_surface_data
+#'
+#' @examples
+#' \dontrun{
+#' stationdata <- isd_monitors_data(fips = "12086", year = 1992,
+#'                                  var = c("wind_speed", "temperature"))
+#' }
+#'
+#' @export
 isd_monitors_data <- function(fips, year, var = "all"){
   ids <- isd_fips_stations(fips)
   safe_int <- purrr::safely(int_surface_data)
 
-
-    mult_stations <- mapply(safe_int, usaf_code = ids$usaf, wban_code =
-                              ids$wban, year = year, var = var)
+  mult_stations <- mapply(safe_int, usaf_code = ids$usaf,
+                          wban_code = ids$wban, year = year, var = var)
 
   # problem with mapply only allowing one variable in var argument - if
   # var = c("wind_speed", "temperature") it only includes wind_speed, for
@@ -111,8 +154,6 @@ isd_monitors_data <- function(fips, year, var = "all"){
   st_out_df <- dplyr::bind_rows(st_out_list)
   return(st_out_df)
 }
-
-stationdata <- isd_monitors_data("12086", 1992, var = c("wind_speed"))
 
 # 4. average across stations
 
