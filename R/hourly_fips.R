@@ -119,8 +119,8 @@ isd_monitors_data <- function(fips, year, var = "all"){
   # example
 
 
-  check_df <- data.frame(st = c(1:length(stations$usaf)), bool = NA)
-  for(i in 1:length(stations$usaf)){
+  check_df <- data.frame(st = c(1:length(stations)), bool = NA)
+  for(i in 1:length(stations)){
     if(length(mult_stations[[i]]$usaf_station) == 0){
       check_df$bool[i] = TRUE
     } else {
@@ -132,20 +132,26 @@ isd_monitors_data <- function(fips, year, var = "all"){
 
   st_out_list <- lapply(good_st$st, function(x) mult_stations[[x]])
 
-  st_out_df <- dplyr::bind_rows(st_out)
+  st_out_df <- dplyr::bind_rows(st_out_list)
   return(st_out_df)
 }
 
-
-
 #' Average across hourly stations
 ave_hourly <- function(stationdata){
-  averaged <- ddply(stationdata, c("date_time",
-                                   "variable"), summarize, mean =
-                      mean(value, na.rm = TRUE))
+  averaged <- ddply(stationdata, c("date_time"), summarize, mean =
+                      mean(wind_speed, na.rm = TRUE))
   #(not finished)
 }
 
+average_data <- ave_hourly(stationdata)
+
+aug_ave <- with(average_data, subset(average_data, average_data$date_time >
+                                       as.POSIXct('1992-08-01 00:00:00') &
+                                       average_data$date_time <
+                                       as.POSIXct('1992-08-31 00:00:00')))
+
+
+# ggplot(aug_ave, aes(x = date_time, y = mean)) + geom_line() + theme_minimal()
 
 # for filtering based on coverage (moved from isd_fips_stations())
 # n_missing <- do.call("rbind", sapply(var, FUN = function(i) sum(is.na(isd_df[,i])),
