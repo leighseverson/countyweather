@@ -26,12 +26,16 @@ Imports:
     tidyr (>= 0.3.1),
     weathermetrics (>= 1.2.0),
     waterData (>= 1.0.4),
+    geojsonio(),
     ggmap (>= 2.6.1),
+    ggplot2(),
+    lawn(),
     lubridate (>= 1.5.6),
     purrr (>= 0.2.1),
     broom (>= 0.4.0),
     choroplethr (>= 3.5.2),
-    choroplethrMaps (>= 1.0)
+    choroplethrMaps (>= 1.0),
+    stringr()
 RoxygenNote: 5.0.1
 Suggests: knitr,
     rmarkdown
