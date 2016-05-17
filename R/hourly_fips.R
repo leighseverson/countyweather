@@ -79,28 +79,27 @@ isd_fips_stations <- function(fips, verbose = TRUE){
 #' @export
 int_surface_data <- function(usaf_code, wban_code, year, var = "all"){
   isd_df <- rnoaa::isd(usaf = usaf_code, wban = wban_code, year = year)$data
-  # add date time (suggested by one of the rnoaa package vignette examples for isd())
-  isd_df$date_time <- lubridate::ymd_hm(sprintf("%s %s",
-                                                as.character(isd_df$date),
-                                                isd_df$time))
-  # select variables
 
-  w_vars <- colnames(isd_df)
-
+  # select variables if `var` isn't "all"
   if(length(var) == 1 && var == "all"){
+    w_vars <- colnames(isd_df)
     var <- w_vars[9:length(w_vars)]
-    remove <- c("date_time")
-    var <- var[!(var %in% remove)]
   }
 
   cols <- c("usaf_station", "wban_station", "date_time",
             "latitude", "longitude")
   subset_vars <- append(cols, var)
   isd_df <- dplyr::select_(isd_df, .dots = subset_vars)
+
   # change misisng weather data values to NA - it looks like non-signed items are filled
   # with 9 (quality codes), 999 or 9999; signed items are positive filled (+9999 or +99999)
   # ftp://ftp.ncdc.noaa.gov/pub/data/noaa/ish-format-document.pdf
   isd_df[ ,var][isd_df[ ,var] > 900] <- NA
+
+  # add date time (suggested by one of the rnoaa package vignette examples for isd())
+  isd_df$date_time <- lubridate::ymd_hm(sprintf("%s %s",
+                                                as.character(isd_df$date),
+                                                isd_df$time))
 
   return(isd_df)
 }
