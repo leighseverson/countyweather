@@ -21,6 +21,9 @@ Pull hourly data for multiple monitors
 \dontrun{
 stationdata <- isd_monitors_data(fips = "12086", year = 1992,
                                  var = c("wind_speed", "temperature"))
+ggplot(stationdata, aes(x = date_time, y = wind_speed)) +
+   geom_point(alpha = 0.5, size = 0.2) +
+   facet_wrap(~ usaf_station, ncol = 1)
 }
 
 }

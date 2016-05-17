@@ -1,17 +1,21 @@
-#' Get station list for a particular fips
+#' Get station list for a particular US county
 #'
-#' This function serves as a wrapper to that function, allowing you to search
+#' This function serves as a wrapper to the \code{isd_stations_search} function
+#' in the \code{rnoaa} package., allowing you to search
 #' by FIPS code rather than having to know the latitude and longitude of the
 #' center of each county.
 #'
 #' @param fips A five-digit FIPS county code.
+#' @param verbose TRUE / FALSE to indicate if you want the function to print
+#'    out the name of the county it's processing
+#' @param radius A numeric value giving the radius, in kilometers from the
+#'    county's population-weighted center, within which to pull weather
+#'    monitors.
 #'
-#' @return A dataframe of monitors within a given radius of the
+#' @return A dataframe of monitors within the given radius of the
 #'    population-weighted center of the county specified by the FIPS code.
 #'    This will have the same dataframe format as the output from the
 #'    \code{isd_stations_search} function in the \code{rnoaa} package.
-#'
-#' @note We probably want to use geocodes for this instead.
 #'
 #' @examples
 #' \dontrun{
