@@ -120,11 +120,14 @@ int_surface_data <- function(usaf_code, wban_code, year, var = "all"){
 #' \dontrun{
 #' stationdata <- isd_monitors_data(fips = "12086", year = 1992,
 #'                                  var = c("wind_speed", "temperature"))
+#' ggplot(stationdata, aes(x = date_time, y = wind_speed)) +
+#'    geom_point(alpha = 0.5, size = 0.2) +
+#'    facet_wrap(~ usaf_station, ncol = 1)
 #' }
 #'
 #' @export
 isd_monitors_data <- function(fips, year, var = "all"){
-  ids <- isd_fips_stations(fips)
+  ids <- isd_fips_stations(fips, verbose = FALSE)
   safe_int <- purrr::safely(int_surface_data)
 
   mult_stations <- mapply(safe_int, usaf_code = ids$usaf,
