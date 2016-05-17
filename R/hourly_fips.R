@@ -132,8 +132,12 @@ isd_monitors_data <- function(fips, year, var = "all"){
                           year = year, var = list(var = var))
 
   good_st <- sapply(mult_stations, function(x) !is.null(dim(x)))
-  st_out_list <- lapply(which(good_st), function(x) mult_stations[[x]])
-  st_out_df <- dplyr::bind_rows(st_out_list)
+  if(sum(good_st) > 0){
+    st_out_list <- lapply(which(good_st), function(x) mult_stations[[x]])
+    st_out_df <- dplyr::bind_rows(st_out_list)
+  } else(
+    stop("None of the stations had available data.")
+  )
 
   return(st_out_df)
 }
