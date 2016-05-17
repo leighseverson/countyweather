@@ -19,7 +19,7 @@
 #' }
 #'
 #' @export
-isd_fips_stations <- function(fips){
+isd_fips_stations <- function(fips, verbose = TRUE){
   census_data <- read.csv(paste0("http://www2.census.gov/geo/docs/reference/",
                                  "cenpop2010/county/CenPop2010_Mean_CO.txt"))
   state <- sprintf("%02d", census_data$STATEFP)
@@ -29,6 +29,12 @@ isd_fips_stations <- function(fips){
   loc_fips <- which(FIPS == fips)
   lat_FIPS <- census_data[loc_fips, "LATITUDE"]
   lon_FIPS <- census_data[loc_fips, "LONGITUDE"]
+
+  if(verbose) {
+    print(paste0("Getting hourly weather monitors for ",
+                 census_data[loc_fips, "COUNAME"], ", ",
+                 census_data[loc_fips, "STNAME"]))
+  }
 
   stations <- rnoaa::isd_stations_search(lat = lat_FIPS, lon = lon_FIPS,
                                         radius = 50)
