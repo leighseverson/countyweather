@@ -19,7 +19,7 @@
 #' }
 #'
 #' @export
-isd_fips_stations <- function(fips, verbose = TRUE){
+isd_fips_stations <- function(fips, verbose = TRUE, radius = 50){
   census_data <- read.csv(paste0("http://www2.census.gov/geo/docs/reference/",
                                  "cenpop2010/county/CenPop2010_Mean_CO.txt"))
   state <- sprintf("%02d", census_data$STATEFP)
@@ -38,7 +38,7 @@ isd_fips_stations <- function(fips, verbose = TRUE){
 
   quiet_station_search <- purrr::quietly(rnoaa::isd_stations_search)
   stations <- quiet_station_search(lat = lat_FIPS, lon = lon_FIPS,
-                                   radius = 50)$result
+                                   radius = radius)$result
 
   return(stations)
 }
