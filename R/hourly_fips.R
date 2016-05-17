@@ -128,12 +128,8 @@ isd_monitors_data <- function(fips, year, var = "all"){
   safe_int <- purrr::safely(int_surface_data)
 
   mult_stations <- mapply(safe_int, usaf_code = ids$usaf,
-                          wban_code = ids$wban, year = year, var = var)
-
-  # problem with mapply only allowing one variable in var argument - if
-  # var = c("wind_speed", "temperature") it only includes wind_speed, for
-  # example
-
+                          wban_code = ids$wban,
+                          year = year, var = list(var = var))
 
   check_df <- data.frame(st = c(1:length(stations)), bool = NA)
   for(i in 1:length(stations)){
