@@ -128,8 +128,8 @@ int_surface_data <- function(usaf_code, wban_code, year, var = "all"){
 #' @export
 isd_monitors_data <- function(fips, year, var = "all"){
   ids <- isd_fips_stations(fips, verbose = FALSE)
-  safe_int <- purrr::safely(int_surface_data)
 
+  safe_int <- purrr::safely(int_surface_data)
   mult_stations <- mapply(safe_int, usaf_code = ids$usaf,
                           wban_code = ids$wban,
                           year = year, var = list(var = var))

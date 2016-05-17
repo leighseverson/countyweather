@@ -25,7 +25,7 @@ Imports:
     dplyr (>= 0.4.3),
     geojsonio(>= 0.1.8),
     ggmap (>= 2.6.1),
-    ggplot2(>= 2.1.0),
+    ggplot2 (>= 2.1.0),
     lawn(>= 0.1.6),
     lubridate (>= 1.5.6),
     plyr (>= 1.8.3),
