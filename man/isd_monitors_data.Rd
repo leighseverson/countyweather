@@ -4,7 +4,7 @@
 \alias{isd_monitors_data}
 \title{Pull hourly data for multiple monitors}
 \usage{
-isd_monitors_data(fips, year, var = "all")
+isd_monitors_data(fips, year, var = "all", radius = 50)
 }
 \arguments{
 \item{fips}{A five-digit FIPS county code.}
@@ -13,9 +13,15 @@ isd_monitors_data(fips, year, var = "all")
 
 \item{var}{A character vector listing the weather variables to pull. Choices
 include ...}
+
+\item{radius}{A numeric value giving the radius, in kilometers from the
+county's population-weighted center, within which to pull weather
+monitors.}
 }
 \description{
-Pull hourly data for multiple monitors
+Pull all available data for all weather monitors within a certain radius of
+the population-weighted center of a US county, based on the county's FIPS
+code.
 }
 \examples{
 \dontrun{

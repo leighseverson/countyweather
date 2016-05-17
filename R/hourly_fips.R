@@ -117,6 +117,10 @@ int_surface_data <- function(usaf_code, wban_code, year, var = "all"){
 
 #' Pull hourly data for multiple monitors
 #'
+#' Pull all available data for all weather monitors within a certain radius of
+#' the population-weighted center of a US county, based on the county's FIPS
+#' code.
+#'
 #' @inheritParams isd_fips_stations
 #' @inheritParams int_surface_data
 #'
@@ -130,8 +134,8 @@ int_surface_data <- function(usaf_code, wban_code, year, var = "all"){
 #' }
 #'
 #' @export
-isd_monitors_data <- function(fips, year, var = "all"){
-  ids <- isd_fips_stations(fips, verbose = FALSE)
+isd_monitors_data <- function(fips, year, var = "all", radius = 50){
+  ids <- isd_fips_stations(fips, verbose = FALSE, radius = radius)
 
   safe_int <- purrr::safely(int_surface_data)
   mult_stations <- mapply(safe_int, usaf_code = ids$usaf,
