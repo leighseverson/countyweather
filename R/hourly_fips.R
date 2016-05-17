@@ -131,20 +131,10 @@ isd_monitors_data <- function(fips, year, var = "all"){
                           wban_code = ids$wban,
                           year = year, var = list(var = var))
 
-  check_df <- data.frame(st = c(1:length(stations)), bool = NA)
-  for(i in 1:length(stations)){
-    if(length(mult_stations[[i]]$usaf_station) == 0){
-      check_df$bool[i] = TRUE
-    } else {
-      check_df$bool[i] = FALSE
-    }
-  }
-
-  good_st <- filter(check_df, bool == FALSE)
-
-  st_out_list <- lapply(good_st$st, function(x) mult_stations[[x]])
-
+  good_st <- sapply(mult_stations, function(x) !is.null(dim(x)))
+  st_out_list <- lapply(which(good_st), function(x) mult_stations[[x]])
   st_out_df <- dplyr::bind_rows(st_out_list)
+
   return(st_out_df)
 }
 
