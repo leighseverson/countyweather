@@ -36,8 +36,10 @@ isd_fips_stations <- function(fips, verbose = TRUE){
                  census_data[loc_fips, "STNAME"]))
   }
 
-  stations <- rnoaa::isd_stations_search(lat = lat_FIPS, lon = lon_FIPS,
-                                        radius = 50)
+  quiet_station_search <- purrr::quietly(rnoaa::isd_stations_search)
+  stations <- quiet_station_search(lat = lat_FIPS, lon = lon_FIPS,
+                                   radius = 50)$result
+
   return(stations)
 }
 
