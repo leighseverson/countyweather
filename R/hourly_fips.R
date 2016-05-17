@@ -66,10 +66,14 @@ isd_fips_stations <- function(fips, verbose = TRUE){
 #' @examples
 #' \dontrun{
 #' ids <- isd_fips_stations(fips = "12086")
-#' onest <- int_surface_data(usaf_code = ids$usaf[1], wban_code = ids$wban[1],
-#'                           year = 1992, var = c("wind_speed", "temperature"))
-#' derp <- int_surface_data(usaf_code = ids$usaf[11], wban_code = ids$wban[11],
-#'                          year = year, var = c("wind_speed", "temperature"))
+#' airport_station <- int_surface_data(usaf_code = ids$usaf[1],
+#'                                     wban_code = ids$wban[1],
+#'                                     year = 1992,
+#'                                     var = c("wind_speed", "temperature"))
+#' kendall_station <- int_surface_data(usaf_code = ids$usaf[11],
+#'                                     wban_code = ids$wban[11],
+#'                                     year = 1992,
+#'                                     var = c("wind_speed", "temperature"))
 #' }
 #'
 #' @export

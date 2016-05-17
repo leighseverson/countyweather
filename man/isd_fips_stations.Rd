@@ -4,7 +4,7 @@
 \alias{isd_fips_stations}
 \title{Get station list for a particular fips}
 \usage{
-isd_fips_stations(fips)
+isd_fips_stations(fips, verbose = TRUE)
 }
 \arguments{
 \item{fips}{A five-digit FIPS county code.}
