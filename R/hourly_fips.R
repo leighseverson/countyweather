@@ -78,7 +78,9 @@ isd_fips_stations <- function(fips, verbose = TRUE){
 #'
 #' @export
 int_surface_data <- function(usaf_code, wban_code, year, var = "all"){
-  isd_df <- rnoaa::isd(usaf = usaf_code, wban = wban_code, year = year)$data
+  quiet_isd <- purrr::quietly(rnoaa::isd)
+  isd_df <- quiet_isd(usaf = usaf_code, wban = wban_code, year = year)
+  isd_df <- isd_df$result$data
 
   # select variables if `var` isn't "all"
   if(length(var) == 1 && var == "all"){
@@ -108,8 +110,6 @@ int_surface_data <- function(usaf_code, wban_code, year, var = "all"){
 
   return(isd_df)
 }
-
-
 
 #' Pull hourly data for multiple monitors
 #'
