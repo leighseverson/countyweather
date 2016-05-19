@@ -1,36 +1,21 @@
-# need to move these to description
-library(devtools)
-library(rnoaa)
-library(countyweather)
-library(ggplot2)
-library(dplyr)
-library(countyweather)
-library(lubridate)
-library(stringr)
-library(geojsonio)
-library(lawn)
-library(plyr)
-library(tidyr)
-
-
-## want average hourly data for a particular fips, year, variables, and coverage
-
-fips <- "12086"
-
-#' Get station list for a particular fips
+#' Get station list for a particular US county
 #'
-#' This function serves as a wrapper to that function, allowing you to search
+#' This function serves as a wrapper to the \code{isd_stations_search} function
+#' in the \code{rnoaa} package., allowing you to search
 #' by FIPS code rather than having to know the latitude and longitude of the
 #' center of each county.
 #'
 #' @param fips A five-digit FIPS county code.
+#' @param verbose TRUE / FALSE to indicate if you want the function to print
+#'    out the name of the county it's processing
+#' @param radius A numeric value giving the radius, in kilometers from the
+#'    county's population-weighted center, within which to pull weather
+#'    monitors.
 #'
-#' @return A dataframe of monitors within a given radius of the
+#' @return A dataframe of monitors within the given radius of the
 #'    population-weighted center of the county specified by the FIPS code.
 #'    This will have the same dataframe format as the output from the
 #'    \code{isd_stations_search} function in the \code{rnoaa} package.
-#'
-#' @note We probably want to use geocodes for this instead.
 #'
 #' @examples
 #' \dontrun{
@@ -38,7 +23,7 @@ fips <- "12086"
 #' }
 #'
 #' @export
-isd_fips_stations <- function(fips){
+isd_fips_stations <- function(fips, verbose = TRUE, radius = 50){
   census_data <- read.csv(paste0("http://www2.census.gov/geo/docs/reference/",
                                  "cenpop2010/county/CenPop2010_Mean_CO.txt"))
   state <- sprintf("%02d", census_data$STATEFP)
@@ -49,8 +34,16 @@ isd_fips_stations <- function(fips){
   lat_FIPS <- census_data[loc_fips, "LATITUDE"]
   lon_FIPS <- census_data[loc_fips, "LONGITUDE"]
 
-  stations <- rnoaa::isd_stations_search(lat = lat_FIPS, lon = lon_FIPS,
-                                        radius = 50)
+  if(verbose) {
+    print(paste0("Getting hourly weather monitors for ",
+                 census_data[loc_fips, "COUNAME"], ", ",
+                 census_data[loc_fips, "STNAME"]))
+  }
+
+  quiet_station_search <- purrr::quietly(rnoaa::isd_stations_search)
+  stations <- quiet_station_search(lat = lat_FIPS, lon = lon_FIPS,
+                                   radius = radius)$result
+
   return(stations)
 }
 
@@ -70,51 +63,63 @@ isd_fips_stations <- function(fips){
 #'    by the \code{isd} function from the \code{rnoaa} package, but with the
 #'    dataframe limited to the selected weather variables.
 #'
-#' @reference
+#' @references
 #' For more information on this dataset, see
 #' \url{ftp://ftp.ncdc.noaa.gov/pub/data/noaa/ish-format-document.pdf}.
 #'
 #' @examples
 #' \dontrun{
 #' ids <- isd_fips_stations(fips = "12086")
-#' onest <- int_surface_data(usaf_code = ids$usaf[1], wban_code = ids$wban[1],
-#'                           year = 1992, var = c("wind_speed", "temperature"))
-#' derp <- int_surface_data(usaf_code = ids$usaf[11], wban_code = ids$wban[11],
-#'                          year = year, var = c("wind_speed", "temperature"))
+#' airport_station <- int_surface_data(usaf_code = ids$usaf[1],
+#'                                     wban_code = ids$wban[1],
+#'                                     year = 1992,
+#'                                     var = c("wind_speed", "temperature"))
+#' kendall_station <- int_surface_data(usaf_code = ids$usaf[11],
+#'                                     wban_code = ids$wban[11],
+#'                                     year = 1992,
+#'                                     var = c("wind_speed", "temperature"))
 #' }
 #'
 #' @export
 int_surface_data <- function(usaf_code, wban_code, year, var = "all"){
-  isd_df <- rnoaa::isd(usaf = usaf_code, wban = wban_code, year = year)$data
+  quiet_isd <- purrr::quietly(rnoaa::isd)
+  isd_df <- quiet_isd(usaf = usaf_code, wban = wban_code, year = year)
+  isd_df <- isd_df$result$data
+
+  # select variables if `var` isn't "all"
+  if(length(var) == 1 && var == "all"){
+    w_vars <- colnames(isd_df)
+    var <- w_vars[9:length(w_vars)]
+  }
+
   # add date time (suggested by one of the rnoaa package vignette examples for isd())
   isd_df$date_time <- lubridate::ymd_hm(sprintf("%s %s",
                                                 as.character(isd_df$date),
                                                 isd_df$time))
-  # select variables
-
-  w_vars <- colnames(isd_df)
-
-  if(length(var) == 1 && var == "all"){
-    var <- w_vars[9:length(w_vars)]
-    remove <- c("date_time")
-    var <- var[!(var %in% remove)]
-  }
-
   cols <- c("usaf_station", "wban_station", "date_time",
             "latitude", "longitude")
   subset_vars <- append(cols, var)
   isd_df <- dplyr::select_(isd_df, .dots = subset_vars)
-  # change misisng weather data values to NA - it looks like non-signed items are filled
+
+  # change misisng numerical weather data values to NA - it looks like non-signed items are filled
   # with 9 (quality codes), 999 or 9999; signed items are positive filled (+9999 or +99999)
   # ftp://ftp.ncdc.noaa.gov/pub/data/noaa/ish-format-document.pdf
-  isd_df[ ,var][isd_df[ ,var] > 900] <- NA
+  na_code_vars <- colnames(isd_df)[apply(isd_df, 2, max) %in%
+                                 c(999, 999.9, 9999, 9999.9, 99999, 99999.9)]
+  if(length(na_code_vars) > 0){
+    for(na_var in na_code_vars){
+      isd_df[isd_df[ , na_var] == max(isd_df[ , na_var]), na_var] <- NA
+    }
+  }
 
   return(isd_df)
 }
 
-
-
 #' Pull hourly data for multiple monitors
+#'
+#' Pull all available data for all weather monitors within a certain radius of
+#' the population-weighted center of a US county, based on the county's FIPS
+#' code.
 #'
 #' @inheritParams isd_fips_stations
 #' @inheritParams int_surface_data
@@ -123,74 +128,66 @@ int_surface_data <- function(usaf_code, wban_code, year, var = "all"){
 #' \dontrun{
 #' stationdata <- isd_monitors_data(fips = "12086", year = 1992,
 #'                                  var = c("wind_speed", "temperature"))
+#' ggplot(stationdata, aes(x = date_time, y = wind_speed)) +
+#'    geom_point(alpha = 0.5, size = 0.2) +
+#'    facet_wrap(~ usaf_station, ncol = 1)
 #' }
 #'
 #' @export
-isd_monitors_data <- function(fips, year, var = "all"){
-  ids <- isd_fips_stations(fips)
+isd_monitors_data <- function(fips, year, var = "all", radius = 50){
+  ids <- isd_fips_stations(fips, verbose = FALSE, radius = radius)
+
   safe_int <- purrr::safely(int_surface_data)
-
   mult_stations <- mapply(safe_int, usaf_code = ids$usaf,
-                          wban_code = ids$wban, year = year, var = var)
+                          wban_code = ids$wban,
+                          year = year, var = list(var = var))
 
-  # problem with mapply only allowing one variable in var argument - if
-  # var = c("wind_speed", "temperature") it only includes wind_speed, for
-  # example
+  good_st <- sapply(mult_stations, function(x) !is.null(dim(x)))
+  if(sum(good_st) > 0){
+    st_out_list <- lapply(which(good_st), function(x) mult_stations[[x]])
+    st_out_df <- dplyr::bind_rows(st_out_list)
+  } else(
+    stop("None of the stations had available data.")
+  )
 
-
-  check_df <- data.frame(st = c(1:length(stations)), bool = NA)
-  for(i in 1:length(stations)){
-    if(length(mult_stations[[i]]$usaf_station) == 0){
-      check_df$bool[i] = TRUE
-    } else {
-      check_df$bool[i] = FALSE
-    }
-  }
-
-  good_st <- filter(check_df, bool == FALSE)
-
-  st_out_list <- lapply(good_st$st, function(x) mult_stations[[x]])
-
-  st_out_df <- dplyr::bind_rows(st_out_list)
   return(st_out_df)
 }
 
-# 4. average across stations
-
+#' Average across hourly stations
+#'
+#' @examples
+#' \dontrun{
+#' average_data <- ave_hourly(stationdata)
+#' aug_ave <- with(average_data,
+#' subset(average_data, average_data$date_time > as.POSIXct('1992-08-01 00:00:00') &
+#' average_data$date_time < as.POSIXct('1992-08-31 00:00:00')))
+#' ggplot(aug_ave, aes(x = date_time, y = mean)) + geom_line() + theme_minimal()
+#' }
 ave_hourly <- function(stationdata){
   averaged <- ddply(stationdata, c("date_time"), summarize, mean =
                       mean(wind_speed, na.rm = TRUE))
   #(not finished)
 }
 
-average_data <- ave_hourly(stationdata)
-
-aug_ave <- with(average_data, subset(average_data, average_data$date_time >
-                                       as.POSIXct('1992-08-01 00:00:00') &
-                                       average_data$date_time <
-                                       as.POSIXct('1992-08-31 00:00:00')))
-
-ggplot(aug_ave, aes(x = date_time, y = mean)) + geom_line() + theme_minimal()
-
 
 # for filtering based on coverage (moved from isd_fips_stations())
-n_missing <- do.call("rbind", sapply(var, FUN = function(i) sum(is.na(isd_df[,i])),
-                                     simplify = FALSE))
-n_missing <- as.data.frame(n_missing)
-n_missing <- add_rownames(n_missing, "VALUE")
-colnames(n_missing) <- c("variable", "n_missing")
-
-n_total <- do.call("rbind", sapply(var, FUN = function(i) nrow(isd_df[,i]),
-                                   simplify = FALSE))
-n_total <- as.data.frame(n_total)
-n_total <- add_rownames(n_total, "VALUE")
-colnames(n_total) <- c("variable", "n_total")
-
-df <- full_join(n_missing, n_total, by = "variable")
-df <- mutate(df, frac_missing = n_missing/n_total, coverage = 1-(n_missing/n_total))
-
-isd_df <- gather(isd_df, "variable", "value", 1:length(var))
-isd_df <- left_join(isd_df, df, by = "variable")
-isd_df <- select(isd_df, -n_missing, -n_total, -frac_missing)
-isd_df_coverage <- isd_df[isd_df$coverage > frac_coverage,]
-isd_df_coverage <- select(isd_df_coverage, -coverage)
+# n_missing <- do.call("rbind", sapply(var, FUN = function(i) sum(is.na(isd_df[,i])),
+#                                      simplify = FALSE))
+# n_missing <- as.data.frame(n_missing)
+# n_missing <- add_rownames(n_missing, "VALUE")
+# colnames(n_missing) <- c("variable", "n_missing")
+#
+# n_total <- do.call("rbind", sapply(var, FUN = function(i) nrow(isd_df[,i]),
+#                                    simplify = FALSE))
+# n_total <- as.data.frame(n_total)
+# n_total <- add_rownames(n_total, "VALUE")
+# colnames(n_total) <- c("variable", "n_total")
+#
+# df <- full_join(n_missing, n_total, by = "variable")
+# df <- mutate(df, frac_missing = n_missing/n_total, coverage = 1-(n_missing/n_total))
+#
+# isd_df <- gather(isd_df, "variable", "value", 1:length(var))
+# isd_df <- left_join(isd_df, df, by = "variable")
+# isd_df <- select(isd_df, -n_missing, -n_total, -frac_missing)
+# isd_df_coverage <- isd_df[isd_df$coverage > frac_coverage,]
+# isd_df_coverage <- select(isd_df_coverage, -coverage)

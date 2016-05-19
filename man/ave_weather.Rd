@@ -2,11 +2,17 @@
 % Please edit documentation in R/weather_fips.R
 \name{ave_weather}
 \alias{ave_weather}
-\title{Average weather data across multiple stations}
+\title{Average weather data across multiple stations.}
 \usage{
-ave_weather(filtered_data)
+ave_weather(weather_data)
+}
+\arguments{
+\item{weather_data}{A dataframe with daily weather observations. This
+dataframe is returned from the function \code{meteo_pull_monitors}.}
 }
 \description{
-Average weather data across multiple stations
+\code{ave_weather} returns a dataframe with daily weather averaged across
+   stations, as well as columns showing the number of stations contributing
+   to the average for each variable and each day.
 }
 

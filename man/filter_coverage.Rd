@@ -2,23 +2,23 @@
 % Please edit documentation in R/weather_fips.R
 \name{filter_coverage}
 \alias{filter_coverage}
-\title{Filter stations based on "coverage" requirements}
+\title{Filter stations based on "coverage" requirements.}
 \usage{
-filter_coverage(coverage_df, percent_coverage)
+filter_coverage(coverage_df, percent_coverage = NULL)
 }
 \arguments{
-\item{coverage_df}{a \code{meteo_coverage} data.frame}
+\item{coverage_df}{a \code{meteo_coverage} dataframe}
 
-\item{percent_coverage}{A numeric value in the range of 0 to 1 that specifies the
-desired percentage coverage for the weather variable (i.e., what percent
-of each weather variable must be non-missing to include data from a
-monitor when calculating daily values averaged across monitors. The
-default is 0.90 (90% non-missing observations required to include a
-monitor in averaging).}
+\item{percent_coverage}{A numeric value in the range of 0 to 1 that specifies
+the desired percentage coverage for the weather variable (i.e., what
+percent of each weather variable must be non-missing to include data from
+a monitor when calculating daily values averaged across monitors.
+(Optional.)}
 }
 \value{
-a \code{data.frame} with stations that meet the specified coverage
-requirements for \code{prcp}, \code{tmax}, and \code{tmin}.
+a \code{dataframe} with stations that meet the specified coverage
+   requirements for weather variables included in the dataframe present in
+   this function's arguments.
 }
 \description{
 \code{filter_coverage} filters available weather variables

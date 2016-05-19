@@ -78,7 +78,7 @@ stream_stations <- function(fips, date_min, date_max, fraction_coverage = NULL){
 #' @param stat_code A 5-number character string specifying a USGS statistics
 #' code to uniquely identify specific statistics. Possible codes can be found
 #' here:
-#' \url{http://help.waterdata.usgs.gov/code/stat_cd_nm_query?stat_nm_cd=%25&fmt=html}.
+#' \url{http://help.waterdata.usgs.gov/code/stat_cd_nm_query?stat_nm_cd=\%25&fmt=html}.
 #' Not all statistics are available at every gage. The default for stat_code in
 #' \code{stream_data} is set to "00003", which gives daily mean values.
 #'

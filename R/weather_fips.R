@@ -17,22 +17,29 @@
 #'    \code{weather_fips}'s arguments (radius, percent_coverage, date_min,
 #'    date_max, and/or var).
 #'
-#' @example
+#' @note You must have a NOAA API to use this function, and you need to set
+#'    that API code in your R session (e.g., using \code{options("noaakey" = }).
+#'
+#' @examples
 #' \dontrun{
 #' ex <- weather_fips("08031", radius = 15, percent_coverage = 0.90,
 #' date_min = "2010-01-01", date_max = "2010-02-01", var = "PRCP")
 #'
-#' data <- ex$data
-#' plot <- ex$plot
+#' weather_data <- ex$weather_data
+#' station_map <- ex$station_map
 #' }
 #' @export
 weather_fips <- function(fips, radius = NULL, percent_coverage = NULL,
                          date_min = NULL, date_max = NULL, var = "all"){
-  data <- weather_fips_df(fips, radius, percent_coverage, date_min, date_max,
-                          var)
-  plot <- stationmap_fips(fips, radius, percent_coverage, date_min, date_max,
-                          var)
-  list <- list("data" = data, "plot" = plot)
+  weather_data <- weather_fips_df(fips = fips, radius = radius,
+                                  percent_coverage = percent_coverage,
+                                  date_min = date_min, date_max = date_max,
+                                  var = var)
+  station_map <- stationmap_fips(fips = fips, radius = radius,
+                                 percent_coverage = percent_coverage,
+                                 date_min = date_min, date_max = date_max,
+                                 var = var)
+  list <- list("weather_data" = weather_data, "station_map" = station_map)
   return(list)
 }
 
@@ -308,14 +315,14 @@ stationmap_fips <- function(fips, radius = NULL, percent_coverage = NULL,
   choro_fips <- census_data[row_num, 8]
   title <- census_data[row_num, 10]
 
-  map <- county_choropleth(df_pop_county, title = "", legend = "",
+  map <- choroplethr::county_choropleth(df_pop_county, title = "", legend = "",
                            num_colors = 1, state_zoom = NULL,
                            county_zoom = choro_fips, reference_map = TRUE)
 
-  map <- map + geom_point(data = final_df, aes(x = lon, y = lat),
+  map <- map + ggplot2::geom_point(data = final_df, aes(x = lon, y = lat),
                           colour = "black", size = 5) +
-    theme(legend.position = "none") +
-    ggtitle(title)
+    ggplot2::theme(legend.position = "none") +
+    ggplot2::ggtitle(title)
 
   return(map)
 }
