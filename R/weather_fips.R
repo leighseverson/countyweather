@@ -344,3 +344,62 @@ mapping <- function(station_df){
   df$id <- gsub("GHCND:", "", df$id)
   return(df)
 }
+
+#' Write FIPS timeseries files
+#'
+#' Given a vector of U.S. county FIPS codes, this function creates time series
+#' dataframes giving the values for specified weather variables and the number
+#' of weather stations contributing to the average for each day within the
+#' specified date range.
+#'
+#' @return Writes out a directory with daily weather files for each FIPS code
+#' specified.
+#'
+#' @inheritParams weather_fips_df
+#' @param out_directory The absolute or relative pathname for the directory
+#' where you would like the timeseries files to be saved.
+#' @param out_type A character string indicating that you would like either .rds
+#' files (out_type = "rds") or .csv files (out_type = ".csv"). This option
+#' defaults to .rds files.
+#'
+#' @note If the function is unable to pull weather data for a particular county
+#' given the specified percent coverage, date range, and/or weather variables,
+#' \code{county_timeseries} will not produce a file for that county.
+#'
+#' @examples
+#' county_timeseries(fips = c("41005", "13089"), percent_coverage = 0.90,
+#'            date_min = "2000-01-01", date_max = "2000-01-10",
+#'            var = c("TMAX", "TMIN", "PRCP"),
+#'            out_directory = "~/Desktop/LD/countyweather/timeseries")
+#'
+#' @export
+county_timeseries <- function(fips, percent_coverage, date_min, date_max, var,
+                              out_directory, out_type = "rds"){
+
+  if(!dir.exists(out_directory)){
+    dir.create(out_directory)
+  }
+  for(i in 1:length(fips)) {
+    possibleError <- tryCatch({
+      out_df <- weather_fips_df(fips = fips[i], percent_coverage = percent_coverage, date_min =
+                                  date_min, date_max = date_max,
+                                var = var)
+      out_file <- paste0(out_directory, "/", fips[i], ".", out_type)
+      if(out_type == "rds"){
+        saveRDS(out_df, file = out_file)
+      } else if (out_type == "csv"){
+        utils::write.csv(out_df, file = out_file, row.names = FALSE)
+      }
+    }
+    ,
+    error = function(e) {
+      e
+      print(paste0("Unable to pull weather data for FIPS code ", fips[i],
+                   " for the specified percent coverage, date range, and/or weather variables."))
+    }
+    )
+    if(inherits(possibleError, "error")) next
+
+  }
+
+}
