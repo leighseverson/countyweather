@@ -358,7 +358,7 @@ mapping <- function(station_df){
 #' county_timeseries(fips = c("41005", "13089"), percent_coverage = 0.90,
 #'            date_min = "2000-01-01", date_max = "2000-01-10",
 #'            var = c("TMAX", "TMIN", "PRCP"),
-#'            out_directory = "~/Desktop/LD/countyweather/timeseries")
+#'            out_directory = "~/timeseries_data")
 #'
 #' @export
 county_timeseries <- function(fips, percent_coverage, date_min, date_max, var,
