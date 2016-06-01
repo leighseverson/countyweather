@@ -212,9 +212,9 @@ station_radius <- function(fips, radius = NULL){
                                                             county_fips,
                                                             sep = ""),
                             name = paste(county, state, sep = ", "))
-  county_names <- select(county_names, fips_code, county, state, name)
+  county_names <- dplyr::select(county_names, fips_code, county, state, name)
 
-  fipsname <- filter(county_names, fips_code == fips)$name
+  fipsname <- dplyr::filter(county_names, fips_code == fips)$name
   fipsname <- as.character(fipsname)
 
   central_latlong <- ggmap::geocode(location = fipsname, output = c("latlon"));
