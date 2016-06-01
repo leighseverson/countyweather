@@ -154,7 +154,7 @@ ave_weather <- function(weather_data){
 #' based on a specified required minimum coverage (i.e., percent non-missing
 #' daily observations).
 #'
-#' @param coverage_df a \code{meteo_coverage} dataframe
+#' @param coverage_df A \code{meteo_coverage} dataframe
 #' @param percent_coverage A numeric value in the range of 0 to 1 that specifies
 #'    the desired percentage coverage for the weather variable (i.e., what
 #'    percent of each weather variable must be non-missing to include data from
@@ -162,7 +162,7 @@ ave_weather <- function(weather_data){
 #'    (Optional.)
 #'
 #' @return a \code{dataframe} with stations that meet the specified coverage
-#'    requirements for weather variablezs included in the dataframe present in
+#'    requirements for weather variables included in the dataframe present in
 #'    this function's arguments.
 #'
 #' @export
