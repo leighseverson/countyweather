@@ -246,6 +246,9 @@ station_radius <- function(fips, radius = NULL){
 #'                       date_min = "2010-01-01", date_max = "2010-02-01",
 #'                       var = "PRCP")
 #' }
+#'
+#' @importFrom dplyr %>%
+#'
 #' @export
 stationmap_fips <- function(fips, percent_coverage = NULL,
                             date_min = NULL, date_max = NULL, var = "all"){
@@ -265,7 +268,7 @@ stationmap_fips <- function(fips, percent_coverage = NULL,
   # in case radius is not NULL, still need to run fips_stations() to
   # get station_df (which is in the global environment after running the
   # fips_stations() function)
-  fips_stations(fips, date_min = date_min, date_max = date_max)
+  # fips_stations(fips, date_min = date_min, date_max = date_max)
   df <- mapping(station_df)
 
   station_latlong <- dplyr::filter_(df, ~ df$id %in% good_monitors)
@@ -283,9 +286,9 @@ stationmap_fips <- function(fips, percent_coverage = NULL,
 
   # run station_radius() to get central_latlong (in global environment after
   # running station_radius())
-  station_radius(fips = fips, radius = radius)
+  # station_radius(fips = fips, radius = radius)
 
-  data("df_pop_county")
+  data("df_pop_county", package = "choroplethr")
 
   census_csv <- paste0("http://www2.census.gov/geo/docs/reference/cenpop2010/",
                        "county/CenPop2010_Mean_CO.txt")
@@ -306,15 +309,13 @@ stationmap_fips <- function(fips, percent_coverage = NULL,
   choro_fips <- census_data[row_num, 8]
   title <- census_data[row_num, 10]
 
-  data("df_pop_county", package = "choroplethr")
   map <- choroplethr::county_choropleth(df_pop_county,
                                         title = "", legend = "",
                            num_colors = 1, state_zoom = NULL,
                            county_zoom = choro_fips, reference_map = TRUE)
 
-  map <- map + ggplot2::geom_point(data = final_df, ggplot2::aes(x = ~ lon,
-                                                                 y = ~ lat),
-                          colour = "black", size = 5) +
+  map <- map + ggplot2::geom_point(data = final_df, ggplot2::aes_(~ lon, ~ lat),
+                          colour = "firebrick", size = 2) +
     ggplot2::theme(legend.position = "none") +
     ggplot2::ggtitle(title)
 
