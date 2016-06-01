@@ -196,7 +196,7 @@ filter_coverage <- function(coverage_df, percent_coverage = NULL){
 station_radius <- function(fips, radius = NULL){
   url <- paste0("http://www2.census.gov/geo/docs/reference/",
                 "codes/files/national_county.txt")
-  county_names <- read.csv(url, header = FALSE, colClasses = "character")
+  county_names <- utils::read.csv(url, header = FALSE, colClasses = "character")
   colnames(county_names) <- c("state", "state_fips", "county_fips", "county",
                               "fips_class")
   non_fifty <- c("VI", "UM", "PR", "MP", "GU", "AS")
@@ -288,11 +288,11 @@ stationmap_fips <- function(fips, percent_coverage = NULL,
   # running station_radius())
   # station_radius(fips = fips, radius = radius)
 
-  data("df_pop_county", package = "choroplethr")
+  utils::data("df_pop_county", package = "choroplethr")
 
   census_csv <- paste0("http://www2.census.gov/geo/docs/reference/cenpop2010/",
                        "county/CenPop2010_Mean_CO.txt")
-  census_data <- read.csv(census_csv)
+  census_data <- utils::read.csv(census_csv)
   census_data$COUNTYFP <- sprintf("%03d", census_data$COUNTYFP)
   census_data <- dplyr::mutate(census_data, choro_fips = paste0(census_data$STATEFP,
                                                          census_data$COUNTYFP))
