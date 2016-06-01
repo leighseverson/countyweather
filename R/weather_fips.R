@@ -107,7 +107,8 @@ weather_fips_df <- function(fips, percent_coverage = NULL,
   coverage_df <- rnoaa::meteo_coverage(meteo_df, verbose = FALSE)
 
   # filter station dataset based on specified coverage
-  filtered <- filter_coverage(coverage_df, percent_coverage)
+  filtered <- filter_coverage(coverage_df,
+                              percent_coverage = percent_coverage)
   good_monitors <- unique(filtered$id)
 
   # filter weather dataset based on stations with specified coverage
@@ -128,6 +129,8 @@ weather_fips_df <- function(fips, percent_coverage = NULL,
 #'
 #' @param weather_data A dataframe with daily weather observations. This
 #'    dataframe is returned from the function \code{meteo_pull_monitors}.
+#'
+#' @importFrom dplyr %>%
 #'
 #' @export
 ave_weather <- function(weather_data){
