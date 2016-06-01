@@ -1,9 +1,60 @@
+#' Return average hourly weather data for a particular county.
+#'
+#' \code{hourly_fips_df} returns a dataframe of average daily weather values
+#' for a particular county, year, and/or specified "coverage."
+#'
+#' This function serves as a wrapper to several functions from the \code{rnoaa}
+#' package, which provides weather data from all relevant stations in a county.
+#' This function filters and averages across NOAA ISD/ISH stations based on
+#' user-specified coverage specifications.
+#'
+#' @param fips A character string giving the five-digit U.S. FIPS county code
+#'    of the county for which the user wants to pull weather data.
+#' @param year The year for which you want to pull hourly data. \code{year} can
+#'    be in the range from 1901 to the current year.
+#' @param var A character vector specifying desired weather variables. For
+#'    example, var = c("wind_speed", "temperature"). (Optional.)
+#' @param radius A numeric value giving the radius, in kilometers from the
+#'    county's population-weighted center, within which to pull weather
+#'    monitors. \code{radius} defaults to 50.
+#' @param coverage A numeric value in the range of 0 to 1 that specifies
+#'    the desired percentage coverage for the weather variable (i.e., what
+#'    percent of each weather variable must be non-missing to include data from
+#'    a monitor when calculating daily values averaged across monitors.)
+#'    (Optional.)
+#'
+#' @return A dataframe of hourly weather data averaged across multiple stations,
+#'    as well as columns (\code{"var"_reporting}) for each weather variable
+#'    showing the number of stations contributing to the average for that
+#'    variable for each hour.
+#'
+#' @references For more information on this dataset and available weather
+#' variables, see
+#' \url{ftp://ftp.ncdc.noaa.gov/pub/data/noaa/ish-format-document.pdf}.
+#'
+#' @examples
+#' \dontrun{
+#' df <- hourly_fips_df(fips = "12086", year = 1992, var = c("wind_speed",
+#'                      "temperature"))
+#' }
+#'
+#' @export
+hourly_fips_df <- function(fips, year, var = "all", radius = 50,
+                           coverage = NULL){
+  data <- isd_monitors_data(fips = fips, year = year, var = var, radius =
+                               radius)
+  if(!is_null(coverage)){
+    data <- filter_hourly(hourly_data = data, coverage = coverage, var = var)
+  }
+  averaged <- ave_hourly(data)
+  return(averaged)
+}
+
 #' Get station list for a particular US county
 #'
 #' This function serves as a wrapper to the \code{isd_stations_search} function
-#' in the \code{rnoaa} package., allowing you to search
-#' by FIPS code rather than having to know the latitude and longitude of the
-#' center of each county.
+#' in the \code{rnoaa} package, allowing you to search by FIPS code rather than
+#' having to know the latitude and longitude of the center of each county.
 #'
 #' @param fips A five-digit FIPS county code.
 #' @param verbose TRUE / FALSE to indicate if you want the function to print
@@ -153,41 +204,170 @@ isd_monitors_data <- function(fips, year, var = "all", radius = 50){
   return(st_out_df)
 }
 
-#' Average across hourly stations
+#' Average hourly weather data across multiple stations.
 #'
-#' @examples
-#' \dontrun{
-#' average_data <- ave_hourly(stationdata)
-#' aug_ave <- with(average_data,
-#' subset(average_data, average_data$date_time > as.POSIXct('1992-08-01 00:00:00') &
-#' average_data$date_time < as.POSIXct('1992-08-31 00:00:00')))
-#' ggplot(aug_ave, aes(x = date_time, y = mean)) + geom_line() + theme_minimal()
-#' }
-ave_hourly <- function(stationdata){
-  averaged <- ddply(stationdata, c("date_time"), summarize, mean =
-                      mean(wind_speed, na.rm = TRUE))
-  #(not finished)
+#' \code{ave_hourly} returns a dataframe with hourly weather averaged across
+#' stations, as well as columns showing the number of stations
+#'
+#' \code{ave_hourly} returns a dataframe with hourly weather averaged across
+#' stations, as well as columns showing the number of stations contributing to
+#' average for each variable and each hour.
+#'
+#' @param hourly_data A dataframe with hourly weather observations. This
+#' dataframe is returned from the function \code{isd_monitors_data}.
+#'
+#' @export
+ave_hourly <- function(hourly_data){
+
+  df <- mutate(hourly_data, id = paste0(usaf_station, wban_station))
+  df <- select(df, -usaf_station, -wban_station, -latitude, -longitude)
+
+  averaged_data <- gather(df, key, value, -id, -date_time) %>%
+    ddply(c("date_time", "key"), summarize,
+          mean = mean(value, na.rm = TRUE)) %>%
+    spread(key = key, value = mean)
+
+  n_reporting <- gather(df, key, value, -id, -date_time) %>%
+    ddply(c("date_time", "key"), summarize,
+          n_reporting = sum(!is.na(value))) %>%
+    mutate(key = paste(key, "reporting", sep = "_")) %>%
+    spread(key = key, value = n_reporting)
+
+  averaged_data <- left_join(averaged_data, n_reporting, by = "date_time")
+  return(averaged_data)
 }
 
+#' Filter NOAA ISD stations based on "coverage" requirements.
+#'
+#' \code{filter_hourly} filters available weather variables based on a specified
+#' minimum coverage (i.e., percent non-missing hourly observations).
+#'
+#' @param hourly_data A \code{isd_monitors_data} dataframe
+#' @param coverage A numeric value in the range of 0 to 1 that specifies the
+#' desired percentage coverage for each weather variable (i.e., what percent
+#' of each weather variable must be non-missing to include the data from a
+#' station when calculating hourly values averaged across stations). (Optional).
+#'
+#' @return a \code{dataframe} with stations that meet the specified coverage
+#' requirements for weather variables included in the datafrome present in
+#' this function's arguments.
+#'
+#' @export
+filter_hourly <- function(hourly_data, coverage, var){
 
-# for filtering based on coverage (moved from isd_fips_stations())
-# n_missing <- do.call("rbind", sapply(var, FUN = function(i) sum(is.na(isd_df[,i])),
-#                                      simplify = FALSE))
-# n_missing <- as.data.frame(n_missing)
-# n_missing <- add_rownames(n_missing, "VALUE")
-# colnames(n_missing) <- c("variable", "n_missing")
-#
-# n_total <- do.call("rbind", sapply(var, FUN = function(i) nrow(isd_df[,i]),
-#                                    simplify = FALSE))
-# n_total <- as.data.frame(n_total)
-# n_total <- add_rownames(n_total, "VALUE")
-# colnames(n_total) <- c("variable", "n_total")
-#
-# df <- full_join(n_missing, n_total, by = "variable")
-# df <- mutate(df, frac_missing = n_missing/n_total, coverage = 1-(n_missing/n_total))
-#
-# isd_df <- gather(isd_df, "variable", "value", 1:length(var))
-# isd_df <- left_join(isd_df, df, by = "variable")
-# isd_df <- select(isd_df, -n_missing, -n_total, -frac_missing)
-# isd_df_coverage <- isd_df[isd_df$coverage > frac_coverage,]
-# isd_df_coverage <- select(isd_df_coverage, -coverage)
+  df <- hourly_data
+  # add a single identifier for each station
+  df <- mutate(df, id = paste0(usaf_station, wban_station))
+
+  # calculate number of missing observations for each station and each variable
+  dplyr::group_by_(df, ~id) %>%
+    dplyr::do({
+      n_missing <- as.data.frame(do.call("rbind", sapply(var, FUN = function(i) sum(is.na(df[,i])),
+                                                         simplify = FALSE)))
+    }) -> m_df
+
+  for(i in 1:length(var)){
+    indexes <- seq(i, length(m_df$id), length(var))
+    if(i == 1){
+      ind_out <- indexes
+    } else {
+      ind_out <- rbind(ind_out, indexes)
+    }
+    ind_out <- t(ind_out)
+  }
+  colnames(ind_out) <- var
+
+  m_df <- add_rownames(m_df)
+  m_df <- mutate(m_df, variable = NA)
+
+  for(i in 1:length(var)){
+    a <- filter(m_df, rowname %in% ind_out[,i])
+    a$variable <- var[i]
+    if(i == 1){
+      missing_out <- a
+    } else {
+      missing_out <- rbind(missing_out, a)
+    }
+  }
+  colnames(missing_out) <- c("rowname", "id", "missing", "variable")
+
+  # calculate total number of observations for each station and weather variable
+  dplyr::group_by_(df, ~id) %>%
+    dplyr::do({
+      n_total <- as.data.frame(do.call("rbind", sapply(var, FUN = function(i) nrow(df[,i]),
+                                                       simplify = FALSE)))
+    }) -> t_df
+
+  t_df <- add_rownames(t_df)
+  t_df <- mutate(t_df, variable = NA)
+
+  for(i in 1:length(var)){
+    b <- filter(t_df, rowname %in% ind_out[,i])
+    b$variable <- var[i]
+    if(i == 1){
+      total_out <- b
+    } else {
+      total_out <- rbind(total_out, b)
+    }
+  }
+  colnames(total_out) <- c("rowname", "id", "total", "variable")
+  total_out <- select(total_out, rowname, total)
+
+  # calculate percent coverage
+  coverage_data <- full_join(missing_out, total_out, by = "rowname")
+  coverage_data <- mutate(coverage_data, covered = 1-(missing/total))
+  coverage_data$covered <- as.numeric(coverage_data$covered)
+
+  coverage_data <- mutate(coverage_data, uniqueid = paste0(id, variable))
+  coverage_df <- select(coverage_data, covered, uniqueid, id, variable)
+
+  # only filter if minimum covered value is < specified coverage
+  if(min(coverage_df$covered) < coverage){
+    df_g <- gather(df, key, value, -usaf_station, -wban_station, -date_time, -id,
+                   -latitude, -longitude)
+    df_g <- mutate(df_g, uniqueid = paste0(id, key))
+
+    df_c <- dplyr::full_join(coverage_df, df_g, by = "uniqueid")
+    df_filtered <- filter(df_c, covered >= coverage)
+
+    df_filtered <- select(df_filtered, -uniqueid)
+
+    df_s <- spread(df_filtered, key, value)
+    df_out <- select(df_s, -covered)
+
+    low <- coverage_df[!coverage_df$covered >= coverage, ]
+    low <- unique(low)
+
+    a <- select(df, id, usaf_station, wban_station)
+    ids <- unique(a$id)
+
+    for(i in 1:length(ids)){
+        b <- filter(a, id == ids[i])
+        b <- b[1,]
+        if(i == 1){
+          out <- b
+        } else {
+          out <- rbind(out, b)
+        }
+    }
+
+    removed <- left_join(low, out, by = "id")
+
+    message <- paste0("The following variables from the following NOAA",
+                        " ISD weather stations were not included:")
+    print(message)
+      for(i in 1:nrow(removed)){
+        info <- paste0(removed$variable[i], " from NOAA ISD station with USAF number ",
+                       removed$usaf_station[i], " and WBAN number ", removed$wban_station[i],
+                       " due to low coverage of ", removed$covered[i])
+        print(info)
+      }
+
+
+
+  } else {
+    df_out <- hourly_data
+  }
+
+  return(df_out)
+}
