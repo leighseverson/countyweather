@@ -157,7 +157,7 @@ ave_weather <- function(weather_data){
 #' based on a specified required minimum coverage (i.e., percent non-missing
 #' daily observations).
 #'
-#' @param coverage_df a \code{meteo_coverage} dataframe
+#' @param coverage_df A \code{meteo_coverage} dataframe
 #' @param percent_coverage A numeric value in the range of 0 to 1 that specifies
 #'    the desired percentage coverage for the weather variable (i.e., what
 #'    percent of each weather variable must be non-missing to include data from
@@ -343,7 +343,7 @@ mapping <- function(station_df){
   return(df)
 }
 
-#' Write daily timeseries files for U.S. counties
+#' Write daily weather timeseries files for U.S. counties
 #'
 #' Given a vector of U.S. county FIPS codes, this function creates timeseries
 #' dataframes giving: 1. the values for specified weather variables, and 2. the
@@ -398,6 +398,74 @@ county_timeseries <- function(fips, percent_coverage, date_min, date_max, var,
     )
     if(inherits(possibleError, "error")) next
 
+  }
+
+}
+
+#' Write plot files for daily weather timeseries dataframes
+#'
+#' This function writes out a directory with plots for every timeseries file
+#' present in the specified directory (produced by the \code{county_timeseries}
+#' function) for a particular weather variable. These plots are meant to aid in
+#' initial exploratory analysis.
+#'
+#' @return Writes out a directory with plots of timeseries data for a given
+#' weather variable for each file present in the directory specified.
+#'
+#' @param var A character string (all lower-case) specifying which weather
+#' variable present in the timeseries dataframe you would like to produce
+#' plots for. For example, var = "prcp".
+#' @param file_directory The absolute or relative pathname for the directory
+#' where your daily timeseries dataframes (produced by \code{county_timeseries})
+#' are saved.
+#' @param file_type A character string indicating the type of timeseries files
+#' you would like to produce plots for (either "rds" or "csv"). This option
+#' defaults to .rds files.
+#' @param plot_directory The absolute or relative pathname for the directory
+#' where you would like the plots to be saved.
+#'
+#' @examples
+#'plot_timeseries(var = "prcp",
+#'                file_directory = "~/Desktop/exposure_data/ihapps_timeseries",
+#'                plot_directory = "~/Desktop/exposure_data/plots_prcp")
+#'
+#'plot_timeseries(files = files, var = "tmax",
+#'                file_directory = "~/Desktop/exposure_data/ihapps_timeseries",
+#'                plot_directory = "~/Desktop/exposure_data/plots_tmax")
+#'
+#'plot_timeseries(var = "tmin",
+#'                file_directory = "~/Desktop/exposure_data/ihapps_timeseries",
+#'                plot_directory = "~/Desktop/exposure_data/plots_tmin")
+#'
+#' @export
+plot_timeseries <- function(var, file_directory, file_type = "rds",
+                            plot_directory){
+
+  files <- list.files(file_directory)
+
+  if(!dir.exists(plot_directory)){
+    dir.create(plot_directory)
+  }
+
+  if(file_type == "rds"){
+    file_names <- gsub(".rds", "", files)
+  } else if (file_type == "csv"){
+    file_names <- gsub(".csv", "", files)
+  }
+
+  for(i in 1:length(files)){
+
+    setwd(file_directory)
+    data <- readRDS(files[i])
+
+    file_name <- paste0(file_names[i], ".png")
+    setwd(plot_directory)
+    png(filename = file_name)
+    plot(data$date, data[,var],
+         type = "l", col = "red", main = file_names[i],
+         xlab = "date", ylab = var,
+         xlim = c(as.Date("1987-01-01"), as.Date("2005-12-31")))
+    dev.off()
   }
 
 }
