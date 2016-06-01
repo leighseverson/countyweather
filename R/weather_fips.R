@@ -309,10 +309,10 @@ stationmap_fips <- function(fips, percent_coverage = NULL,
   choro_fips <- census_data[row_num, 8]
   title <- census_data[row_num, 10]
 
-  map <- choroplethr::county_choropleth(df_pop_county,
+  map <- suppressMessages(choroplethr::county_choropleth(df_pop_county,
                                         title = "", legend = "",
                            num_colors = 1, state_zoom = NULL,
-                           county_zoom = choro_fips, reference_map = TRUE)
+                           county_zoom = choro_fips, reference_map = TRUE))
 
   map <- map + ggplot2::geom_point(data = final_df, ggplot2::aes_(~ lon, ~ lat),
                           colour = "firebrick", size = 2) +
