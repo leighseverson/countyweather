@@ -4,17 +4,12 @@
 \alias{weather_fips_df}
 \title{Return average daily weather data for a particular county.}
 \usage{
-weather_fips_df(fips, radius = NULL, percent_coverage = NULL,
-  date_min = NULL, date_max = NULL, var = "all")
+weather_fips_df(fips, percent_coverage = NULL, date_min = NULL,
+  date_max = NULL, var = "all")
 }
 \arguments{
 \item{fips}{A character string giving the five-digit U.S. FIPS county code
 of the county for which the user wants to pull weather data.}
-
-\item{radius}{A numeric vector giving a radius (in kilometers) within which
-to search for monitors. (Optional.) If this argument is NULL,
-\code{weather_fips_df} will begin its search with all stations within the
-specified county.}
 
 \item{percent_coverage}{A numeric value in the range of 0 to 1 that specifies
 the desired percentage coverage for the weather variable (i.e., what
@@ -40,7 +35,7 @@ A dataframe of daily weather data averaged across multiple monitors,
 }
 \description{
 \code{weather_fips_df} returns a dataframe of average daily weather values
-for a particular county, radius, date range, and/or specified "coverage."
+for a particular county, date range, and/or specified "coverage."
 }
 \details{
 This function serves as a wrapper to several functions from the \code{rnoaa}
@@ -59,7 +54,7 @@ Because this function uses the NOAA API to identify the weather
 }
 \examples{
 \dontrun{
-df <- weather_fips_df(fips = "12086", radius = 10,
+df <- weather_fips_df(fips = "12086",
                    percent_coverage = 0.90, date_min = "2010-01-01",
                    date_max = "2010-02-01", var = c("TMAX", "TMIN", "PRCP"))
 }

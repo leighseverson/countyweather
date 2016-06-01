@@ -4,17 +4,12 @@
 \alias{stationmap_fips}
 \title{Plot weather stations for a particular county}
 \usage{
-stationmap_fips(fips, radius = NULL, percent_coverage = NULL,
-  date_min = NULL, date_max = NULL, var = "all")
+stationmap_fips(fips, percent_coverage = NULL, date_min = NULL,
+  date_max = NULL, var = "all")
 }
 \arguments{
 \item{fips}{A character string giving the five-digit U.S. FIPS county code
 of the county for which the user wants to pull weather data.}
-
-\item{radius}{A numeric vector giving a radius (in kilometers) within which
-to search for monitors. (Optional.) If this argument is NULL,
-\code{weather_fips_df} will begin its search with all stations within the
-specified county.}
 
 \item{percent_coverage}{A numeric value in the range of 0 to 1 that specifies
 the desired percentage coverage for the weather variable (i.e., what
@@ -35,16 +30,17 @@ example, var = c("TMIN", "TMAX", "PRCP"). (Optional.)}
 \value{
 A plot showing points for all weather stations for a particular
    county satisfying the conditions present in \code{stationmap_fips}'s
-   arguments (radius, percent_coverage, date_min, date_max, and/or var).
+   arguments (percent_coverage, date_min, date_max, and/or var).
 }
 \description{
 Plot weather stations for a particular county
 }
 \examples{
 \dontrun{
-ex <- stationmap_fips(fips = "08031", radius = 15, percent_coverage = 0.90,
+ex <- stationmap_fips(fips = "08031", percent_coverage = 0.90,
                       date_min = "2010-01-01", date_max = "2010-02-01",
                       var = "PRCP")
 }
+
 }
 
