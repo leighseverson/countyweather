@@ -14,7 +14,7 @@
 #'    number of stations contributing to the average for that variable on that
 #'    day. The second element ("plot") is a plot showing points for all weather
 #'    stations for a particular county satisfying the conditions present in
-#'    \code{weather_fips}'s arguments (radius, percent_coverage, date_min,
+#'    \code{weather_fips}'s arguments (percent_coverage, date_min,
 #'    date_max, and/or var).
 #'
 #' @note You must have a NOAA API to use this function, and you need to set
@@ -22,20 +22,20 @@
 #'
 #' @examples
 #' \dontrun{
-#' ex <- weather_fips("08031", radius = 15, percent_coverage = 0.90,
+#' ex <- weather_fips("08031", percent_coverage = 0.90,
 #' date_min = "2010-01-01", date_max = "2010-02-01", var = "PRCP")
 #'
 #' weather_data <- ex$weather_data
 #' station_map <- ex$station_map
 #' }
 #' @export
-weather_fips <- function(fips, radius = NULL, percent_coverage = NULL,
+weather_fips <- function(fips, percent_coverage = NULL,
                          date_min = NULL, date_max = NULL, var = "all"){
-  weather_data <- weather_fips_df(fips = fips, radius = radius,
+  weather_data <- weather_fips_df(fips = fips,
                                   percent_coverage = percent_coverage,
                                   date_min = date_min, date_max = date_max,
                                   var = var)
-  station_map <- stationmap_fips(fips = fips, radius = radius,
+  station_map <- stationmap_fips(fips = fips,
                                  percent_coverage = percent_coverage,
                                  date_min = date_min, date_max = date_max,
                                  var = var)
@@ -46,7 +46,7 @@ weather_fips <- function(fips, radius = NULL, percent_coverage = NULL,
 #' Return average daily weather data for a particular county.
 #'
 #' \code{weather_fips_df} returns a dataframe of average daily weather values
-#' for a particular county, radius, date range, and/or specified "coverage."
+#' for a particular county, date range, and/or specified "coverage."
 #'
 #' This function serves as a wrapper to several functions from the \code{rnoaa}
 #' package, which provides weather data from all relevant stations in a county.
@@ -63,10 +63,6 @@ weather_fips <- function(fips, radius = NULL, percent_coverage = NULL,
 #'
 #' @param fips A character string giving the five-digit U.S. FIPS county code
 #'    of the county for which the user wants to pull weather data.
-#' @param radius A numeric vector giving a radius (in kilometers) within which
-#'    to search for monitors. (Optional.) If this argument is NULL,
-#'    \code{weather_fips_df} will begin its search with all stations within the
-#'    specified county.
 #' @param percent_coverage A numeric value in the range of 0 to 1 that specifies
 #'    the desired percentage coverage for the weather variable (i.e., what
 #'    percent of each weather variable must be non-missing to include data from
@@ -87,20 +83,16 @@ weather_fips <- function(fips, radius = NULL, percent_coverage = NULL,
 #'
 #' @examples
 #' \dontrun{
-#' df <- weather_fips_df(fips = "12086", radius = 10,
+#' df <- weather_fips_df(fips = "12086",
 #'                    percent_coverage = 0.90, date_min = "2010-01-01",
 #'                    date_max = "2010-02-01", var = c("TMAX", "TMIN", "PRCP"))
 #' }
 #' @export
-weather_fips_df <- function(fips, radius = NULL, percent_coverage = NULL,
+weather_fips_df <- function(fips, percent_coverage = NULL,
                          date_min = NULL, date_max = NULL, var = "all"){
 
   # get stations for 1 fips
-  if (is.null(radius)){
     stations <- fips_stations(fips, date_min = date_min, date_max = date_max)
-  } else {
-    stations <- station_radius(fips = fips, radius = radius)
-  }
 
   # get tidy full dataset for all monitors
   # meteo_pull_monitors() from helpers_ghcnd.R in ropenscilabs/rnoaa
@@ -227,7 +219,7 @@ station_radius <- function(fips, radius = NULL){
   FIPS <- paste0('FIPS:', fips)
   station_df <- rnoaa::ncdc_stations(datasetid = 'GHCND',
                                      locationid = FIPS)$data;
-      assign("station_df", station_df, .GlobalEnv)
+  assign("station_df", station_df, .GlobalEnv)
 
   # meteo_distance from meteo_distance.R in ropenscilabs/rnoaa
   station_df <- rnoaa::meteo_distance(station_data = station_df,
@@ -246,23 +238,19 @@ station_radius <- function(fips, radius = NULL){
 #'
 #' @return A plot showing points for all weather stations for a particular
 #'    county satisfying the conditions present in \code{stationmap_fips}'s
-#'    arguments (radius, percent_coverage, date_min, date_max, and/or var).
+#'    arguments (percent_coverage, date_min, date_max, and/or var).
 #'
 #' @examples
 #' \dontrun{
-#' ex <- stationmap_fips(fips = "08031", radius = 15, percent_coverage = 0.90,
+#' ex <- stationmap_fips(fips = "08031", percent_coverage = 0.90,
 #'                       date_min = "2010-01-01", date_max = "2010-02-01",
 #'                       var = "PRCP")
 #' }
 #' @export
-stationmap_fips <- function(fips, radius = NULL, percent_coverage = NULL,
+stationmap_fips <- function(fips, percent_coverage = NULL,
                             date_min = NULL, date_max = NULL, var = "all"){
   # pull stations
-  if (is.null(radius)){
     stations <- fips_stations(fips, date_min = date_min, date_max = date_max)
-  } else {
-    stations <- station_radius(fips = fips, radius = radius)
-  }
 
   # meteo_pull_monitors() from helpers_ghcnd.R in ropenscilabs/rnoaa
   meteo_df <- rnoaa::meteo_pull_monitors(monitors = stations,
@@ -349,4 +337,63 @@ mapping <- function(station_df){
   colnames(df) <- c("lon", "lat", "id")
   df$id <- gsub("GHCND:", "", df$id)
   return(df)
+}
+
+#' Write daily timeseries files for U.S. counties
+#'
+#' Given a vector of U.S. county FIPS codes, this function creates timeseries
+#' dataframes giving: 1. the values for specified weather variables, and 2. the
+#' number of weather stations contributing to the average for each day within the
+#' specified date range.
+#'
+#' @return Writes out a directory with daily weather files for each FIPS code
+#' specified.
+#'
+#' @inheritParams weather_fips_df
+#' @param out_directory The absolute or relative pathname for the directory
+#' where you would like the timeseries files to be saved.
+#' @param out_type A character string indicating that you would like either .rds
+#' files (out_type = "rds") or .csv files (out_type = ".csv"). This option
+#' defaults to .rds files.
+#'
+#' @note If the function is unable to pull weather data for a particular county
+#' given the specified percent coverage, date range, and/or weather variables,
+#' \code{county_timeseries} will not produce a file for that county.
+#'
+#' @examples
+#' county_timeseries(fips = c("41005", "13089"), percent_coverage = 0.90,
+#'            date_min = "2000-01-01", date_max = "2000-01-10",
+#'            var = c("TMAX", "TMIN", "PRCP"),
+#'            out_directory = "~/timeseries_data")
+#'
+#' @export
+county_timeseries <- function(fips, percent_coverage, date_min, date_max, var,
+                              out_directory, out_type = "rds"){
+
+  if(!dir.exists(out_directory)){
+    dir.create(out_directory)
+  }
+  for(i in 1:length(fips)) {
+    possibleError <- tryCatch({
+      out_df <- weather_fips_df(fips = fips[i], percent_coverage = percent_coverage, date_min =
+                                  date_min, date_max = date_max,
+                                var = var)
+      out_file <- paste0(out_directory, "/", fips[i], ".", out_type)
+      if(out_type == "rds"){
+        saveRDS(out_df, file = out_file)
+      } else if (out_type == "csv"){
+        utils::write.csv(out_df, file = out_file, row.names = FALSE)
+      }
+    }
+    ,
+    error = function(e) {
+      e
+      print(paste0("Unable to pull weather data for FIPS code ", fips[i],
+                   " for the specified percent coverage, date range, and/or weather variables."))
+    }
+    )
+    if(inherits(possibleError, "error")) next
+
+  }
+
 }
