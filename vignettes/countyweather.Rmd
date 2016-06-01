@@ -39,7 +39,7 @@ Currently, this package can pull daily and hourly weather data for variables lik
 
 Here is an example of creating a dataset with daily precipitation for Miami-Dade county (FIPS = 12086) for August 1992, when Hurricane Andrew stuck: 
 
-```{r}
+```{r warning = FALSE, message = FALSE}
 andrew_precip <- weather_fips(fips = "12086", 
                             date_min = "1992-08-01", 
                             date_max = "1992-08-31",
@@ -70,7 +70,7 @@ From this plot, you can see both the extreme precipitation associated with Hurri
 
 To see a map of the monitors used for the county average, run:
 
-```{r eval = FALSE}
+```{r warning = FALSE}
 andrew_precip$station_map
 ```
 
@@ -93,4 +93,4 @@ In rnoaa::meteo_pull_monitors(monitors = stations, keep_flags = FALSE,  :
  Any other monitors were successfully pulled from GHCN.
  ```
  
- ### `curl` timeout
+### `curl` timeout
