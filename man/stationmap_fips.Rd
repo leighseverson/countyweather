@@ -24,8 +24,8 @@ Plot weather stations for a particular county
 stations <- fips_stations(fips = "12086", date_min = "1999-08-01",
                           date_max = "1999-08-31")
 weather_data <- weather_fips_df(stations = stations, percent_coverage = 0.90,
-                      var = c("PRCP"), date_min = "1999-08-01",
-                          date_max = "1999-08-31")
+                                var = c("PRCP"), date_min = "1999-08-01",
+                                date_max = "1999-08-31")
 stationmap_fips(fips = "12086", weather_data = weather_data)
 }
 
