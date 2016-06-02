@@ -287,22 +287,6 @@ stationmap_fips <- function(fips, weather_data, point_color = "firebrick",
   return(map)
 }
 
-#' Return a dataframe with station IDs, and longitude and latitude for each
-#' station.
-#'
-#' @param ncdcdf A dataframe obtained using the \code{ncdc_stations} function
-#'    in the rnoaa package, with the \code{datasetid} argument set to 'GHCND',
-#'    the \code{locationid} set to a U.S. county FIPS code (in the format
-#'    'FIPS:08031', for example). This dataframe can be obtained using the
-#'    \code{station_fips} function. After running \code{station_fips}, the
-#'    \code{station_df} will be in your global environment.
-mapping <- function(station_df){
-  df <- dplyr::select_(station_df, .dots = c("longitude", "latitude", "id"))
-  colnames(df) <- c("lon", "lat", "id")
-  df$id <- gsub("GHCND:", "", df$id)
-  return(df)
-}
-
 #' Write daily weather timeseries files for U.S. counties
 #'
 #' Given a vector of U.S. county FIPS codes, this function creates timeseries
