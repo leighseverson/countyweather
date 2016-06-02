@@ -93,14 +93,14 @@ head(andrew_hourly)
 
 Here are hourly values for the month of Hurricane Andrew:
 
-```{r fig.width = 6, fig.height = 4}
+```{r fig.width = 8, fig.height = 4}
 library(dplyr)
 library(lubridate)
 to_plot <- andrew_hourly %>%
   filter(months(date_time) == "August")
 ggplot(to_plot, aes(x = date_time, y = wind_speed,
                     color = wind_speed_reporting)) + 
-  geom_line()
+  geom_line() + theme_minimal()
 ```
 
 ## Futher options available in the package
