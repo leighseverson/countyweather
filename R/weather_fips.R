@@ -267,7 +267,7 @@ stationmap_fips <- function(fips, weather_data, point_color = "firebrick",
 
   census_data <- countyweather::county_centers
   row_num <- which(grepl(fips, census_data$fips))
-  choro_fips <- census_data[row_num, "fips"]
+  choro_fips <- as.numeric(census_data[row_num, "fips"])
   title <- census_data[row_num, "name"]
 
   to_map <- dplyr::select_(census_data, region = ~ region) %>%
