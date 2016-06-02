@@ -271,7 +271,7 @@ stationmap_fips <- function(fips, weather_data, point_color = "firebrick",
   title <- census_data[row_num, "name"]
 
   to_map <- dplyr::select_(census_data, region = ~ region) %>%
-    mutate(value = 1)
+    dplyr::mutate_(value = 1)
 
   map <- suppressMessages(choroplethr::county_choropleth(to_map,
                                         title = "", legend = "",
