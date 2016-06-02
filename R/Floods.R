@@ -40,22 +40,22 @@ stream_stations <- function(fips, date_min, date_max, fraction_coverage = NULL){
                 fips, "&startDT=", date_min, "&endDT=", date_max,
                 "&outputDataTypeCd=dv&parameterCd=00060&siteType=ST")
 
-  df <- read.table(url, sep = "\t", comment.char = "#", header = TRUE)
+  df <- utils::read.table(url, sep = "\t", comment.char = "#", header = TRUE)
   df <- df[-1, ]
 
   df$begin_date <- lubridate::ymd(df$begin_date)
   df$end_date <- lubridate::ymd(df$end_date)
 
-  df <- dplyr::mutate(df, date_range = df$end_date - df$begin_date)
+  df <- dplyr::mutate_(df, date_range = ~ end_date - begin_date)
   df$date_range <- as.numeric(df$date_range)
   df$count_nu <- as.numeric(df$count_nu)
 
-  df <- dplyr::mutate(df, perc_coverage = (count_nu/date_range))
+  df <- dplyr::mutate_(df, perc_coverage = ~ (count_nu/date_range))
   if(is.null(fraction_coverage)){
     fraction_coverage <- min(df$perc_coverage)
   }
 
-  df <- filter(df, perc_coverage >= fraction_coverage)
+  df <- dplyr::filter_(df, ~ perc_coverage >= fraction_coverage)
 
   vec <- as.character(unique(df$site_no))
   return(vec)
@@ -97,10 +97,11 @@ stream_data <- function(fips, date_min, date_max, stat_code = "00003"){
     staid = ids, stat = stat_code, sdate = date_min,
     edate = date_max)))
 
-  df_clean <- cleanUp(df, task = "fix")
+  df_clean <- waterData::cleanUp(df, task = "fix")
 
-  ave <- ddply(df_clean, c("dates"), summarize,
-               mean = mean(val, na.rm = TRUE))
+  ave <- df_clean %>%
+    dplyr::group_by_(~ dates) %>%
+    dplyr::summarize_(mean = ~ mean(val, na.rm = TRUE))
 
   return(ave)
 }
@@ -125,16 +126,21 @@ stream_floods <- function(fips, date_min, date_max, stat_code){
     staid = ids, stat = stat_code, sdate = date_min,
     edate = date_max)))
 
-  df_clean <- cleanUp(df, task = "fix")
+  df_clean <- waterData::cleanUp(df, task = "fix")
 
+  safe_import <- purrr::safely(waterData::importDVs)
 
-  percentile90 <- purrr::safely(importDVs(ids[1], stat = "01900",
-                                          sdate = date_min,
-                                          edate = date_max))
-  colnames(percentile90) <- c("staid", "percentileval", "dates", "qualcode")
-  df <- inner_join(df_clean, percentile90)
+  percentile90 <- safe_import(ids[1], stat = "01900",
+                              sdate = date_min, edate = date_max)
+  if(is.null(percentile90$result)){
+    stop("No available percentile data.")
+  } else {
+    percentile90 <- percentile90$result
+  }
+  colnames(percentile90) <- c("staid", "percentilevel", "dates", "qualcode")
+  df <- dplyr::inner_join(df_clean, percentile90)
 
-  df <- dplyr::mutate(df, flood = NA)
+  df <- dplyr::mutate_(df, flood = ~ NA)
 
   for(i in 1:length(df$val)){
     if(df$val[i] >= df$percentileval[i]){
