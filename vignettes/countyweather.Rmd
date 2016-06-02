@@ -37,6 +37,8 @@ This package allows you to pull data based on a US county's FIPS code. FIPS code
 
 Currently, this package can pull daily and hourly weather data for variables like temperature and precipitation. The weather data is collected at monitors, and there are often multiple weather monitors within a county. This package allows you to specify a county and then will pull weather data from all monitors in that county over a specified date range and average the daily or hourly values to generate an average time series for the county. 
 
+### Pulling daily data
+
 Here is an example of creating a dataset with daily precipitation for Miami-Dade county (FIPS = 12086) for August 1992, when Hurricane Andrew stuck: 
 
 ```{r warning = FALSE, message = FALSE}
@@ -72,6 +74,33 @@ To see a map of the monitors used for the county average, run:
 
 ```{r warning = FALSE}
 andrew_precip$station_map
+```
+
+### Pulling hourly data
+
+Here is an example of pulling hourly data for Miami-Dade, again for the period around Hurricane Andrew:
+
+```{r}
+andrew_hourly <- hourly_fips_df(fips = "12086", year = 1992,
+                                var = c("wind_speed", "temperature"))
+```
+
+The output from this call includes the date-time of the observation (given in UTC), values for the weather variables selected, and the number of monitors reporting for each observation of each weather variable: 
+
+```{r}
+head(andrew_hourly)
+```
+
+Here are hourly values for the month of Hurricane Andrew:
+
+```{r fig.width = 6, fig.height = 4}
+library(dplyr)
+library(lubridate)
+to_plot <- andrew_hourly %>%
+  filter(months(date_time) == "August")
+ggplot(to_plot, aes(x = date_time, y = wind_speed,
+                    color = wind_speed_reporting)) + 
+  geom_line()
 ```
 
 ## Futher options available in the package
