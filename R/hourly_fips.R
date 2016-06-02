@@ -75,24 +75,18 @@ hourly_fips_df <- function(fips, year, var = "all", radius = 50,
 #'
 #' @export
 isd_fips_stations <- function(fips, verbose = TRUE, radius = 50){
-  census_data <- read.csv(paste0("http://www2.census.gov/geo/docs/reference/",
-                                 "cenpop2010/county/CenPop2010_Mean_CO.txt"))
-  state <- sprintf("%02d", census_data$STATEFP)
-  county <- sprintf("%03d", census_data$COUNTYFP)
-  FIPS <- paste0(state,county)
-
-  loc_fips <- which(FIPS == fips)
-  lat_FIPS <- census_data[loc_fips, "LATITUDE"]
-  lon_FIPS <- census_data[loc_fips, "LONGITUDE"]
+  census_data <- countyweather::county_centers
+  loc_fips <- which(census_data$fips == fips)
+  lat_fips <- census_data[loc_fips, "latitude"]
+  lon_fips <- census_data[loc_fips, "longitude"]
 
   if(verbose) {
     print(paste0("Getting hourly weather monitors for ",
-                 census_data[loc_fips, "COUNAME"], ", ",
-                 census_data[loc_fips, "STNAME"]))
+                 census_data[loc_fips, "name"]))
   }
 
   quiet_station_search <- purrr::quietly(rnoaa::isd_stations_search)
-  stations <- quiet_station_search(lat = lat_FIPS, lon = lon_FIPS,
+  stations <- quiet_station_search(lat = lat_fips, lon = lon_fips,
                                    radius = radius)$result
 
   return(stations)
@@ -156,7 +150,7 @@ int_surface_data <- function(usaf_code, wban_code, year, var = "all"){
   # with 9 (quality codes), 999 or 9999; signed items are positive filled (+9999 or +99999)
   # ftp://ftp.ncdc.noaa.gov/pub/data/noaa/ish-format-document.pdf
   na_code_vars <- colnames(isd_df)[apply(isd_df, 2, max) %in%
-                                 c(999, 999.9, 9999, 9999.9, 99999, 99999.9)]
+                                 c(99, 999, 999.9, 9999, 9999.9, 99999, 99999.9)]
   if(length(na_code_vars) > 0){
     for(na_var in na_code_vars){
       isd_df[isd_df[ , na_var] == max(isd_df[ , na_var]), na_var] <- NA
