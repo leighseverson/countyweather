@@ -61,10 +61,10 @@ fips_stations <- function(fips, date_min = NULL, date_max = NULL){
                           mindate = ~ lubridate::ymd(mindate),
                           maxdate = ~ lubridate::ymd(maxdate)) %>%
     dplyr::filter_(~ maxdate >= date_min & mindate <= date_max) %>%
-    dplyr::select_(~ id) %>%
+    dplyr::select_(.dots = c("id", "latitude", "longitude", "name")) %>%
     dplyr::mutate_(id = ~ gsub("GHCND:", "", id))
 
-  vec <- as.vector(tot_df$id)
-  return(vec)
+  # vec <- as.vector(tot_df$id)
+  return(tot_df)
 }
 
