@@ -24,9 +24,8 @@ A dataframe of monitors within the given radius of the
 }
 \description{
 This function serves as a wrapper to the \code{isd_stations_search} function
-in the \code{rnoaa} package., allowing you to search
-by FIPS code rather than having to know the latitude and longitude of the
-center of each county.
+in the \code{rnoaa} package, allowing you to search by FIPS code rather than
+having to know the latitude and longitude of the center of each county.
 }
 \examples{
 \dontrun{
