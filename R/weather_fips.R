@@ -373,6 +373,7 @@ county_timeseries <- function(fips, percent_coverage, date_min, date_max, var,
 #' where you would like the plots to be saved.
 #'
 #' @examples
+#' \dontrun{
 #'plot_timeseries(var = "prcp",
 #'                file_directory = "~/Desktop/exposure_data/ihapps_timeseries",
 #'                plot_directory = "~/Desktop/exposure_data/plots_prcp")
@@ -384,7 +385,7 @@ county_timeseries <- function(fips, percent_coverage, date_min, date_max, var,
 #'plot_timeseries(var = "tmin",
 #'                file_directory = "~/Desktop/exposure_data/ihapps_timeseries",
 #'                plot_directory = "~/Desktop/exposure_data/plots_tmin")
-#'
+#' }
 #' @export
 plot_timeseries <- function(var, file_directory, file_type = "rds",
                             plot_directory){
