@@ -23,19 +23,14 @@
 #'
 #' @examples
 #' \dontrun{
-#'  fips <- c(36081, 36085, 36087, 36119, 40017)
-#'  ex_df <- fips_stations(fips)
-#'
-#' fips_stations(c("01073", "01089", "01097"),
-#'    date_min = "1999-01-01", date_max = "2012-12-31",
-#'    data_coverage = 0.9)
+#' fips_stations("36005")
+#' fips_stations("12086", date_min = "1999-01-01", date_max = "2012-12-31")
 #' }
 #'
 #' @importFrom dplyr %>%
 #'
 #' @export
 fips_stations <- function(fips, date_min = NULL, date_max = NULL){
-  #browser()
   FIPS <- paste0('FIPS:', fips)
   station_ids <- rnoaa::ncdc_stations(datasetid = 'GHCND', locationid = FIPS,
                                       limit = 10)
@@ -62,14 +57,14 @@ fips_stations <- function(fips, date_min = NULL, date_max = NULL){
   date_max <- lubridate::ymd(date_max)
   date_min <- lubridate::ymd(date_min)
 
-  tot_df <- dplyr::mutate(station_df,
-                          mindate = lubridate::ymd(mindate),
-                          maxdate = lubridate::ymd(maxdate)) %>%
-    dplyr::filter(maxdate >= date_min & mindate <= date_max) %>%
-    dplyr::select(id) %>%
-    dplyr::mutate(id = gsub("GHCND:", "", id))
+  tot_df <- dplyr::mutate_(station_df,
+                          mindate = ~ lubridate::ymd(mindate),
+                          maxdate = ~ lubridate::ymd(maxdate)) %>%
+    dplyr::filter_(~ maxdate >= date_min & mindate <= date_max) %>%
+    dplyr::select_(.dots = c("id", "latitude", "longitude", "name")) %>%
+    dplyr::mutate_(id = ~ gsub("GHCND:", "", id))
 
-  vec <- as.vector(tot_df$id)
-  return(vec)
+  # vec <- as.vector(tot_df$id)
+  return(tot_df)
 }
 

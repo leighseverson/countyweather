@@ -31,9 +31,10 @@
 #' @export
 weather_fips <- function(fips, percent_coverage = NULL,
                          date_min = NULL, date_max = NULL, var = "all"){
-  weather_data <- weather_fips_df(fips = fips,
+  stations <- fips_stations(fips = fips, date_min = date_min,
+                            date_max = date_max)
+  weather_data <- weather_fips_df(stations = stations,
                                   percent_coverage = percent_coverage,
-                                  date_min = date_min, date_max = date_max,
                                   var = var)
   station_map <- stationmap_fips(fips = fips,
                                  percent_coverage = percent_coverage,
@@ -83,20 +84,18 @@ weather_fips <- function(fips, percent_coverage = NULL,
 #'
 #' @examples
 #' \dontrun{
-#' df <- weather_fips_df(fips = "12086",
-#'                    percent_coverage = 0.90, date_min = "2010-01-01",
-#'                    date_max = "2010-02-01", var = c("TMAX", "TMIN", "PRCP"))
+#' stations <- fips_stations(fips = "12086", date_min = "2010-01-01",
+#'                           date_max = "2010-02-01")
+#' df <- weather_fips_df(stations = stations, percent_coverage = 0.90,
+#'                       var = c("TMAX", "TMIN", "PRCP"))
 #' }
 #' @export
-weather_fips_df <- function(fips, percent_coverage = NULL,
-                         date_min = NULL, date_max = NULL, var = "all"){
-
-  # get stations for 1 fips
-    stations <- fips_stations(fips, date_min = date_min, date_max = date_max)
+weather_fips_df <- function(stations, percent_coverage = NULL,
+                            var = "all"){
 
   # get tidy full dataset for all monitors
   # meteo_pull_monitors() from helpers_ghcnd.R in ropenscilabs/rnoaa
-  meteo_df <- meteo_pull_monitors(monitors = stations,
+  meteo_df <- rnoaa::meteo_pull_monitors(monitors = stations,
                                   keep_flags = FALSE,
                                   date_min = date_min,
                                   date_max = date_max,
@@ -104,14 +103,15 @@ weather_fips_df <- function(fips, percent_coverage = NULL,
 
   # calculate coverage for each weather variable
   # meteo_coverage() from meteo_utils.R in ropenscilabs/rnoaa
-  coverage_df <- meteo_coverage(meteo_df, verbose = FALSE)
+  coverage_df <- rnoaa::meteo_coverage(meteo_df, verbose = FALSE)
 
   # filter station dataset based on specified coverage
-  filtered <- filter_coverage(coverage_df, percent_coverage)
+  filtered <- filter_coverage(coverage_df,
+                              percent_coverage = percent_coverage)
   good_monitors <- unique(filtered$id)
 
   # filter weather dataset based on stations with specified coverage
-  filtered_data <- filter(meteo_df, id %in% good_monitors)
+  filtered_data <- dplyr::filter_(meteo_df, ~ id %in% good_monitors)
 
   # average across stations, add a column for number of stations that
   # contributed to each daily average
@@ -129,21 +129,23 @@ weather_fips_df <- function(fips, percent_coverage = NULL,
 #' @param weather_data A dataframe with daily weather observations. This
 #'    dataframe is returned from the function \code{meteo_pull_monitors}.
 #'
+#' @importFrom dplyr %>%
+#'
 #' @export
 ave_weather <- function(weather_data){
 
-  averaged_data <- gather(weather_data, key, value, -id, -date) %>%
-    ddply(c("date", "key"), summarize,
-          mean = mean(value, na.rm = TRUE)) %>%
-    spread(key = key, value = mean)
+  averaged_data <- tidyr::gather(weather_data, key, value, -id, -date) %>%
+    dplyr::group_by_(.dots = c("date", "key")) %>%
+    dplyr::summarize_(mean = ~ mean(value, na.rm = TRUE)) %>%
+    tidyr::spread(key = key, value = mean)
 
-  n_reporting <- gather(weather_data, key, value, -id, -date) %>%
-    ddply(c("date", "key"), summarize,
-          n_reporting = sum(!is.na(value))) %>%
-    mutate(key = paste(key, "reporting", sep = "_")) %>%
-    spread(key = key, value = n_reporting)
+  n_reporting <- tidyr::gather(weather_data, key, value, -id, -date) %>%
+    dplyr::group_by_(.dots = c("date", "key")) %>%
+    dplyr::summarize_(n_reporting = ~ sum(!is.na(value))) %>%
+    dplyr::mutate_(key = ~ paste(key, "reporting", sep = "_")) %>%
+    tidyr::spread(key = key, value = n_reporting)
 
-  averaged_data <- left_join(averaged_data, n_reporting,
+  averaged_data <- dplyr::left_join(averaged_data, n_reporting,
                              by = "date")
   return(averaged_data)
 }
@@ -165,6 +167,8 @@ ave_weather <- function(weather_data){
 #'    requirements for weather variables included in the dataframe present in
 #'    this function's arguments.
 #'
+#' @importFrom dplyr %>%
+#'
 #' @export
 filter_coverage <- function(coverage_df, percent_coverage = NULL){
 
@@ -172,15 +176,17 @@ filter_coverage <- function(coverage_df, percent_coverage = NULL){
     percent_coverage <- 0
   }
 
-  filtered <- select(coverage_df, -start_date, -end_date, -total_obs) %>%
-    gather(key, covered, -id)  %>%
-    filter(covered >= percent_coverage) %>%
-    mutate(covered = 1) %>%
-    group_by(id) %>%
-    mutate(good_monitor = sum(!is.na(covered)) > 0) %>%
-    ungroup() %>%
-    filter(good_monitor) %>%
-    select(-good_monitor)
+  filtered <- dplyr::select_(coverage_df,
+                            .dots = c("-start_date", "-end_date",
+                                      "-total_obs")) %>%
+    tidyr::gather(key, covered, -id)  %>%
+    dplyr::filter_(~ covered >= percent_coverage) %>%
+    dplyr::mutate_(covered = ~ 1) %>%
+    dplyr::group_by_(.dots = "id") %>%
+    dplyr::mutate_(good_monitor = ~ sum(!is.na(covered)) > 0) %>%
+    dplyr::ungroup() %>%
+    dplyr::filter_(~ good_monitor) %>%
+    dplyr::select_(.dots = c("-good_monitor"))
   return(filtered)
 }
 
@@ -194,7 +200,7 @@ filter_coverage <- function(coverage_df, percent_coverage = NULL){
 station_radius <- function(fips, radius = NULL){
   url <- paste0("http://www2.census.gov/geo/docs/reference/",
                 "codes/files/national_county.txt")
-  county_names <- read.csv(url, header = FALSE, colClasses = "character")
+  county_names <- utils::read.csv(url, header = FALSE, colClasses = "character")
   colnames(county_names) <- c("state", "state_fips", "county_fips", "county",
                               "fips_class")
   non_fifty <- c("VI", "UM", "PR", "MP", "GU", "AS")
@@ -204,9 +210,10 @@ station_radius <- function(fips, radius = NULL){
                                                             county_fips,
                                                             sep = ""),
                             name = paste(county, state, sep = ", "))
-  county_names <- select(county_names, fips_code, county, state, name)
+  county_names <- dplyr::select_(county_names, .dots = c("fips_code", "county",
+                                                         "state", "name"))
 
-  fipsname <- filter(county_names, fips_code == fips)$name
+  fipsname <- dplyr::filter_(county_names, ~ fips_code == fips)$name
   fipsname <- as.character(fipsname)
 
   central_latlong <- ggmap::geocode(location = fipsname, output = c("latlon"));
@@ -219,10 +226,10 @@ station_radius <- function(fips, radius = NULL){
   assign("station_df", station_df, .GlobalEnv)
 
   # meteo_distance from meteo_distance.R in ropenscilabs/rnoaa
-  station_df <- meteo_distance(station_data = station_df,
-                               lat = central_latlong$lat,
-                               long = central_latlong$lon,
-                               radius = radius)
+  station_df <- rnoaa::meteo_distance(station_data = station_df,
+                                 lat = central_latlong$lat,
+                                 long = central_latlong$lon,
+                                 radius = radius)
   stations <- unique(station_df$id)
   stations <- stations[!is.na(stations)]
   stations <- gsub("GHCND:", "", stations)
@@ -243,52 +250,56 @@ station_radius <- function(fips, radius = NULL){
 #'                       date_min = "2010-01-01", date_max = "2010-02-01",
 #'                       var = "PRCP")
 #' }
+#'
+#' @importFrom dplyr %>%
+#'
 #' @export
 stationmap_fips <- function(fips, percent_coverage = NULL,
-                            date_min = NULL, date_max = NULL, var = "all"){
+                            date_min = NULL, date_max = NULL, var = "all",
+                            point_color = "firebrick", point_size = 2){
   # pull stations
     stations <- fips_stations(fips, date_min = date_min, date_max = date_max)
 
   # meteo_pull_monitors() from helpers_ghcnd.R in ropenscilabs/rnoaa
-  meteo_df <- meteo_pull_monitors(monitors = stations,
+  meteo_df <- rnoaa::meteo_pull_monitors(monitors = stations,
                                   keep_flags = FALSE,
                                   date_min = date_min,
                                   date_max = date_max,
                                   var = var)
-  coverage_df <- meteo_coverage(meteo_df, verbose = FALSE)
+  coverage_df <- rnoaa::meteo_coverage(meteo_df, verbose = FALSE)
   filtered <- filter_coverage(coverage_df, percent_coverage)
   good_monitors <- unique(filtered$id)
 
   # in case radius is not NULL, still need to run fips_stations() to
   # get station_df (which is in the global environment after running the
   # fips_stations() function)
-  fips_stations(fips, date_min = date_min, date_max = date_max)
+  # fips_stations(fips, date_min = date_min, date_max = date_max)
   df <- mapping(station_df)
 
-  station_latlong <- filter(df, df$id %in% good_monitors)
+  station_latlong <- dplyr::filter_(df, ~ df$id %in% good_monitors)
 
-  meteo_df_filtered <- filter(meteo_df, meteo_df$id %in% good_monitors)
+  meteo_df_filtered <- dplyr::filter_(meteo_df, ~ meteo_df$id %in% good_monitors)
 
   # not currently using this perc_missing df for anything
-  perc_missing <- gather(meteo_df_filtered, key, value, -id, -date) %>%
-    ddply(c("id", "key"), summarize,
+  perc_missing <- tidyr::gather(meteo_df_filtered, key, value, -id, -date) %>%
+    plyr::ddply(c("id", "key"), plyr::summarize,
           percent_missing = sum(is.na(value)) / length(value)) %>%
-    mutate(key = paste(key, "percent_missing", sep = "_")) %>%
-    spread(key = key, value = percent_missing)
+    dplyr::mutate(key = paste(key, "percent_missing", sep = "_")) %>%
+    tidyr::spread(key = key, value = percent_missing)
 
-  final_df <- left_join(station_latlong, perc_missing, by = "id")
+  final_df <- dplyr::left_join(station_latlong, perc_missing, by = "id")
 
   # run station_radius() to get central_latlong (in global environment after
   # running station_radius())
-  station_radius(fips = fips, radius = radius)
+  # station_radius(fips = fips, radius = radius)
 
-  data("df_pop_county")
+  utils::data("df_pop_county", package = "choroplethr")
 
   census_csv <- paste0("http://www2.census.gov/geo/docs/reference/cenpop2010/",
                        "county/CenPop2010_Mean_CO.txt")
-  census_data <- read.csv(census_csv)
+  census_data <- utils::read.csv(census_csv)
   census_data$COUNTYFP <- sprintf("%03d", census_data$COUNTYFP)
-  census_data <- mutate(census_data, choro_fips = paste0(census_data$STATEFP,
+  census_data <- dplyr::mutate(census_data, choro_fips = paste0(census_data$STATEFP,
                                                          census_data$COUNTYFP))
 
   census_data$state_long <- sprintf("%02d", census_data$STATEFP)
@@ -298,17 +309,18 @@ stationmap_fips <- function(fips, percent_coverage = NULL,
 
   census_data$cname <- paste0(census_data$COUNAME, " County, ")
   census_data$name <- paste0(census_data$cname, census_data$STNAME)
-  census_data <- select(census_data, -cname, -state_long)
+  census_data <- dplyr::select_(census_data, .dots = c("-cname", "-state_long"))
 
   choro_fips <- census_data[row_num, 8]
   title <- census_data[row_num, 10]
 
-  map <- choroplethr::county_choropleth(df_pop_county, title = "", legend = "",
+  map <- suppressMessages(choroplethr::county_choropleth(df_pop_county,
+                                        title = "", legend = "",
                            num_colors = 1, state_zoom = NULL,
-                           county_zoom = choro_fips, reference_map = TRUE)
+                           county_zoom = choro_fips, reference_map = TRUE))
 
-  map <- map + ggplot2::geom_point(data = final_df, aes(x = lon, y = lat),
-                          colour = "black", size = 5) +
+  map <- map + ggplot2::geom_point(data = final_df, ggplot2::aes_(~ lon, ~ lat),
+                          colour = point_color, size = point_size) +
     ggplot2::theme(legend.position = "none") +
     ggplot2::ggtitle(title)
 
@@ -324,10 +336,8 @@ stationmap_fips <- function(fips, percent_coverage = NULL,
 #'    'FIPS:08031', for example). This dataframe can be obtained using the
 #'    \code{station_fips} function. After running \code{station_fips}, the
 #'    \code{station_df} will be in your global environment.
-#'
-#' @export
 mapping <- function(station_df){
-  df <- select(station_df, longitude, latitude, id)
+  df <- dplyr::select_(station_df, .dots = c("longitude", "latitude", "id"))
   colnames(df) <- c("lon", "lat", "id")
   df$id <- gsub("GHCND:", "", df$id)
   return(df)
@@ -355,10 +365,12 @@ mapping <- function(station_df){
 #' \code{county_timeseries} will not produce a file for that county.
 #'
 #' @examples
+#' \dontrun{
 #' county_timeseries(fips = c("41005", "13089"), percent_coverage = 0.90,
 #'            date_min = "2000-01-01", date_max = "2000-01-10",
 #'            var = c("TMAX", "TMIN", "PRCP"),
 #'            out_directory = "~/timeseries_data")
+#' }
 #'
 #' @export
 county_timeseries <- function(fips, percent_coverage, date_min, date_max, var,
@@ -369,8 +381,10 @@ county_timeseries <- function(fips, percent_coverage, date_min, date_max, var,
   }
   for(i in 1:length(fips)) {
     possibleError <- tryCatch({
-      out_df <- weather_fips_df(fips = fips[i], percent_coverage = percent_coverage, date_min =
-                                  date_min, date_max = date_max,
+      stations <- fips_stations(fips = fips[i], date_min = date_min,
+                                date_max = date_max)
+      out_df <- weather_fips_df(stations = stations,
+                                percent_coverage = percent_coverage,
                                 var = var)
       out_file <- paste0(out_directory, "/", fips[i], ".", out_type)
       if(out_type == "rds"){

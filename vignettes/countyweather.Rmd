@@ -1,0 +1,96 @@
+---
+title: "Using the `countyweather` package"
+author: "Rachel Severson and Brooke Anderson"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r echo = FALSE}
+library(countyweather)
+options("noaakey" = Sys.getenv("noaakey"))
+```
+
+## Setting up to use the package
+
+Currently, this package exists in a development version on GitHub. To use the function, you need to install it directly from GitHub using the `install_github` function from `devtools`. Further, the package relies on some functions that are in a development version of `rnoaa`, so you need to install that version of the `rnoaa` package. 
+
+You can use the following code for this set-up: 
+
+```{r eval = FALSE}
+library(devtools)
+install_github("ropenscilabs/rnoaa")
+install_github("leighseverson/countyweather")
+library(countyweather)
+```
+
+You will also need an API key from NOAA to be able to access the weather data. You can get one by ...
+
+This package draws mainly on functions from the `rnoaa` package to identify weather monitors within a county based on its FIPS code and then pull weather data for a specified date range from those monitors. It then does some additional cleaning and aggregating to produce a single, county-level weather dataset. Further, it maps the monitors used for that county and date range and allows you to create and write datasets for many different counties using a single function call.
+
+## Basic examples of using the package
+
+This package allows you to pull data based on a US county's FIPS code. FIPS codes are 5-digit codes that are unique for every US county. The first two digits specify state and the last three specify county within the state. The health data used for environmental epidemiology studies is often aggregated at the county level for US studies, making it very useful to be able to create weather datasets by county. 
+
+Currently, this package can pull daily and hourly weather data for variables like temperature and precipitation. The weather data is collected at monitors, and there are often multiple weather monitors within a county. This package allows you to specify a county and then will pull weather data from all monitors in that county over a specified date range and average the daily or hourly values to generate an average time series for the county. 
+
+Here is an example of creating a dataset with daily precipitation for Miami-Dade county (FIPS = 12086) for August 1992, when Hurricane Andrew stuck: 
+
+```{r warning = FALSE, message = FALSE}
+andrew_precip <- weather_fips(fips = "12086", 
+                            date_min = "1992-08-01", 
+                            date_max = "1992-08-31",
+                            var = c("PRCP"))
+```
+
+The output from this function call includes both the weather dataset (`andrew_precip$weather_data`) and a map showing the locations of weather monitors included in the county-averaged dataset (`anderew_precip$station_map`).
+
+Here are the first few rows of the dataset: 
+
+```{r}
+head(andrew_precip$weather_data)
+```
+
+The dataset includes columns for date (`date`), precipitation (in [units], `prcp`), and also the number of stations used to calculated each precipitation observation (`prcp_reporting`).
+
+Here is a plot of this data:
+
+```{r fig.width = 6, fig.height = 4}
+library(ggplot2)
+ggplot(andrew_precip$weather_data, aes(x = date, y = prcp,
+                                       color = prcp_reporting)) + 
+  geom_line() + 
+  theme_minimal()
+```
+
+From this plot, you can see both the extreme precipitation associated with Hurricane Andrew and that the storm knocked out quite a few of the weather monitors normally available.
+
+To see a map of the monitors used for the county average, run:
+
+```{r warning = FALSE}
+andrew_precip$station_map
+```
+
+## Futher options available in the package
+
+The user can choose to filter out any monitors that report variables for less that a certain percent of time (`coverage`).
+
+## More on the weather data
+
+[Add more here on the daily and hourly weather data we're pulling.]
+
+## Error and warning messages you may get
+
+### Not able to pull data from a monitor
+
+```
+In rnoaa::meteo_pull_monitors(monitors = stations, keep_flags = FALSE,  :
+  The following stations could not be pulled from the GHCN ftp:
+ USR0000FTEN 
+ Any other monitors were successfully pulled from GHCN.
+ ```
+ 
+### `curl` timeout
