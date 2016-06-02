@@ -35,12 +35,11 @@ weather_fips <- function(fips, percent_coverage = NULL,
   stations <- fips_stations(fips = fips, date_min = date_min,
                             date_max = date_max)
   weather_data <- weather_fips_df(stations = stations,
+                                  date_min = date_min,
+                                  date_max = date_max,
                                   percent_coverage = percent_coverage,
                                   var = var)
-  station_map <- stationmap_fips(fips = fips,
-                                 percent_coverage = percent_coverage,
-                                 date_min = date_min, date_max = date_max,
-                                 var = var)
+  station_map <- stationmap_fips(fips = fips, weather_data = weather_data)
   list <- list("weather_data" = weather_data$averaged,
                "station_map" = station_map)
   return(list)
@@ -285,7 +284,7 @@ stationmap_fips <- function(fips, weather_data, point_color = "firebrick",
     ggplot2::theme(legend.position = "none") +
     ggplot2::ggtitle(title)
 
-  return(suppressWarnings(print(map)))
+  return(map)
 }
 
 #' Return a dataframe with station IDs, and longitude and latitude for each
