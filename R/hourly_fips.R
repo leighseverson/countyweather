@@ -253,6 +253,22 @@ ave_hourly <- function(hourly_data){
 #' @export
 filter_hourly <- function(hourly_data, coverage, var){
 
+  ex <- hourly_data %>%
+    unite(station, usaf_station, wban_station, sep = "-") %>%
+    select(-date_time, -latitude, -longitude) %>%
+    gather(key, value, -station) %>%
+    group_by(station, key) %>%
+    summarize(coverage = mean(!is.na(value)))
+  ex2 <- hourly_data %>%
+    unite(station, usaf_station, wban_station, sep = "-") %>%
+    select(-latitude, -longitude) %>%
+    gather(key, value, -station, -date_time) %>%
+    left_join(ex, by = c("station", "key")) %>%
+    filter(coverage > 0.80) %>%
+    group_by(date_time, key) %>%
+    summarize(value = mean(value, na.rm = TRUE)) %>%
+    spread(key = key, value = value)
+
   df <- hourly_data
   # add a single identifier for each station
   df <- dplyr::mutate_(df, id = ~ paste0(usaf_station, wban_station))
