@@ -363,8 +363,6 @@ filter_hourly <- function(hourly_data, coverage, var){
         print(info)
       }
 
-
-
   } else {
     df_out <- hourly_data
   }
