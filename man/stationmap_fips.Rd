@@ -4,28 +4,12 @@
 \alias{stationmap_fips}
 \title{Plot weather stations for a particular county}
 \usage{
-stationmap_fips(fips, percent_coverage = NULL, date_min = NULL,
-  date_max = NULL, var = "all")
+stationmap_fips(fips, weather_data, point_color = "firebrick",
+  point_size = 2)
 }
 \arguments{
 \item{fips}{A character string giving the five-digit U.S. FIPS county code
 of the county for which the user wants to pull weather data.}
-
-\item{percent_coverage}{A numeric value in the range of 0 to 1 that specifies
-the desired percentage coverage for the weather variable (i.e., what
-percent of each weather variable must be non-missing to include data from
-a monitor when calculating daily values averaged across monitors.
-(Optional.)}
-
-\item{date_min}{A character string giving the earliest date you want
-   in your dataset in "yyyy-mm-dd" format. (Optional.)
-\code{date_min}.}
-
-\item{date_max}{A character string giving the latest date you want
-in your dataset in "yyyy-mm-dd" format. (Optional.)}
-
-\item{var}{A character vector specifying desired weather variables. For
-example, var = c("TMIN", "TMAX", "PRCP"). (Optional.)}
 }
 \value{
 A plot showing points for all weather stations for a particular
@@ -37,9 +21,12 @@ Plot weather stations for a particular county
 }
 \examples{
 \dontrun{
-ex <- stationmap_fips(fips = "08031", percent_coverage = 0.90,
-                      date_min = "2010-01-01", date_max = "2010-02-01",
-                      var = "PRCP")
+stations <- fips_stations(fips = "12086", date_min = "1999-08-01",
+                          date_max = "1999-08-31")
+weather_data <- weather_fips_df(stations = stations, percent_coverage = 0.90,
+                                var = c("PRCP"), date_min = "1999-08-01",
+                                date_max = "1999-08-31")
+stationmap_fips(fips = "12086", weather_data = weather_data)
 }
 
 }

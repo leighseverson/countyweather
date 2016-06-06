@@ -2,7 +2,7 @@
 % Please edit documentation in R/weather_fips.R
 \name{county_timeseries}
 \alias{county_timeseries}
-\title{Write daily timeseries files for U.S. counties}
+\title{Write daily weather timeseries files for U.S. counties}
 \usage{
 county_timeseries(fips, percent_coverage, date_min, date_max, var,
   out_directory, out_type = "rds")
@@ -50,10 +50,12 @@ given the specified percent coverage, date range, and/or weather variables,
 \code{county_timeseries} will not produce a file for that county.
 }
 \examples{
+\dontrun{
 county_timeseries(fips = c("41005", "13089"), percent_coverage = 0.90,
            date_min = "2000-01-01", date_max = "2000-01-10",
            var = c("TMAX", "TMIN", "PRCP"),
            out_directory = "~/timeseries_data")
+}
 
 }
 

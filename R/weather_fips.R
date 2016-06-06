@@ -23,7 +23,8 @@
 #' @examples
 #' \dontrun{
 #' ex <- weather_fips("08031", percent_coverage = 0.90,
-#' date_min = "2010-01-01", date_max = "2010-02-01", var = "PRCP")
+#'                    date_min = "2010-01-01", date_max = "2010-02-01",
+#'                    var = "PRCP")
 #'
 #' weather_data <- ex$weather_data
 #' station_map <- ex$station_map
@@ -34,13 +35,13 @@ weather_fips <- function(fips, percent_coverage = NULL,
   stations <- fips_stations(fips = fips, date_min = date_min,
                             date_max = date_max)
   weather_data <- weather_fips_df(stations = stations,
+                                  date_min = date_min,
+                                  date_max = date_max,
                                   percent_coverage = percent_coverage,
                                   var = var)
-  station_map <- stationmap_fips(fips = fips,
-                                 percent_coverage = percent_coverage,
-                                 date_min = date_min, date_max = date_max,
-                                 var = var)
-  list <- list("weather_data" = weather_data, "station_map" = station_map)
+  station_map <- stationmap_fips(fips = fips, weather_data = weather_data)
+  list <- list("weather_data" = weather_data$averaged,
+               "station_map" = station_map)
   return(list)
 }
 
@@ -87,15 +88,16 @@ weather_fips <- function(fips, percent_coverage = NULL,
 #' stations <- fips_stations(fips = "12086", date_min = "2010-01-01",
 #'                           date_max = "2010-02-01")
 #' df <- weather_fips_df(stations = stations, percent_coverage = 0.90,
-#'                       var = c("TMAX", "TMIN", "PRCP"))
+#'                       var = c("TMAX", "TMIN", "PRCP"),
+#'                       date_min = "2010-01-01", date_max = "2010-02-01")
 #' }
 #' @export
 weather_fips_df <- function(stations, percent_coverage = NULL,
-                            var = "all"){
+                            var = "all", date_min = NULL, date_max = NULL){
 
   # get tidy full dataset for all monitors
   # meteo_pull_monitors() from helpers_ghcnd.R in ropenscilabs/rnoaa
-  meteo_df <- rnoaa::meteo_pull_monitors(monitors = stations,
+  meteo_df <- rnoaa::meteo_pull_monitors(monitors = stations$id,
                                   keep_flags = FALSE,
                                   date_min = date_min,
                                   date_max = date_max,
@@ -117,7 +119,10 @@ weather_fips_df <- function(stations, percent_coverage = NULL,
   # contributed to each daily average
   averaged <- ave_weather(filtered_data)
 
-  return(averaged)
+  stations <- dplyr::filter_(stations, ~ id %in% good_monitors)
+  out <- list(averaged = averaged, stations = stations)
+
+  return(out)
 }
 
 #' Average weather data across multiple stations.
@@ -246,101 +251,40 @@ station_radius <- function(fips, radius = NULL){
 #'
 #' @examples
 #' \dontrun{
-#' ex <- stationmap_fips(fips = "08031", percent_coverage = 0.90,
-#'                       date_min = "2010-01-01", date_max = "2010-02-01",
-#'                       var = "PRCP")
+#' stations <- fips_stations(fips = "12086", date_min = "1999-08-01",
+#'                           date_max = "1999-08-31")
+#' weather_data <- weather_fips_df(stations = stations, percent_coverage = 0.90,
+#'                                 var = c("PRCP"), date_min = "1999-08-01",
+#'                                 date_max = "1999-08-31")
+#' stationmap_fips(fips = "12086", weather_data = weather_data)
 #' }
 #'
 #' @importFrom dplyr %>%
 #'
 #' @export
-stationmap_fips <- function(fips, percent_coverage = NULL,
-                            date_min = NULL, date_max = NULL, var = "all",
-                            point_color = "firebrick", point_size = 2){
-  # pull stations
-    stations <- fips_stations(fips, date_min = date_min, date_max = date_max)
+stationmap_fips <- function(fips, weather_data, point_color = "firebrick",
+                            point_size = 2){
 
-  # meteo_pull_monitors() from helpers_ghcnd.R in ropenscilabs/rnoaa
-  meteo_df <- rnoaa::meteo_pull_monitors(monitors = stations,
-                                  keep_flags = FALSE,
-                                  date_min = date_min,
-                                  date_max = date_max,
-                                  var = var)
-  coverage_df <- rnoaa::meteo_coverage(meteo_df, verbose = FALSE)
-  filtered <- filter_coverage(coverage_df, percent_coverage)
-  good_monitors <- unique(filtered$id)
-
-  # in case radius is not NULL, still need to run fips_stations() to
-  # get station_df (which is in the global environment after running the
-  # fips_stations() function)
-  # fips_stations(fips, date_min = date_min, date_max = date_max)
-  df <- mapping(station_df)
-
-  station_latlong <- dplyr::filter_(df, ~ df$id %in% good_monitors)
-
-  meteo_df_filtered <- dplyr::filter_(meteo_df, ~ meteo_df$id %in% good_monitors)
-
-  # not currently using this perc_missing df for anything
-  perc_missing <- tidyr::gather(meteo_df_filtered, key, value, -id, -date) %>%
-    plyr::ddply(c("id", "key"), plyr::summarize,
-          percent_missing = sum(is.na(value)) / length(value)) %>%
-    dplyr::mutate(key = paste(key, "percent_missing", sep = "_")) %>%
-    tidyr::spread(key = key, value = percent_missing)
-
-  final_df <- dplyr::left_join(station_latlong, perc_missing, by = "id")
-
-  # run station_radius() to get central_latlong (in global environment after
-  # running station_radius())
-  # station_radius(fips = fips, radius = radius)
-
-  utils::data("df_pop_county", package = "choroplethr")
-
-  census_csv <- paste0("http://www2.census.gov/geo/docs/reference/cenpop2010/",
-                       "county/CenPop2010_Mean_CO.txt")
-  census_data <- utils::read.csv(census_csv)
-  census_data$COUNTYFP <- sprintf("%03d", census_data$COUNTYFP)
-  census_data <- dplyr::mutate(census_data, choro_fips = paste0(census_data$STATEFP,
-                                                         census_data$COUNTYFP))
-
-  census_data$state_long <- sprintf("%02d", census_data$STATEFP)
-  census_data$fips <- paste0(census_data$state_long, census_data$COUNTYFP)
-
+  census_data <- countyweather::county_centers
   row_num <- which(grepl(fips, census_data$fips))
+  choro_fips <- as.numeric(census_data[row_num, "fips"])
+  title <- census_data[row_num, "name"]
 
-  census_data$cname <- paste0(census_data$COUNAME, " County, ")
-  census_data$name <- paste0(census_data$cname, census_data$STNAME)
-  census_data <- dplyr::select_(census_data, .dots = c("-cname", "-state_long"))
+  to_map <- dplyr::select_(census_data, region = ~ region) %>%
+    dplyr::mutate_(value = 1)
 
-  choro_fips <- census_data[row_num, 8]
-  title <- census_data[row_num, 10]
-
-  map <- suppressMessages(choroplethr::county_choropleth(df_pop_county,
+  map <- suppressMessages(choroplethr::county_choropleth(to_map,
                                         title = "", legend = "",
                            num_colors = 1, state_zoom = NULL,
                            county_zoom = choro_fips, reference_map = TRUE))
 
-  map <- map + ggplot2::geom_point(data = final_df, ggplot2::aes_(~ lon, ~ lat),
+  map <- map + ggplot2::geom_point(data = weather_data$stations,
+                                   ggplot2::aes_(~ longitude, ~ latitude),
                           colour = point_color, size = point_size) +
     ggplot2::theme(legend.position = "none") +
     ggplot2::ggtitle(title)
 
   return(map)
-}
-
-#' Return a dataframe with station IDs, and longitude and latitude for each
-#' station.
-#'
-#' @param ncdcdf A dataframe obtained using the \code{ncdc_stations} function
-#'    in the rnoaa package, with the \code{datasetid} argument set to 'GHCND',
-#'    the \code{locationid} set to a U.S. county FIPS code (in the format
-#'    'FIPS:08031', for example). This dataframe can be obtained using the
-#'    \code{station_fips} function. After running \code{station_fips}, the
-#'    \code{station_df} will be in your global environment.
-mapping <- function(station_df){
-  df <- dplyr::select_(station_df, .dots = c("longitude", "latitude", "id"))
-  colnames(df) <- c("lon", "lat", "id")
-  df$id <- gsub("GHCND:", "", df$id)
-  return(df)
 }
 
 #' Write daily weather timeseries files for U.S. counties
@@ -429,6 +373,7 @@ county_timeseries <- function(fips, percent_coverage, date_min, date_max, var,
 #' where you would like the plots to be saved.
 #'
 #' @examples
+#' \dontrun{
 #'plot_timeseries(var = "prcp",
 #'                file_directory = "~/Desktop/exposure_data/ihapps_timeseries",
 #'                plot_directory = "~/Desktop/exposure_data/plots_prcp")
@@ -440,7 +385,7 @@ county_timeseries <- function(fips, percent_coverage, date_min, date_max, var,
 #'plot_timeseries(var = "tmin",
 #'                file_directory = "~/Desktop/exposure_data/ihapps_timeseries",
 #'                plot_directory = "~/Desktop/exposure_data/plots_tmin")
-#'
+#' }
 #' @export
 plot_timeseries <- function(var, file_directory, file_type = "rds",
                             plot_directory){

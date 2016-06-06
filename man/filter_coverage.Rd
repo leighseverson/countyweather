@@ -7,7 +7,7 @@
 filter_coverage(coverage_df, percent_coverage = NULL)
 }
 \arguments{
-\item{coverage_df}{a \code{meteo_coverage} dataframe}
+\item{coverage_df}{A \code{meteo_coverage} dataframe}
 
 \item{percent_coverage}{A numeric value in the range of 0 to 1 that specifies
 the desired percentage coverage for the weather variable (i.e., what

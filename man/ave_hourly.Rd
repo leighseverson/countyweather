@@ -2,20 +2,21 @@
 % Please edit documentation in R/hourly_fips.R
 \name{ave_hourly}
 \alias{ave_hourly}
-\title{Average across hourly stations}
+\title{Average hourly weather data across multiple stations.}
 \usage{
-ave_hourly(stationdata)
+ave_hourly(hourly_data)
+}
+\arguments{
+\item{hourly_data}{A dataframe with hourly weather observations. This
+dataframe is returned from the function \code{isd_monitors_data}.}
 }
 \description{
-Average across hourly stations
+\code{ave_hourly} returns a dataframe with hourly weather averaged across
+stations, as well as columns showing the number of stations
 }
-\examples{
-\dontrun{
-average_data <- ave_hourly(stationdata)
-aug_ave <- with(average_data,
-subset(average_data, average_data$date_time > as.POSIXct('1992-08-01 00:00:00') &
-average_data$date_time < as.POSIXct('1992-08-31 00:00:00')))
-ggplot(aug_ave, aes(x = date_time, y = mean)) + geom_line() + theme_minimal()
-}
+\details{
+\code{ave_hourly} returns a dataframe with hourly weather averaged across
+stations, as well as columns showing the number of stations contributing to
+average for each variable and each hour.
 }
 

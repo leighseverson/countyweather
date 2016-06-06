@@ -4,18 +4,18 @@
 \alias{weather_fips_df}
 \title{Return average daily weather data for a particular county.}
 \usage{
-weather_fips_df(fips, percent_coverage = NULL, date_min = NULL,
-  date_max = NULL, var = "all")
+weather_fips_df(stations, percent_coverage = NULL, var = "all",
+  date_min = NULL, date_max = NULL)
 }
 \arguments{
-\item{fips}{A character string giving the five-digit U.S. FIPS county code
-of the county for which the user wants to pull weather data.}
-
 \item{percent_coverage}{A numeric value in the range of 0 to 1 that specifies
 the desired percentage coverage for the weather variable (i.e., what
 percent of each weather variable must be non-missing to include data from
 a monitor when calculating daily values averaged across monitors.
 (Optional.)}
+
+\item{var}{A character vector specifying desired weather variables. For
+example, var = c("TMIN", "TMAX", "PRCP"). (Optional.)}
 
 \item{date_min}{A character string giving the earliest date you want
    in your dataset in "yyyy-mm-dd" format. (Optional.)
@@ -24,8 +24,8 @@ a monitor when calculating daily values averaged across monitors.
 \item{date_max}{A character string giving the latest date you want
 in your dataset in "yyyy-mm-dd" format. (Optional.)}
 
-\item{var}{A character vector specifying desired weather variables. For
-example, var = c("TMIN", "TMAX", "PRCP"). (Optional.)}
+\item{fips}{A character string giving the five-digit U.S. FIPS county code
+of the county for which the user wants to pull weather data.}
 }
 \value{
 A dataframe of daily weather data averaged across multiple monitors,
@@ -54,9 +54,11 @@ Because this function uses the NOAA API to identify the weather
 }
 \examples{
 \dontrun{
-df <- weather_fips_df(fips = "12086",
-                   percent_coverage = 0.90, date_min = "2010-01-01",
-                   date_max = "2010-02-01", var = c("TMAX", "TMIN", "PRCP"))
+stations <- fips_stations(fips = "12086", date_min = "2010-01-01",
+                          date_max = "2010-02-01")
+df <- weather_fips_df(stations = stations, percent_coverage = 0.90,
+                      var = c("TMAX", "TMIN", "PRCP"),
+                      date_min = "2010-01-01", date_max = "2010-02-01")
 }
 }
 
