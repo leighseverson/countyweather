@@ -8,14 +8,14 @@
 #'
 #' @inheritParams weather_fips_df
 #'
-#' @return A list with two elements. The first element ("data") is a dataframe
-#'    of daily weather data averaged across multiple stations, as well as
-#'    columns (\code{"var"_reporting}) for each weather variable showing the
+#' @return A list with two elements. The first element (\code{data}) is a
+#'    dataframe of daily weather data averaged across multiple stations, as well
+#'    as columns (\code{"var"_reporting}) for each weather variable showing the
 #'    number of stations contributing to the average for that variable on that
-#'    day. The second element ("plot") is a plot showing points for all weather
-#'    stations for a particular county satisfying the conditions present in
-#'    \code{weather_fips}'s arguments (percent_coverage, date_min,
-#'    date_max, and/or var).
+#'    day. The second element (\code{plot}) is a plot showing points for all
+#'    weather stations for a particular county satisfying the conditions present
+#'    in \code{weather_fips}'s arguments (percent_coverage, date_min, date_max,
+#'    and/or var).
 #'
 #' @note You must have a NOAA API to use this function, and you need to set
 #'    that API code in your R session (e.g., using \code{options("noaakey" = }).
@@ -39,7 +39,7 @@ weather_fips <- function(fips, percent_coverage = NULL,
                                   date_max = date_max,
                                   percent_coverage = percent_coverage,
                                   var = var)
-  station_map <- stationmap_fips(fips = fips, weather_data = weather_data)
+  station_map <- stationmap_fips(fips = fips, weather_data = weather_data$averaged)
   list <- list("weather_data" = weather_data$averaged,
                "station_map" = station_map)
   return(list)
@@ -47,8 +47,11 @@ weather_fips <- function(fips, percent_coverage = NULL,
 
 #' Return average daily weather data for a particular county.
 #'
-#' \code{weather_fips_df} returns a dataframe of average daily weather values
-#' for a particular county, date range, and/or specified "coverage."
+#' \code{weather_fips_df} returns a list of two elements. The element
+#' \code{averaged} is a dataframe of average daily weather values for a
+#' particular county, date range, and/or specified "coverage." The element
+#' \code{stations} is a vector of stations contributing to the average
+#' weather values in the \code{averaged} dataframe.
 #'
 #' This function serves as a wrapper to several functions from the \code{rnoaa}
 #' package, which provides weather data from all relevant stations in a county.
@@ -78,10 +81,12 @@ weather_fips <- function(fips, percent_coverage = NULL,
 #' @param var A character vector specifying desired weather variables. For
 #'    example, var = c("TMIN", "TMAX", "PRCP"). (Optional.)
 #'
-#' @return A dataframe of daily weather data averaged across multiple monitors,
-#'    as well as columns (\code{"var"_reporting}) for each weather variable
-#'    showing the number of stations contributing to the average for that
-#'    variable on that day.
+#' @return A list with two elements. \code{averaged} is a dataframe of daily
+#'    weather data averaged across multiple monitors, as well as columns
+#'    (\code{"var"_reporting}) for each weather variable showing the number of
+#'    stations contributing to the average for that variable on that day.
+#'    The element \code{stations} is a vector of weather stations contributing
+#'    to the average value in the \code{averaged} dataframe.
 #'
 #' @examples
 #' \dontrun{
@@ -91,13 +96,12 @@ weather_fips <- function(fips, percent_coverage = NULL,
 #'                       var = c("TMAX", "TMIN", "PRCP"),
 #'                       date_min = "2010-01-01", date_max = "2010-02-01")
 #' }
-#' @export
 weather_fips_df <- function(stations, percent_coverage = NULL,
                             var = "all", date_min = NULL, date_max = NULL){
 
   # get tidy full dataset for all monitors
   # meteo_pull_monitors() from helpers_ghcnd.R in ropenscilabs/rnoaa
-  meteo_df <- rnoaa::meteo_pull_monitors(monitors = stations$id,
+  meteo_df <- meteo_pull_monitors(monitors = stations,
                                   keep_flags = FALSE,
                                   date_min = date_min,
                                   date_max = date_max,
@@ -105,7 +109,7 @@ weather_fips_df <- function(stations, percent_coverage = NULL,
 
   # calculate coverage for each weather variable
   # meteo_coverage() from meteo_utils.R in ropenscilabs/rnoaa
-  coverage_df <- rnoaa::meteo_coverage(meteo_df, verbose = FALSE)
+  coverage_df <- meteo_coverage(meteo_df, verbose = FALSE)
 
   # filter station dataset based on specified coverage
   filtered <- filter_coverage(coverage_df,
@@ -119,8 +123,9 @@ weather_fips_df <- function(stations, percent_coverage = NULL,
   # contributed to each daily average
   averaged <- ave_weather(filtered_data)
 
-  stations <- dplyr::filter_(stations, ~ id %in% good_monitors)
-  out <- list(averaged = averaged, stations = stations)
+  #stations <- dplyr::filter_(stations, ~ id %in% good_monitors)
+
+  out <- list(averaged = averaged, stations = good_monitors)
 
   return(out)
 }
@@ -136,7 +141,6 @@ weather_fips_df <- function(stations, percent_coverage = NULL,
 #'
 #' @importFrom dplyr %>%
 #'
-#' @export
 ave_weather <- function(weather_data){
 
   averaged_data <- tidyr::gather(weather_data, key, value, -id, -date) %>%
@@ -174,7 +178,6 @@ ave_weather <- function(weather_data){
 #'
 #' @importFrom dplyr %>%
 #'
-#' @export
 filter_coverage <- function(coverage_df, percent_coverage = NULL){
 
   if (is.null(percent_coverage)){
@@ -201,7 +204,6 @@ filter_coverage <- function(coverage_df, percent_coverage = NULL){
 #' @return A character vector listing station ids which are located within
 #'    the specified radius centered in the specified county.
 #'
-#' @export
 station_radius <- function(fips, radius = NULL){
   url <- paste0("http://www2.census.gov/geo/docs/reference/",
                 "codes/files/national_county.txt")
@@ -261,7 +263,6 @@ station_radius <- function(fips, radius = NULL){
 #'
 #' @importFrom dplyr %>%
 #'
-#' @export
 stationmap_fips <- function(fips, weather_data, point_color = "firebrick",
                             point_size = 2){
 
