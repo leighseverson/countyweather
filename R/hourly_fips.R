@@ -251,24 +251,20 @@ filter_hourly <- function(hourly_data, coverage, var){
     group_by(station, key) %>%
     summarize(coverage = mean(!is.na(value)))
 
-  df2 <- hourly_data %>%
+  filtered <- hourly_data %>%
     unite(station, usaf_station, wban_station, sep = "-") %>%
     select(-latitude, -longitude) %>%
     gather(key, value, -station, -date_time) %>%
     left_join(df, by = c("station", "key")) %>%
     filter(coverage > 0.80) %>%
-    group_by(date_time, key) %>%
+    group_by(date_time, key)
+
+  df2 <- filtered %>%
     summarize(n_reporting = sum(!is.na(value))) %>%
     mutate(key = paste(key, "reporting", sep = "_")) %>%
     spread(key = key, value = n_reporting)
 
-  df3 <- hourly_data %>%
-    unite(station, usaf_station, wban_station, sep = "-") %>%
-    select(-latitude, -longitude) %>%
-    gather(key, value, -station, -date_time) %>%
-    left_join(df, by = c("station", "key")) %>%
-    filter(coverage > 0.80) %>%
-    group_by(date_time, key) %>%
+  df3 <- filtered %>%
     summarize(value = mean(value, na.rm = TRUE)) %>%
     spread(key = key, value = value)
 
