@@ -27,19 +27,19 @@ install_github("leighseverson/countyweather")
 library(countyweather)
 ```
 
-You will also need an API key from NOAA to be able to access the weather data. You can get one by requesting that NOAA email you an API key from here: \url{http://www.ncdc.noaa.gov/cdo-web/token}. Next, open a new text file, and type the following (make sure to add a second blank line):
+You will also need an API key from NOAA to be able to access the weather data. You can get one by requesting that NOAA email you an API key from here: \url{http://www.ncdc.noaa.gov/cdo-web/token}. 
+
+Next, open a new text file (in RStudio, do this by navigating to *File* > *New File* > *Text File*. Type the following (make sure to add a second blank line):
 ```{r}
-noaakey == [your NOAA API key]
+noaakey=your_key
 
 ```
 
-Save this text file as `.Renviron` in your home directory. Once you restart R, you can pull your key using `Sys.getenv("noaakey")`. Before using functions that require the API key, run: 
+Save this text file as `.Renviron` in your home directory. (If prompted with a complaint, you DO want to use a filename that begins with a dot `.`. Once you restart R, you can pull your key using `Sys.getenv("noaakey")`. Before using functions that require the API key, run: 
 
 ```{r}
 options("noaakey" = Sys.getenv("noaakey"))
 ```
-
-(Alternatively, you can run `options(noaakey = "your NOAA API key"`). 
 
 This package draws mainly on functions from the `rnoaa` package to identify weather monitors within a county based on its FIPS code and then pull weather data for a specified date range from those monitors. It then does some additional cleaning and aggregating to produce a single, county-level weather dataset. Further, it maps the monitors used for that county and date range and allows you to create and write datasets for many different counties using a single function call.
 
