@@ -18,7 +18,8 @@
 #'    and/or var).
 #'
 #' @note You must have a NOAA API to use this function, and you need to set
-#'    that API code in your R session (e.g., using \code{options("noaakey" = }).
+#'    that API code in your R session (e.g., using
+#'    \code{options(noaakey = "your key"}).
 #'
 #' @examples
 #' \dontrun{
