@@ -242,6 +242,7 @@ ave_hourly <- function(hourly_data){
 #' requirements for weather variables included in the datafrome present in
 #' this function's arguments.
 #'
+#' @importFrom dplyr %>%
 filter_hourly <- function(hourly_data, coverage, var){
 
   df <- hourly_data %>%

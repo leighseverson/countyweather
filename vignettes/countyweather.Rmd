@@ -27,7 +27,7 @@ install_github("leighseverson/countyweather")
 library(countyweather)
 ```
 
-You will also need an API key from NOAA to be able to access the weather data. You can get one by requesting that NOAA email you an API key from here: \url{http://www.ncdc.noaa.gov/cdo-web/token}. 
+You will also need an API key from NOAA to be able to access the weather data. You can get one by requesting that NOAA email you an API key from here: http://www.ncdc.noaa.gov/cdo-web/token  
 
 Next, open a new text file (in RStudio, do this by navigating to *File* > *New File* > *Text File*. Type the following (make sure to add a second blank line):
 ```{r}
