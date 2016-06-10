@@ -30,7 +30,7 @@ library(countyweather)
 You will also need an API key from NOAA to be able to access the weather data. You can get one by requesting that NOAA email you an API key from here: http://www.ncdc.noaa.gov/cdo-web/token  
 
 Next, open a new text file (in RStudio, do this by navigating to *File* > *New File* > *Text File*). Type the following, and make sure to add a second blank line:
-```{r}
+```{r eval = FALSE}
 noaakey=your_key
 
 ```
@@ -139,11 +139,23 @@ This section is still in development, because these measurments need to be compa
 
 ## Futher options available in the package
 
-The user can choose to filter out any monitors that report variables for less that a certain percent of time (`coverage`).
+For hourly and daily weather, the user can choose to filter out any monitors that report variables for less that a certain percent of time (`coverage`). For example, if you were to set `coverage` to 0.90, only monitors that reported non-missing values at least 90% of the time would be included in your data. 
 
 ## More on the weather data
 
-[Add more here on the daily and hourly weather data we're pulling.]
+### Daily weather data 
+
+Functions in this package that pull daily weather values (`weather_fips()`, for example) are pulling data from the Daily Global Historical Climatology Network (GHCN-Daily) through NOAA's FTP server. While the datasets resulting from functions in this package return a cleaned and aggregated dataset, this journal article by Menne et al. (2012) gives more information aboout the raw data in the GHCND database: 
+
+Menne, M.J., I. Durre, R.S. Vose, B.E. Gleason, and T.G. Houston, 2012:  An overview 
+of the Global Historical Climatology Network-Daily Database.  Journal of Atmospheric 
+and Oceanic Technology, 29, 897-910, doi:10.1175/JTECH-D-11-00103.1. 
+
+### Hourly weather data 
+
+
+
+### Stream flow data 
 
 ## Error and warning messages you may get
 
