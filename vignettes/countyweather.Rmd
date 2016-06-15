@@ -45,9 +45,9 @@ This package draws mainly on functions from the `rnoaa` package to identify weat
 
 ## Basic examples of using the package
 
-This package allows you to pull data based on a US county's FIPS code. FIPS codes are 5-digit codes that are unique for every US county. The first two digits specify state and the last three specify county within the state. The health data used for environmental epidemiology studies is often aggregated at the county level for US studies, making it very useful to be able to create weather datasets by county. 
+This package allows you to pull data based on a US county's corresponding Federal Information Processing Standard (FIPS) code. FIPS codes are 5-digit codes that uniquely identify every US county. The first two digits specify state and the last three specify the county within the state. The health data used in environmental epidemiology studies is often aggregated at the county level for US studies, making it very useful to be able to create weather datasets by county. 
 
-Currently, this package can pull daily and hourly weather data for variables like temperature and precipitation. The weather data is collected at monitors, and there are often multiple weather monitors within a county. This package allows you to specify a county and then will pull weather data from all monitors in that county over a specified date range and average the daily or hourly values to generate an average time series for the county. 
+Currently, this package can pull daily and hourly weather data for variables like temperature and precipitation. (For resources with complete lists of available weather variables, see the section titled 'More on the weather data'). The weather data is collected at monitors, and there are often multiple weather monitors within a county. This package allows you to specify a county and then will pull weather data from all monitors in that county over a specified date range, and average the daily or hourly values to generate an average time series for that county. 
 
 ### Pulling daily data
 
@@ -145,7 +145,11 @@ For hourly and daily weather, the user can choose to filter out any monitors tha
 
 ### Daily weather data 
 
-Functions in this package that pull daily weather values (`weather_fips()`, for example) are pulling data from the Daily Global Historical Climatology Network (GHCN-Daily) through NOAA's FTP server. While the datasets resulting from functions in this package return a cleaned and aggregated dataset, this journal article by Menne et al. (2012) gives more information aboout the raw data in the GHCND database: 
+Functions in this package that pull daily weather values (`weather_fips()`, for example) are pulling data from the Daily Global Historical Climatology Network (GHCN-Daily) through NOAA's FTP server. 
+
+Users can specify which weather variables they would like to pull - the complete list of available weather variables can be found under 'element' from the GHCND's [readme file](http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt). 
+
+While the datasets resulting from functions in this package return a cleaned and aggregated dataset, this journal article by Menne et al. (2012) gives more information aboout the raw data in the GHCND database: 
 
 Menne, M.J., I. Durre, R.S. Vose, B.E. Gleason, and T.G. Houston, 2012:  An overview 
 of the Global Historical Climatology Network-Daily Database.  Journal of Atmospheric 
@@ -153,7 +157,36 @@ and Oceanic Technology, 29, 897-910, doi:10.1175/JTECH-D-11-00103.1.
 
 ### Hourly weather data 
 
+Hourly weather data in this package is pulled from NOAA's Integrated Surface Data (ISD), which is archived at the National Climatic Data Center (NCDC). This data is also pulled through NOAA's FTP server. 
 
+Available hourly weather variables include `wind_direction`, `wind_speed`, `ceiling_height`, `visibility_distance`, `temperature`, `temperature_dewpoint`, and `air_pressure`. 
+
+```{r echo = FALSE, warning = FALSE}
+library(knitr)
+hourly_vars <- data.frame(variables = c("wind_direction", "wind_speed", 
+                                        "ceiling_height", "visibility_distance", 
+                                        "temperature", "temperature_dewpoint", 
+                                        "air_pressure"), 
+                          description = c("The angle, measured in a clockwise direction, between true north and the direction from which the wind is blowing", 
+                                          "The rate of horizontal speed of air", 
+                                          "The height above ground level of the lowest cloud or obscuring phenomena layer aloft with 5/8 or more summation total sky cover, which may be predominately opaque, or the vertical visibility into a surface-based obstruction", 
+                                          "The horizontal distance at which an object can be seen and identified", 
+                                          "The temperature of the air", 
+                                          "The temperature to which a given parcel of air must be cooled at constant pressure and water vapor content in order for saturation to occur", 
+                                          "The air pressure relative to Mean Sea Level"), 
+                          units = c("Angular Degrees", "Meters per Second",
+                                    "Meters", "Meters", "Degrees Celsuis", 
+                                    "Degrees Celsius", "Hectopascals"), 
+                          minimum = c("1", "0", "0", "0", "-93.2", "-98.2", "860"), 
+                          maximum = c("360", "200", "22000", "160000", "61.8", 
+                                      "36.8", "1090"))
+
+kable(hourly_vars, format = "markdown")
+```
+
+There are other columns available in addition to these weather variables (for example, )
+
+For more information about 
 
 ### Stream flow data 
 
