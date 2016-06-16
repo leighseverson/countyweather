@@ -168,7 +168,7 @@ hourly_vars <- data.frame(variables = c("wind_direction", "wind_speed",
                                         "temperature", "temperature_dewpoint", 
                                         "air_pressure"), 
                           description = c("The angle, measured in a clockwise direction, between true north and the direction from which the wind is blowing", 
-                                          "The rate of horizontal speed of air", 
+                                          "The rate of horizontal travel of air past a fixed point", 
                                           "The height above ground level of the lowest cloud or obscuring phenomena layer aloft with 5/8 or more summation total sky cover, which may be predominately opaque, or the vertical visibility into a surface-based obstruction", 
                                           "The horizontal distance at which an object can be seen and identified", 
                                           "The temperature of the air", 
@@ -178,7 +178,7 @@ hourly_vars <- data.frame(variables = c("wind_direction", "wind_speed",
                                     "Meters", "Meters", "Degrees Celsuis", 
                                     "Degrees Celsius", "Hectopascals"), 
                           minimum = c("1", "0", "0", "0", "-93.2", "-98.2", "860"), 
-                          maximum = c("360", "200", "22000", "160000", "61.8", 
+                          maximum = c("360", "90", "22000 (indicates 'Unlimited')", "160000", "61.8", 
                                       "36.8", "1090"))
 
 kable(hourly_vars, format = "markdown")
