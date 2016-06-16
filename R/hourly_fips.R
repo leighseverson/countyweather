@@ -255,30 +255,30 @@ ave_hourly <- function(hourly_data){
 filter_hourly <- function(hourly_data, coverage, var){
 
   df <- hourly_data %>%
-    unite(station, usaf_station, wban_station, sep = "-") %>%
-    select(-date_time, -latitude, -longitude) %>%
-    gather(key, value, -station) %>%
-    group_by(station, key) %>%
-    summarize(coverage = mean(!is.na(value)))
+    tidyr::unite(station, usaf_station, wban_station, sep = "-") %>%
+    dplyr::select_(-date_time, -latitude, -longitude) %>%
+    tidyr::gather(key, value, -station) %>%
+    dplyr::group_by_(station, key) %>%
+    dplyr::summarize(coverage = ~ mean(!is.na(value)))
 
   filtered <- hourly_data %>%
-    unite(station, usaf_station, wban_station, sep = "-") %>%
-    select(-latitude, -longitude) %>%
-    gather(key, value, -station, -date_time) %>%
-    left_join(df, by = c("station", "key")) %>%
-    filter(coverage > 0.80) %>%
-    group_by(date_time, key)
+    tidyr::unite(station, usaf_station, wban_station, sep = "-") %>%
+    dplyr::select_(-latitude, -longitude) %>%
+    tidyr::gather(key, value, -station, -date_time) %>%
+    dplyr::left_join(df, by = c("station", "key")) %>%
+    dplyr::filter_(~ coverage > 0.80) %>%
+    dplyr::group_by_(date_time, key)
 
   df2 <- filtered %>%
-    summarize(n_reporting = sum(!is.na(value))) %>%
-    mutate(key = paste(key, "reporting", sep = "_")) %>%
-    spread(key = key, value = n_reporting)
+    dplyr::summarize_(n_reporting = ~ sum(!is.na(value))) %>%
+    dplyr::mutate_(key = ~ paste(key, "reporting", sep = "_")) %>%
+    tidyr::spread(key = key, value = n_reporting)
 
   df3 <- filtered %>%
-    summarize(value = mean(value, na.rm = TRUE)) %>%
-    spread(key = key, value = value)
+    dplyr::summarize(value = ~ mean(value, na.rm = TRUE)) %>%
+    tidyr::spread(key = key, value = value)
 
-  out <- full_join(df3, df2, by = "date_time")
+  out <- dplyr::full_join(df3, df2, by = "date_time")
 
   return(out)
 }
