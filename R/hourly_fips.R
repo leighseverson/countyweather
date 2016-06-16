@@ -39,7 +39,7 @@
 #' }
 #'
 #' @export
-hourly_fips <- function(fips, year, var = "all", radius = 50,
+hourly_fips_df <- function(fips, year, var = "all", radius = 50,
                            coverage = NULL){
   data <- isd_monitors_data(fips = fips, year = year, var = var, radius =
                                radius)
@@ -142,11 +142,20 @@ int_surface_data <- function(usaf_code, wban_code, year, var = "all"){
   subset_vars <- append(cols, var)
   isd_df <- dplyr::select_(isd_df, .dots = subset_vars)
 
-  # change misisng numerical weather data values to NA - it looks like non-signed items are filled
-  # with 9 (quality codes), 999 or 9999; signed items are positive filled (+9999 or +99999)
-  # ftp://ftp.ncdc.noaa.gov/pub/data/noaa/ish-format-document.pdf
   na_code_vars <- colnames(isd_df)[apply(isd_df, 2, max) %in%
-                                 c(99, 999, 999.9, 9999, 9999.9, 99999, 99999.9)]
+                                 c(99, 999, 999.9, 9999, 9999.9, 99999, 99999.9,
+                                   999999)]
+
+#  for(i in 1:length(na_code_vars)){
+#    if(is.numeric(isd_df$na_code_vars[i])){
+#      if (i == 1){
+#        var <- na_code_vars[i]
+#      } else {
+#        var <- append(var, na_code_vars[i])
+#      }
+#    }
+#  }
+
   if(length(na_code_vars) > 0){
     for(na_var in na_code_vars){
       isd_df[isd_df[ , na_var] == max(isd_df[ , na_var]), na_var] <- NA
