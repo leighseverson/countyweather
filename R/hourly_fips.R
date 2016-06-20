@@ -72,8 +72,6 @@ hourly_fips_df <- function(fips, year, var = "all", radius = 50,
 #' \dontrun{
 #' ids <- isd_fips_stations(fips = "12086")
 #' }
-#'
-#' @export
 isd_fips_stations <- function(fips, verbose = TRUE, radius = 50){
   census_data <- countyweather::county_centers
   loc_fips <- which(census_data$fips == fips)
@@ -124,8 +122,6 @@ isd_fips_stations <- function(fips, verbose = TRUE, radius = 50){
 #'                                     year = 1992,
 #'                                     var = c("wind_speed", "temperature"))
 #' }
-#'
-#' @export
 int_surface_data <- function(usaf_code, wban_code, year, var = "all"){
   quiet_isd <- purrr::quietly(rnoaa::isd)
   isd_df <- quiet_isd(usaf = usaf_code, wban = wban_code, year = year)
@@ -146,11 +142,20 @@ int_surface_data <- function(usaf_code, wban_code, year, var = "all"){
   subset_vars <- append(cols, var)
   isd_df <- dplyr::select_(isd_df, .dots = subset_vars)
 
-  # change misisng numerical weather data values to NA - it looks like non-signed items are filled
-  # with 9 (quality codes), 999 or 9999; signed items are positive filled (+9999 or +99999)
-  # ftp://ftp.ncdc.noaa.gov/pub/data/noaa/ish-format-document.pdf
   na_code_vars <- colnames(isd_df)[apply(isd_df, 2, max) %in%
-                                 c(99, 999, 999.9, 9999, 9999.9, 99999, 99999.9)]
+                                 c(99, 999, 999.9, 9999, 9999.9, 99999, 99999.9,
+                                   999999)]
+
+#  for(i in 1:length(na_code_vars)){
+#    if(is.numeric(isd_df$na_code_vars[i])){
+#      if (i == 1){
+#        var <- na_code_vars[i]
+#      } else {
+#        var <- append(var, na_code_vars[i])
+#      }
+#    }
+#  }
+
   if(length(na_code_vars) > 0){
     for(na_var in na_code_vars){
       isd_df[isd_df[ , na_var] == max(isd_df[ , na_var]), na_var] <- NA
@@ -177,8 +182,6 @@ int_surface_data <- function(usaf_code, wban_code, year, var = "all"){
 #'    geom_point(alpha = 0.5, size = 0.2) +
 #'    facet_wrap(~ usaf_station, ncol = 1)
 #' }
-#'
-#' @export
 isd_monitors_data <- function(fips, year, var = "all", radius = 50){
   ids <- isd_fips_stations(fips, verbose = FALSE, radius = radius)
 
@@ -211,8 +214,6 @@ isd_monitors_data <- function(fips, year, var = "all", radius = 50){
 #' dataframe is returned from the function \code{isd_monitors_data}.
 #'
 #' @importFrom dplyr %>%
-#'
-#' @export
 ave_hourly <- function(hourly_data){
 
   df <- dplyr::mutate_(hourly_data, id = ~ paste0(usaf_station, wban_station))
@@ -250,144 +251,34 @@ ave_hourly <- function(hourly_data){
 #' requirements for weather variables included in the datafrome present in
 #' this function's arguments.
 #'
-#' @export
+#' @importFrom dplyr %>%
 filter_hourly <- function(hourly_data, coverage, var){
 
-  ex <- hourly_data %>%
+  df <- hourly_data %>%
     unite(station, usaf_station, wban_station, sep = "-") %>%
     select(-date_time, -latitude, -longitude) %>%
     gather(key, value, -station) %>%
     group_by(station, key) %>%
     summarize(coverage = mean(!is.na(value)))
-  ex2 <- hourly_data %>%
+
+  filtered <- hourly_data %>%
     unite(station, usaf_station, wban_station, sep = "-") %>%
     select(-latitude, -longitude) %>%
     gather(key, value, -station, -date_time) %>%
-    left_join(ex, by = c("station", "key")) %>%
+    left_join(df, by = c("station", "key")) %>%
     filter(coverage > 0.80) %>%
-    group_by(date_time, key) %>%
+    group_by(date_time, key)
+
+  df2 <- filtered %>%
+    summarize(n_reporting = sum(!is.na(value))) %>%
+    mutate(key = paste(key, "reporting", sep = "_")) %>%
+    spread(key = key, value = n_reporting)
+
+  df3 <- filtered %>%
     summarize(value = mean(value, na.rm = TRUE)) %>%
     spread(key = key, value = value)
 
-  df <- hourly_data
-  # add a single identifier for each station
-  df <- dplyr::mutate_(df, id = ~ paste0(usaf_station, wban_station))
+  out <- full_join(df3, df2, by = "date_time")
 
-  # calculate number of missing observations for each station and each variable
-  dplyr::group_by_(df, ~id) %>%
-    dplyr::do({
-      n_missing <- as.data.frame(do.call("rbind",
-                                         sapply(var,
-                                                FUN = function(i) sum(is.na(df[,i])),
-                                                         simplify = FALSE)))
-    }) -> m_df
-
-  for(i in 1:length(var)){
-    indexes <- seq(i, length(m_df$id), length(var))
-    if(i == 1){
-      ind_out <- indexes
-    } else {
-      ind_out <- rbind(ind_out, indexes)
-    }
-    ind_out <- t(ind_out)
-  }
-  colnames(ind_out) <- var
-
-  m_df <- dplyr::add_rownames(m_df)
-  m_df <- dplyr::mutate_(m_df, variable = ~ NA)
-
-  for(i in 1:length(var)){
-    a <- dplyr::filter_(m_df, ~ rowname %in% ind_out[,i])
-    a$variable <- var[i]
-    if(i == 1){
-      missing_out <- a
-    } else {
-      missing_out <- rbind(missing_out, a)
-    }
-  }
-  colnames(missing_out) <- c("rowname", "id", "missing", "variable")
-
-  # calculate total number of observations for each station and weather variable
-  dplyr::group_by_(df, ~id) %>%
-    dplyr::do({
-      n_total <- as.data.frame(do.call("rbind",
-                                       sapply(var, FUN = function(i) nrow(df[,i]),
-                                                       simplify = FALSE)))
-    }) -> t_df
-
-  t_df <- dplyr::add_rownames(t_df)
-  t_df <- dplyr::mutate_(t_df, variable = ~ NA)
-
-  for(i in 1:length(var)){
-    b <- dplyr::filter_(t_df, ~ rowname %in% ind_out[,i])
-    b$variable <- var[i]
-    if(i == 1){
-      total_out <- b
-    } else {
-      total_out <- rbind(total_out, b)
-    }
-  }
-  colnames(total_out) <- c("rowname", "id", "total", "variable")
-  total_out <- dplyr::select_(total_out, .dots = c("rowname", "total"))
-
-  # calculate percent coverage
-  coverage_data <- dplyr::full_join(missing_out, total_out, by = "rowname")
-  coverage_data <- dplyr::mutate_(coverage_data,
-                                  covered = ~ 1 - (missing/total))
-  coverage_data$covered <- as.numeric(coverage_data$covered)
-
-  coverage_data <- dplyr::mutate_(coverage_data, uniqueid = ~ paste0(id, variable))
-  coverage_df <- dplyr::select_(coverage_data,
-                                .dots = c("covered", "uniqueid", "id", "variable"))
-
-  # only filter if minimum covered value is < specified coverage
-  if(min(coverage_df$covered) < coverage){
-    df_g <- tidyr::gather(df, key, value, -usaf_station,
-                          -wban_station, -date_time, -id,
-                          -latitude, -longitude)
-    df_g <- dplyr::mutate_(df_g, uniqueid = ~ paste0(id, key))
-
-    df_c <- dplyr::full_join(coverage_df, df_g, by = "uniqueid")
-    df_filtered <- dplyr::filter_(df_c, ~ covered >= coverage)
-
-    df_filtered <- dplyr::select_(df_filtered, .dots = c("-uniqueid"))
-
-    df_s <- tidyr::spread(df_filtered, key, value)
-    df_out <- dplyr::select_(df_s, .dots = c("-covered"))
-
-    low <- coverage_df[!coverage_df$covered >= coverage, ]
-    low <- unique(low)
-
-    a <- dplyr::select_(df, .dots = c("id", "usaf_station", "wban_station"))
-    ids <- unique(a$id)
-
-    for(i in 1:length(ids)){
-        b <- dplyr::filter_(a, ~ id == ids[i])
-        b <- b[1,]
-        if(i == 1){
-          out <- b
-        } else {
-          out <- rbind(out, b)
-        }
-    }
-
-    removed <- dplyr::left_join(low, out, by = "id")
-
-    message <- paste0("The following variables from the following NOAA",
-                        " ISD weather stations were not included:")
-    print(message)
-      for(i in 1:nrow(removed)){
-        info <- paste0(removed$variable[i], " from NOAA ISD station with USAF number ",
-                       removed$usaf_station[i], " and WBAN number ", removed$wban_station[i],
-                       " due to low coverage of ", removed$covered[i])
-        print(info)
-      }
-
-
-
-  } else {
-    df_out <- hourly_data
-  }
-
-  return(df_out)
+  return(out)
 }
