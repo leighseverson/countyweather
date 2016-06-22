@@ -69,8 +69,8 @@ weather_fips <- function(fips, percent_coverage = NULL,
 #'    \code{options("noaakey" = "<key NOAA emails you>")} to set up your
 #'    API access.
 #'
-#' @param fips A character string giving the five-digit U.S. FIPS county code
-#'    of the county for which the user wants to pull weather data.
+#' @param station_df A dataframe containing station metadata, returned from
+#'    the function \code{fips_stations}.
 #' @param percent_coverage A numeric value in the range of 0 to 1 that specifies
 #'    the desired percentage coverage for the weather variable (i.e., what
 #'    percent of each weather variable must be non-missing to include data from
@@ -95,17 +95,18 @@ weather_fips <- function(fips, percent_coverage = NULL,
 #' \dontrun{
 #' stations <- fips_stations(fips = "12086", date_min = "2010-01-01",
 #'                           date_max = "2010-02-01")
-#' list <- weather_fips_df(stations = stations, percent_coverage = 0.90,
+#' list <- weather_fips_df(station_df = stations, percent_coverage = 0.90,
 #'                       var = c("TMAX", "TMIN", "PRCP"),
 #'                       date_min = "2010-01-01", date_max = "2010-02-01")
 #' averaged_data <- list$averaged
 #' station_info <- list$stations
 #' }
-weather_fips_df <- function(stations, percent_coverage = NULL,
+weather_fips_df <- function(station_df, percent_coverage = NULL,
                             var = "all", date_min = NULL, date_max = NULL){
 
   # get tidy full dataset for all monitors
   # meteo_pull_monitors() from helpers_ghcnd.R in ropenscilabs/rnoaa
+  stations <- station_df$id
   meteo_df <- meteo_pull_monitors(monitors = stations,
                                   keep_flags = FALSE,
                                   date_min = date_min,
@@ -205,56 +206,16 @@ filter_coverage <- function(coverage_df, percent_coverage = NULL){
   return(filtered)
 }
 
-#' Search for stations located within a specified radius for a particular
-#' U.S. county.
-#'
-#' @return A character vector listing station ids which are located within
-#'    the specified radius centered in the specified county.
-#'
-station_radius <- function(fips, radius = NULL){
-  url <- paste0("http://www2.census.gov/geo/docs/reference/",
-                "codes/files/national_county.txt")
-  county_names <- utils::read.csv(url, header = FALSE, colClasses = "character")
-  colnames(county_names) <- c("state", "state_fips", "county_fips", "county",
-                              "fips_class")
-  non_fifty <- c("VI", "UM", "PR", "MP", "GU", "AS")
-  county_names <- county_names[!county_names$state %in% non_fifty, ]
-  county_names$state <- state.name[match(county_names$state,state.abb)]
-  county_names <- transform(county_names, fips_code = paste(state_fips,
-                                                            county_fips,
-                                                            sep = ""),
-                            name = paste(county, state, sep = ", "))
-  county_names <- dplyr::select_(county_names, .dots = c("fips_code", "county",
-                                                         "state", "name"))
-
-  fipsname <- dplyr::filter_(county_names, ~ fips_code == fips)$name
-  fipsname <- as.character(fipsname)
-
-  central_latlong <- ggmap::geocode(location = fipsname, output = c("latlon"));
-  assign("central_latlong", central_latlong, .GlobalEnv)
-
-
-  FIPS <- paste0('FIPS:', fips)
-  station_df <- rnoaa::ncdc_stations(datasetid = 'GHCND',
-                                     locationid = FIPS)$data;
-  assign("station_df", station_df, .GlobalEnv)
-
-  # meteo_distance from meteo_distance.R in ropenscilabs/rnoaa
-  station_df <- rnoaa::meteo_distance(station_data = station_df,
-                                 lat = central_latlong$lat,
-                                 long = central_latlong$lon,
-                                 radius = radius)
-  stations <- unique(station_df$id)
-  stations <- stations[!is.na(stations)]
-  stations <- gsub("GHCND:", "", stations)
-  return(stations)
-}
-
 #' Plot weather stations for a particular county
 #'
 #' @param fips A character string giving the five-digit U.S. FIPS county code
 #'    of the county for which the user wants to pull weather data.
 #' @param weather_data An object returned from \code{weather_fips_df}.
+#' @param point_color The specified \code{ggplot2} color for each point
+#'    representing the location of a station. (Optional. This argument defaults
+#'    to "firebrick.")
+#' @param point_size The specified \code{ggplot2} size for each point
+#'    representing the location of a station. (Optional. The default size is 2).
 #'
 #' @return A plot showing points for all weather stations for a particular
 #'    county satisfying the conditions present in \code{stationmap_fips}'s

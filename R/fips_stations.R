@@ -16,9 +16,6 @@
 #' @param date_max Accepts date in character, ISO format ("yyyy-mm-dd"). The
 #' dataframe returned will include only stations that have data for dates
 #' including and before the specified date.
-#' @param data_coverage A numerical value ranging from 0 to 1. The dataframe
-#' returned will include only stations that have data coverage equal to or
-#' greater than the specified fraction.
 #'
 #' @examples
 #' \dontrun{
