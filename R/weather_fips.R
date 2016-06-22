@@ -51,8 +51,10 @@ weather_fips <- function(fips, percent_coverage = NULL,
 #' \code{weather_fips_df} returns a list of two elements. The element
 #' \code{averaged} is a dataframe of average daily weather values for a
 #' particular county, date range, and/or specified "coverage." The element
-#' \code{stations} is a vector of stations contributing to the average
-#' weather values in the \code{averaged} dataframe.
+#' \code{stations} is a dataframe containing metadata about stations
+#' contributing to the average weather values in the \code{averaged} dataframe.
+#' Columns in the \code{stations} dataframe include each station's latitude,
+#' longitude, id, and name.
 #'
 #' This function serves as a wrapper to several functions from the \code{rnoaa}
 #' package, which provides weather data from all relevant stations in a county.
@@ -93,9 +95,11 @@ weather_fips <- function(fips, percent_coverage = NULL,
 #' \dontrun{
 #' stations <- fips_stations(fips = "12086", date_min = "2010-01-01",
 #'                           date_max = "2010-02-01")
-#' df <- weather_fips_df(stations = stations, percent_coverage = 0.90,
+#' list <- weather_fips_df(stations = stations, percent_coverage = 0.90,
 #'                       var = c("TMAX", "TMIN", "PRCP"),
 #'                       date_min = "2010-01-01", date_max = "2010-02-01")
+#' averaged_data <- list$averaged
+#' station_info <- list$stations
 #' }
 weather_fips_df <- function(stations, percent_coverage = NULL,
                             var = "all", date_min = NULL, date_max = NULL){
@@ -124,9 +128,11 @@ weather_fips_df <- function(stations, percent_coverage = NULL,
   # contributed to each daily average
   averaged <- ave_weather(filtered_data)
 
-  #stations <- dplyr::filter_(stations, ~ id %in% good_monitors)
+  stations_metadata <- fips_stations(fips = fips, date_min = date_min,
+                                    date_max = date_max)
+  station_data <- dplyr::filter_(stations_metadata, ~ id %in% good_monitors)
 
-  out <- list(averaged = averaged, stations = good_monitors)
+  out <- list(averaged = averaged, stations = station_data)
 
   return(out)
 }
@@ -246,7 +252,9 @@ station_radius <- function(fips, radius = NULL){
 
 #' Plot weather stations for a particular county
 #'
-#' @inheritParams weather_fips_df
+#' @param fips A character string giving the five-digit U.S. FIPS county code
+#'    of the county for which the user wants to pull weather data.
+#' @param weather_data An object returned from \code{weather_fips_df}.
 #'
 #' @return A plot showing points for all weather stations for a particular
 #'    county satisfying the conditions present in \code{stationmap_fips}'s
@@ -254,10 +262,10 @@ station_radius <- function(fips, radius = NULL){
 #'
 #' @examples
 #' \dontrun{
-#' stations <- fips_stations(fips = "12086", date_min = "1999-08-01",
+#' all_stations <- fips_stations(fips = "12086", date_min = "1999-08-01",
 #'                           date_max = "1999-08-31")
-#' weather_data <- weather_fips_df(stations = stations, percent_coverage = 0.90,
-#'                                 var = c("PRCP"), date_min = "1999-08-01",
+#' weather_data <- weather_fips_df(stations = all_stations$id, percent_coverage =
+#'                                 0.90, var = "PRCP", date_min = "1999-08-01",
 #'                                 date_max = "1999-08-31")
 #' stationmap_fips(fips = "12086", weather_data = weather_data)
 #' }
