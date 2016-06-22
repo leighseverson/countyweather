@@ -1,16 +1,15 @@
 #' NOAA NCDC station IDs per county.
 #'
 #' \code{fips_stations} returns a dataframe showing NOAA NCDC station IDs for
-#' each U.S. county present in its arguments. This function has options to
-#' filter stations based on start and end date of available data, as well as
-#' percent of data coverage.
+#' a single U.S. county. This function has options to filter stations based on
+#' start and end date of available data, as well as percent of data coverage.
 #'
 #' A NOAA Token is required to use this function, which interacts with the NCDC
 #' API. Request a Token from here: \url{http://www.ncdc.noaa.gov/cdo-web/token}.
 #' Then run the code \code{options(noaakey = "your key")} before using this
 #' function.
 #'
-#' @param fips A vector of U.S. FIPS codes in numeric or factor format.
+#' @param fips A five-digit U.S. FIPS code in numeric or factor format.
 #' @param date_min Accepts date in character, ISO format ("yyyy-mm-dd"). The
 #' dataframe returned will include only stations that have data for dates
 #' including and after the specified date.
@@ -23,13 +22,12 @@
 #'
 #' @examples
 #' \dontrun{
-#' fips_stations("36005")
-#' fips_stations("12086", date_min = "1999-01-01", date_max = "2012-12-31")
+#' ex <- fips_stations("36005")
+#' ex2 <- fips_stations("12086", date_min = "1999-01-01",
+#'                               date_max = "2012-12-31")
 #' }
 #'
 #' @importFrom dplyr %>%
-#'
-#' @export
 fips_stations <- function(fips, date_min = NULL, date_max = NULL){
   FIPS <- paste0('FIPS:', fips)
   station_ids <- rnoaa::ncdc_stations(datasetid = 'GHCND', locationid = FIPS,
