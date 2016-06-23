@@ -33,6 +33,7 @@ function) for a particular weather variable. These plots are meant to aid in
 initial exploratory analysis.
 }
 \examples{
+\dontrun{
 plot_timeseries(var = "prcp",
                file_directory = "~/Desktop/exposure_data/ihapps_timeseries",
                plot_directory = "~/Desktop/exposure_data/plots_prcp")
@@ -44,6 +45,6 @@ plot_timeseries(files = files, var = "tmax",
 plot_timeseries(var = "tmin",
                file_directory = "~/Desktop/exposure_data/ihapps_timeseries",
                plot_directory = "~/Desktop/exposure_data/plots_tmin")
-
+}
 }
 
