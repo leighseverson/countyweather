@@ -70,7 +70,7 @@ weather_fips <- function(fips, percent_coverage = NULL,
 #'    \code{options("noaakey" = "<key NOAA emails you>")} to set up your
 #'    API access.
 #'
-#' @param station_df A dataframe containing station metadata, returned from
+#' @param stations A dataframe containing station metadata, returned from
 #'    the function \code{fips_stations}.
 #' @param percent_coverage A numeric value in the range of 0 to 1 that specifies
 #'    the desired percentage coverage for the weather variable (i.e., what
@@ -102,7 +102,7 @@ weather_fips <- function(fips, percent_coverage = NULL,
 #' averaged_data <- list$averaged
 #' station_info <- list$stations
 #' }
-weather_fips_df <- function(station_df, percent_coverage = NULL,
+weather_fips_df <- function(stations, percent_coverage = NULL,
                             var = "all", date_min = NULL, date_max = NULL){
 
   # get tidy full dataset for all monitors
