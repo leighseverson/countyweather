@@ -40,7 +40,8 @@ weather_fips <- function(fips, percent_coverage = NULL,
                                   date_max = date_max,
                                   percent_coverage = percent_coverage,
                                   var = var)
-  station_map <- stationmap_fips(fips = fips, weather_data = weather_data$averaged)
+  station_map <- stationmap_fips(fips = fips,
+                                 weather_data = weather_data)
   list <- list("weather_data" = weather_data$averaged,
                "station_map" = station_map)
   return(list)
@@ -93,7 +94,7 @@ weather_fips <- function(fips, percent_coverage = NULL,
 #' \dontrun{
 #' stations <- fips_stations(fips = "12086", date_min = "2010-01-01",
 #'                           date_max = "2010-02-01")
-#' df <- weather_fips_df(stations = stations, percent_coverage = 0.90,
+#' df <- weather_fips_df(stations = stations$stations, percent_coverage = 0.90,
 #'                       var = c("TMAX", "TMIN", "PRCP"),
 #'                       date_min = "2010-01-01", date_max = "2010-02-01")
 #' }
@@ -102,15 +103,16 @@ weather_fips_df <- function(stations, percent_coverage = NULL,
 
   # get tidy full dataset for all monitors
   # meteo_pull_monitors() from helpers_ghcnd.R in ropenscilabs/rnoaa
-  meteo_df <- meteo_pull_monitors(monitors = stations,
+  quiet_pull_monitors <- purrr::quietly(rnoaa::meteo_pull_monitors)
+  meteo_df <- quiet_pull_monitors(monitors = stations$id,
                                   keep_flags = FALSE,
                                   date_min = date_min,
                                   date_max = date_max,
-                                  var = var)
+                                  var = var)$result
 
   # calculate coverage for each weather variable
   # meteo_coverage() from meteo_utils.R in ropenscilabs/rnoaa
-  coverage_df <- meteo_coverage(meteo_df, verbose = FALSE)
+  coverage_df <- rnoaa::meteo_coverage(meteo_df, verbose = FALSE)
 
   # filter station dataset based on specified coverage
   filtered <- filter_coverage(coverage_df,
@@ -124,9 +126,9 @@ weather_fips_df <- function(stations, percent_coverage = NULL,
   # contributed to each daily average
   averaged <- ave_weather(filtered_data)
 
-  #stations <- dplyr::filter_(stations, ~ id %in% good_monitors)
+  stations <- dplyr::filter_(stations, ~ id %in% good_monitors)
 
-  out <- list(averaged = averaged, stations = good_monitors)
+  out <- list(averaged = averaged, stations = stations)
 
   return(out)
 }
