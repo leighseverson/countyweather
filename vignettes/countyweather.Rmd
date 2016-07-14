@@ -22,7 +22,10 @@ You can use the following code for this set-up:
 
 ```{r eval = FALSE}
 library(devtools)
+
 install_github("ropenscilabs/rnoaa")
+library(rnoaa)
+
 install_github("leighseverson/countyweather")
 library(countyweather)
 ```
@@ -77,7 +80,9 @@ library(ggplot2)
 ggplot(andrew_precip$weather_data, aes(x = date, y = prcp,
                                        color = prcp_reporting)) + 
   geom_line() + 
-  theme_minimal()
+  theme_minimal() + 
+  xlab("Date in 1992") + ylab("Daily rainfall (mm)") + 
+  scale_color_continuous(name = "# monitors\nreporting")
 ```
 
 From this plot, you can see both the extreme precipitation associated with Hurricane Andrew and that the storm knocked out quite a few of the weather monitors normally available.
@@ -112,7 +117,10 @@ to_plot <- andrew_hourly %>%
   filter(months(date_time) == "August")
 ggplot(to_plot, aes(x = date_time, y = wind_speed,
                     color = wind_speed_reporting)) + 
-  geom_line() + theme_minimal()
+  geom_line() + theme_minimal() + 
+  xlab("Date in August 1992") + 
+  ylab("Wind speed (m / s)") + 
+  scale_color_continuous(name = "# monitors\nreporting")
 ```
 
 ### Pulling data from stream gauges
@@ -200,5 +208,4 @@ In rnoaa::meteo_pull_monitors(monitors = stations, keep_flags = FALSE,  :
  USR0000FTEN 
  Any other monitors were successfully pulled from GHCN.
  ```
- 
-### `curl` timeout
+
