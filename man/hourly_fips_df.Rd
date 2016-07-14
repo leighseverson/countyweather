@@ -4,7 +4,9 @@
 \alias{hourly_fips_df}
 \title{Return average hourly weather data for a particular county.}
 \usage{
-hourly_fips_df(fips, year, var = "all", radius = 50, coverage = NULL)
+hourly_fips_df(fips, year, var = c("wind_direction", "wind_speed",
+  "ceiling_height", "visibility_distance", "temperature",
+  "temperature_dewpoint", "air_pressure"), radius = 50, coverage = NULL)
 }
 \arguments{
 \item{fips}{A character string giving the five-digit U.S. FIPS county code
@@ -14,7 +16,12 @@ of the county for which the user wants to pull weather data.}
 be in the range from 1901 to the current year.}
 
 \item{var}{A character vector specifying desired weather variables. For
-example, var = c("wind_speed", "temperature"). (Optional.)}
+example, var = c("wind_speed", "temperature"). (Optional. \code{var}
+includes all possible weather variables by default, which include
+\code{c("wind_direction", "wind_speed", "ceiling_height",
+"visibility_distance", "temperature", "temperature_dewpoint",
+"air_pressure")}. Alternatively, you can specify var = "all" to include
+additional flag and quality codes.}
 
 \item{radius}{A numeric value giving the radius, in kilometers from the
 county's population-weighted center, within which to pull weather
@@ -50,8 +57,8 @@ df <- hourly_fips_df(fips = "12086", year = 1992, var = c("wind_speed",
 
 }
 \references{
-For more information on this dataset and available weather
-variables, see
+For more information on this dataset and available weather and
+flag/quality variables, see
 \url{ftp://ftp.ncdc.noaa.gov/pub/data/noaa/ish-format-document.pdf}.
 }
 

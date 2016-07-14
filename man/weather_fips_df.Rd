@@ -24,8 +24,8 @@ example, var = c("TMIN", "TMAX", "PRCP"). (Optional.)}
 \item{date_max}{A character string giving the latest date you want
 in your dataset in "yyyy-mm-dd" format. (Optional.)}
 
-\item{fips}{A character string giving the five-digit U.S. FIPS county code
-of the county for which the user wants to pull weather data.}
+\item{station_df}{A dataframe containing station metadata, returned from
+the function \code{fips_stations}.}
 }
 \value{
 A list with two elements. \code{averaged} is a dataframe of daily
@@ -39,8 +39,10 @@ A list with two elements. \code{averaged} is a dataframe of daily
 \code{weather_fips_df} returns a list of two elements. The element
 \code{averaged} is a dataframe of average daily weather values for a
 particular county, date range, and/or specified "coverage." The element
-\code{stations} is a vector of stations contributing to the average
-weather values in the \code{averaged} dataframe.
+\code{stations} is a dataframe containing metadata about stations
+contributing to the average weather values in the \code{averaged} dataframe.
+Columns in the \code{stations} dataframe include each station's latitude,
+longitude, id, and name.
 }
 \details{
 This function serves as a wrapper to several functions from the \code{rnoaa}
@@ -61,9 +63,11 @@ Because this function uses the NOAA API to identify the weather
 \dontrun{
 stations <- fips_stations(fips = "12086", date_min = "2010-01-01",
                           date_max = "2010-02-01")
-df <- weather_fips_df(stations = stations, percent_coverage = 0.90,
+list <- weather_fips_df(station_df = stations, percent_coverage = 0.90,
                       var = c("TMAX", "TMIN", "PRCP"),
                       date_min = "2010-01-01", date_max = "2010-02-01")
+averaged_data <- list$averaged
+station_info <- list$stations
 }
 }
 

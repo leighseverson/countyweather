@@ -7,10 +7,6 @@
 stream_floods(fips, date_min, date_max, stat_code)
 }
 \description{
-(This function is meant to return a data.frame with a "flood" column, showing
-"1" if mean daily streamflow was greater than or equal to the 90th percentile
-for that station, and "0" otherwise. This function could be useful if we can
-figure out stations that have values for stat = "01900", which gives daily
-90th percentile streamflow values).
+Return average daily streamflow data for a particular county and date range.
 }
 

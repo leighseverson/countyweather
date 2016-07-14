@@ -4,7 +4,9 @@
 \alias{filter_hourly}
 \title{Filter NOAA ISD stations based on "coverage" requirements.}
 \usage{
-filter_hourly(hourly_data, coverage, var)
+filter_hourly(hourly_data, coverage, var = c("wind_direction", "wind_speed",
+  "ceiling_height", "visibility_distance", "temperature",
+  "temperature_dewpoint", "air_pressure"))
 }
 \arguments{
 \item{hourly_data}{A \code{isd_monitors_data} dataframe}
@@ -13,6 +15,14 @@ filter_hourly(hourly_data, coverage, var)
 desired percentage coverage for each weather variable (i.e., what percent
 of each weather variable must be non-missing to include the data from a
 station when calculating hourly values averaged across stations). (Optional).}
+
+\item{var}{A character vector specifying desired weather variables. For
+example, var = c("wind_speed", "temperature"). (Optional. \code{var}
+includes all possible weather variables by default, which include
+\code{c("wind_direction", "wind_speed", "ceiling_height",
+"visibility_distance", "temperature", "temperature_dewpoint",
+"air_pressure")}. Alternatively, you can specify var = "all" to include
+additional flag and quality codes.}
 }
 \value{
 a \code{dataframe} with stations that meet the specified coverage
