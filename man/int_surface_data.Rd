@@ -38,7 +38,6 @@ kendall_station <- int_surface_data(usaf_code = ids$usaf[11],
                                     year = 1992,
                                     var = c("wind_speed", "temperature"))
 }
-
 }
 \references{
 For more information on this dataset, see

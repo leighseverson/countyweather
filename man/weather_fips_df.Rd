@@ -28,14 +28,19 @@ in your dataset in "yyyy-mm-dd" format. (Optional.)}
 of the county for which the user wants to pull weather data.}
 }
 \value{
-A dataframe of daily weather data averaged across multiple monitors,
-   as well as columns (\code{"var"_reporting}) for each weather variable
-   showing the number of stations contributing to the average for that
-   variable on that day.
+A list with two elements. \code{averaged} is a dataframe of daily
+   weather data averaged across multiple monitors, as well as columns
+   (\code{"var"_reporting}) for each weather variable showing the number of
+   stations contributing to the average for that variable on that day.
+   The element \code{stations} is a vector of weather stations contributing
+   to the average value in the \code{averaged} dataframe.
 }
 \description{
-\code{weather_fips_df} returns a dataframe of average daily weather values
-for a particular county, date range, and/or specified "coverage."
+\code{weather_fips_df} returns a list of two elements. The element
+\code{averaged} is a dataframe of average daily weather values for a
+particular county, date range, and/or specified "coverage." The element
+\code{stations} is a vector of stations contributing to the average
+weather values in the \code{averaged} dataframe.
 }
 \details{
 This function serves as a wrapper to several functions from the \code{rnoaa}

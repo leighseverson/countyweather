@@ -31,6 +31,5 @@ having to know the latitude and longitude of the center of each county.
 \dontrun{
 ids <- isd_fips_stations(fips = "12086")
 }
-
 }
 
