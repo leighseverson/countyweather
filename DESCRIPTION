@@ -37,6 +37,8 @@ Imports:
     waterData (>= 1.0.4),
     weathermetrics (>= 1.2.0)
 RoxygenNote: 5.0.1
+Depends:
+    R (>= 3.2.3)
 Suggests: knitr,
     rmarkdown
 VignetteBuilder: knitr

@@ -108,6 +108,8 @@ stream_data <- function(fips, date_min, date_max, stat_code = "00003"){
 
 #' Return average daily streamflow data for a particular county and date range.
 #'
+#' @inheritParams stream_data
+#'
 #' (This function is meant to return a data.frame with a "flood" column, showing
 #' "1" if mean daily streamflow was greater than or equal to the 90th percentile
 #' for that station, and "0" otherwise. This function could be useful if we can

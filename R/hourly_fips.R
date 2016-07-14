@@ -13,7 +13,12 @@
 #' @param year The year for which you want to pull hourly data. \code{year} can
 #'    be in the range from 1901 to the current year.
 #' @param var A character vector specifying desired weather variables. For
-#'    example, var = c("wind_speed", "temperature"). (Optional.)
+#'    example, var = c("wind_speed", "temperature"). (Optional. \code{var}
+#'    includes all possible weather variables by default, which include
+#'    \code{c("wind_direction", "wind_speed", "ceiling_height",
+#'    "visibility_distance", "temperature", "temperature_dewpoint",
+#'    "air_pressure")}. Alternatively, you can specify var = "all" to include
+#'    additional flag and quality codes.
 #' @param radius A numeric value giving the radius, in kilometers from the
 #'    county's population-weighted center, within which to pull weather
 #'    monitors. \code{radius} defaults to 50.
@@ -28,8 +33,8 @@
 #'    showing the number of stations contributing to the average for that
 #'    variable for each hour.
 #'
-#' @references For more information on this dataset and available weather
-#' variables, see
+#' @references For more information on this dataset and available weather and
+#' flag/quality variables, see
 #' \url{ftp://ftp.ncdc.noaa.gov/pub/data/noaa/ish-format-document.pdf}.
 #'
 #' @examples
@@ -39,8 +44,11 @@
 #' }
 #'
 #' @export
-hourly_fips_df <- function(fips, year, var = "all", radius = 50,
-                           coverage = NULL){
+hourly_fips_df <- function(fips, year,
+                           var = c("wind_direction", "wind_speed",
+                                   "ceiling_height", "visibility_distance",
+                                   "temperature", "temperature_dewpoint",
+                                   "air_pressure"), radius = 50, coverage = NULL){
   data <- isd_monitors_data(fips = fips, year = year, var = var, radius =
                                radius)
   if(!purrr::is_null(coverage)){
@@ -122,7 +130,11 @@ isd_fips_stations <- function(fips, verbose = TRUE, radius = 50){
 #'                                     year = 1992,
 #'                                     var = c("wind_speed", "temperature"))
 #' }
-int_surface_data <- function(usaf_code, wban_code, year, var = "all"){
+int_surface_data <- function(usaf_code, wban_code, year,
+                             var = c("wind_direction", "wind_speed",
+                                     "ceiling_height", "visibility_distance",
+                                     "temperature", "temperature_dewpoint",
+                                     "air_pressure")){
   quiet_isd <- purrr::quietly(rnoaa::isd)
   isd_df <- quiet_isd(usaf = usaf_code, wban = wban_code, year = year)
   isd_df <- isd_df$result$data
@@ -143,18 +155,11 @@ int_surface_data <- function(usaf_code, wban_code, year, var = "all"){
   isd_df <- dplyr::select_(isd_df, .dots = subset_vars)
 
   na_code_vars <- colnames(isd_df)[apply(isd_df, 2, max) %in%
-                                 c(99, 999, 999.9, 9999, 9999.9, 99999, 99999.9,
-                                   999999)]
+                                 c(999, 9999, 99999, 999999)]
 
-#  for(i in 1:length(na_code_vars)){
-#    if(is.numeric(isd_df$na_code_vars[i])){
-#      if (i == 1){
-#        var <- na_code_vars[i]
-#      } else {
-#        var <- append(var, na_code_vars[i])
-#      }
-#    }
-#  }
+  for(na_var in na_code_vars){
+    isd_df[[na_var]] <- as.numeric(isd_df[[na_var]])
+  }
 
   if(length(na_code_vars) > 0){
     for(na_var in na_code_vars){
@@ -182,7 +187,11 @@ int_surface_data <- function(usaf_code, wban_code, year, var = "all"){
 #'    geom_point(alpha = 0.5, size = 0.2) +
 #'    facet_wrap(~ usaf_station, ncol = 1)
 #' }
-isd_monitors_data <- function(fips, year, var = "all", radius = 50){
+isd_monitors_data <- function(fips, year, var = c("wind_direction", "wind_speed",
+                                                  "ceiling_height", "visibility_distance",
+                                                  "temperature", "temperature_dewpoint",
+                                                  "air_pressure"),
+                              radius = 50){
   ids <- isd_fips_stations(fips, verbose = FALSE, radius = radius)
 
   safe_int <- purrr::safely(int_surface_data)
@@ -246,39 +255,54 @@ ave_hourly <- function(hourly_data){
 #' desired percentage coverage for each weather variable (i.e., what percent
 #' of each weather variable must be non-missing to include the data from a
 #' station when calculating hourly values averaged across stations). (Optional).
+#' @param var A character vector specifying desired weather variables. For
+#'    example, var = c("wind_speed", "temperature"). (Optional. \code{var}
+#'    includes all possible weather variables by default, which include
+#'    \code{c("wind_direction", "wind_speed", "ceiling_height",
+#'    "visibility_distance", "temperature", "temperature_dewpoint",
+#'    "air_pressure")}. Alternatively, you can specify var = "all" to include
+#'    additional flag and quality codes.
 #'
 #' @return a \code{dataframe} with stations that meet the specified coverage
 #' requirements for weather variables included in the datafrome present in
 #' this function's arguments.
 #'
 #' @importFrom dplyr %>%
-filter_hourly <- function(hourly_data, coverage, var){
+filter_hourly <- function(hourly_data, coverage,
+                          var = c("wind_direction", "wind_speed",
+                                  "ceiling_height", "visibility_distance",
+                                  "temperature", "temperature_dewpoint",
+                                  "air_pressure")){
 
   df <- hourly_data %>%
-    unite(station, usaf_station, wban_station, sep = "-") %>%
-    select(-date_time, -latitude, -longitude) %>%
-    gather(key, value, -station) %>%
-    group_by(station, key) %>%
-    summarize(coverage = mean(!is.na(value)))
+    tidyr::unite(station, usaf_station, wban_station, sep = "-") %>%
+    dplyr::select_(-date_time, -latitude, -longitude) %>%
+    tidyr::gather(key, value, -station) %>%
+    dplyr::group_by_(station, key) %>%
+    dplyr::summarize(coverage = ~ mean(!is.na(value)))
 
   filtered <- hourly_data %>%
-    unite(station, usaf_station, wban_station, sep = "-") %>%
-    select(-latitude, -longitude) %>%
-    gather(key, value, -station, -date_time) %>%
-    left_join(df, by = c("station", "key")) %>%
-    filter(coverage > 0.80) %>%
-    group_by(date_time, key)
+    tidyr::unite(station, usaf_station, wban_station, sep = "-") %>%
+    dplyr::select_(-latitude, -longitude) %>%
+    tidyr::gather(key, value, -station, -date_time) %>%
+    dplyr::left_join(df, by = c("station", "key")) %>%
+    dplyr::filter_(~ coverage > 0.80) %>%
+    dplyr::group_by_(date_time, key)
 
   df2 <- filtered %>%
-    summarize(n_reporting = sum(!is.na(value))) %>%
-    mutate(key = paste(key, "reporting", sep = "_")) %>%
-    spread(key = key, value = n_reporting)
+    dplyr::summarize_(n_reporting = ~ sum(!is.na(value))) %>%
+    dplyr::mutate_(key = ~ paste(key, "reporting", sep = "_")) %>%
+    tidyr::spread(key = key, value = n_reporting)
 
   df3 <- filtered %>%
-    summarize(value = mean(value, na.rm = TRUE)) %>%
-    spread(key = key, value = value)
+    dplyr::summarize(value = ~ mean(value, na.rm = TRUE)) %>%
+    tidyr::spread(key = key, value = value)
 
-  out <- full_join(df3, df2, by = "date_time")
+  out <- dplyr::full_join(df3, df2, by = "date_time")
 
   return(out)
 }
+
+
+stationmap_hourly <- function(fips, )
+
