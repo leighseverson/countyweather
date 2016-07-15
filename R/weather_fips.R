@@ -96,7 +96,7 @@ weather_fips <- function(fips, percent_coverage = NULL,
 #' \dontrun{
 #' stations <- fips_stations(fips = "12086", date_min = "2010-01-01",
 #'                           date_max = "2010-02-01")
-#' list <- weather_fips_df(station_df = stations, percent_coverage = 0.90,
+#' list <- weather_fips_df(stations = stations, percent_coverage = 0.90,
 #'                       var = c("TMAX", "TMIN", "PRCP"),
 #'                       date_min = "2010-01-01", date_max = "2010-02-01")
 #' averaged_data <- list$averaged
@@ -108,7 +108,8 @@ weather_fips_df <- function(stations, percent_coverage = NULL,
   # get tidy full dataset for all monitors
   # meteo_pull_monitors() from helpers_ghcnd.R in ropenscilabs/rnoaa
   quiet_pull_monitors <- purrr::quietly(rnoaa::meteo_pull_monitors)
-  meteo_df <- quiet_pull_monitors(monitors = stations$id,
+  monitors <- stations$id
+  meteo_df <- quiet_pull_monitors(monitors = monitors,
                                   keep_flags = FALSE,
                                   date_min = date_min,
                                   date_max = date_max,
@@ -205,7 +206,7 @@ filter_coverage <- function(coverage_df, percent_coverage = NULL){
   return(filtered)
 }
 
-#' Plot weather stations for a particular county
+#' Plot daily weather stations for a particular county
 #'
 #' @param fips A character string giving the five-digit U.S. FIPS county code
 #'    of the county for which the user wants to pull weather data.
@@ -217,8 +218,10 @@ filter_coverage <- function(coverage_df, percent_coverage = NULL){
 #'    representing the location of a station. (Optional. The default size is 2).
 #'
 #' @return A plot showing points for all weather stations for a particular
-#'    county satisfying the conditions present in \code{stationmap_fips}'s
+#'    county satisfying the conditions present in \code{weather_fip_df}'s
 #'    arguments (percent_coverage, date_min, date_max, and/or var).
+#'    (\code{stationmap_fips} takes the resulting weather dataframe from this
+#'    function.)
 #'
 #' @examples
 #' \dontrun{

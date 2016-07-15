@@ -54,8 +54,14 @@ hourly_fips_df <- function(fips, year,
   if(!purrr::is_null(coverage)){
     data <- filter_hourly(hourly_data = data, coverage = coverage, var = var)
   }
+
+  station_metadata <- isd_fips_stations(fips)
+  stations <- data$usaf_station
+
   averaged <- ave_hourly(data)
-  return(averaged)
+
+  out <- list(averaged = averaged, stations = stations)
+  return(out)
 }
 
 #' Get station list for a particular US county
@@ -192,7 +198,7 @@ isd_monitors_data <- function(fips, year, var = c("wind_direction", "wind_speed"
                                                   "temperature", "temperature_dewpoint",
                                                   "air_pressure"),
                               radius = 50){
-  ids <- isd_fips_stations(fips, verbose = FALSE, radius = radius)
+  ids <- isd_fips_stations(fips, radius = radius)
 
   safe_int <- purrr::safely(int_surface_data)
   mult_stations <- mapply(safe_int, usaf_code = ids$usaf,
@@ -206,6 +212,10 @@ isd_monitors_data <- function(fips, year, var = c("wind_direction", "wind_speed"
   } else(
     stop("None of the stations had available data.")
   )
+
+  # filter so ids stations match with filtered df's stations
+  # out = list: data and stations
+  # want to be able to access station metadata later for mapping, etc.
 
   return(st_out_df)
 }
@@ -301,4 +311,34 @@ filter_hourly <- function(hourly_data, coverage,
   out <- dplyr::full_join(df3, df2, by = "date_time")
 
   return(out)
+}
+
+#' Plot hourly weather stations for a particular county
+#'
+#' @param fips
+#' @param hourly_data
+#' @param point_color
+#' @param point_size
+#'
+#' @return A plot showing points for all weather stations for a particular
+#'    county satisfying the conditions present in \code{ derp
+#'
+#' @examples
+#' \dontrun{}
+#'
+#' @importFrom dplyr %>%
+hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
+                              point_size = 2){
+
+  census_data <- countyweather::county_centers
+  row_num <- which(grepl(fips, census_data$fips))
+  title <- census_data[row_num, "name"]
+
+  to_map <- dplyr::select_(census_data, region = ~ region) %>%
+    dplyr::mutate_(value = 1)
+
+  map <- suppressMessages(choroplethr::county_choropleth(to_map,
+                              title = "", legend = "",
+                              num_colors = 1, state_zoom = NULL,
+                              county_zoom = choro_fips, reference_map = TRUE))
 }
