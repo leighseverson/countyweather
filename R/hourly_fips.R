@@ -60,8 +60,8 @@ hourly_fips_df <- function(fips, year,
 
   averaged <- ave_hourly(data)
 
-  out <- list(averaged = averaged, stations = stations)
-  return(out)
+  #out <- list(averaged = averaged, stations = stations)
+  return(averaged)
 }
 
 #' Get station list for a particular US county
