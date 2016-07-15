@@ -141,6 +141,8 @@ This section is still in development, because these measurments need to be compa
 
 For hourly and daily weather, the user can choose to filter out any monitors that report variables for less that a certain percent of time (`coverage`). For example, if you were to set `coverage` to 0.90, only monitors that reported non-missing values at least 90% of the time would be included in your data. 
 
+Also, there are a few functions that allow the user to 
+
 ## More on the weather data
 
 ### Daily weather data 
@@ -161,7 +163,7 @@ Hourly weather data in this package is pulled from NOAA's Integrated Surface Dat
 
 Available hourly weather variables include `wind_direction`, `wind_speed`, `ceiling_height`, `visibility_distance`, `temperature`, `temperature_dewpoint`, and `air_pressure`. 
 
-```{r echo = FALSE, warning = FALSE}
+```{r echo = FALSE, warning = FALSE, message = FALSE}
 library(knitr)
 hourly_vars <- data.frame(variables = c("wind_direction", "wind_speed", 
                                         "ceiling_height", "visibility_distance", 
@@ -180,19 +182,19 @@ hourly_vars <- data.frame(variables = c("wind_direction", "wind_speed",
                           minimum = c("1", "0", "0", "0", "-93.2", "-98.2", "860"), 
                           maximum = c("360", "90", "22000 (indicates 'Unlimited')", "160000", "61.8", 
                                       "36.8", "1090"))
+```
 
+```{r}
 kable(hourly_vars, format = "markdown")
 ```
 
-There are other columns available in addition to these weather variables (for example, )
-
-For more information about 
-
-### Stream flow data 
+There are other columns available in addition to these weather variables such as quality codes (for example, `wind_direction_quality`). For more information about the weather variables described in the above table and other available columns, see the [ISD documentation file](ftp://ftp.ncdc.noaa.gov/pub/data/noaa/ish-format-document.pdf). 
 
 ## Error and warning messages you may get
 
 ### Not able to pull data from a monitor
+
+The following error message will come up if there isn't available data (for your specified date range, coverage, and weather variables) for a particular monitor or monitors: 
 
 ```
 In rnoaa::meteo_pull_monitors(monitors = stations, keep_flags = FALSE,  :

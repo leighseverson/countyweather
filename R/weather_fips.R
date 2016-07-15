@@ -225,7 +225,7 @@ filter_coverage <- function(coverage_df, percent_coverage = NULL){
 #' \dontrun{
 #' all_stations <- fips_stations(fips = "12086", date_min = "1999-08-01",
 #'                           date_max = "1999-08-31")
-#' weather_data <- weather_fips_df(stations = all_stations$id, percent_coverage =
+#' weather_data <- weather_fips_df(stations = all_stations, percent_coverage =
 #'                                 0.90, var = "PRCP", date_min = "1999-08-01",
 #'                                 date_max = "1999-08-31")
 #' stationmap_fips(fips = "12086", weather_data = weather_data)

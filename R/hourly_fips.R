@@ -304,5 +304,4 @@ filter_hourly <- function(hourly_data, coverage,
 }
 
 
-stationmap_hourly <- function(fips, )
 
