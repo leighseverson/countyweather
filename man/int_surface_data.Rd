@@ -4,7 +4,9 @@
 \alias{int_surface_data}
 \title{Get hourly data for a single monitor}
 \usage{
-int_surface_data(usaf_code, wban_code, year, var = "all")
+int_surface_data(usaf_code, wban_code, year, var = c("wind_direction",
+  "wind_speed", "ceiling_height", "visibility_distance", "temperature",
+  "temperature_dewpoint", "air_pressure"))
 }
 \arguments{
 \item{usaf_code}{A character string with a six-digit [usaf?] code for the
@@ -38,7 +40,6 @@ kendall_station <- int_surface_data(usaf_code = ids$usaf[11],
                                     year = 1992,
                                     var = c("wind_speed", "temperature"))
 }
-
 }
 \references{
 For more information on this dataset, see

@@ -3,3 +3,6 @@
 .RData
 inst/doc
 ggmapTemp.png
+*.pdf
+*.tex
+writing/EnvEpiAPICommentary_files

@@ -1,0 +1,45 @@
+---
+title: Open science for environmental health research
+author:
+  - name: Rachel Severson
+    email: alice@example.com
+    affiliation: Colorado State University
+  - name: G. Brooke Anderson
+    email: brooke.anderson@colostate.edu
+    affiliation: Colorado State University
+    footnote: Corresponding Author
+address:
+  - code: Colorado State University
+    address: Department of Environmental & Radiological Health Sciences, Lake Street, Fort Collins, CO, Zip
+abstract: |
+  Newly available tools can be used to aid and improve environmental health research.
+
+bibliography: mybibfile.bib
+output: rticles::elsevier_article
+---
+
+What is open science?
+==========================
+
+#### Making it easier to access large exposure datasets
+
+#### Aiding collaboration 
+
+Both within and between research groups ...
+
+#### Do Not Repeat Yourself principle
+
+Tools of open science for environmental health research
+==========================
+
+#### APIs for exposure data
+
+#### Open-source software packages
+
+#### GitHub repositories
+
+Case study 
+==========================
+
+References {#references .unnumbered}
+==========

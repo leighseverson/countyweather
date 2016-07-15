@@ -40,7 +40,8 @@ weather_fips <- function(fips, percent_coverage = NULL,
                                   date_max = date_max,
                                   percent_coverage = percent_coverage,
                                   var = var)
-  station_map <- stationmap_fips(fips = fips, weather_data = weather_data$averaged)
+  station_map <- stationmap_fips(fips = fips,
+                                 weather_data = weather_data)
   list <- list("weather_data" = weather_data$averaged,
                "station_map" = station_map)
   return(list)
@@ -69,7 +70,7 @@ weather_fips <- function(fips, percent_coverage = NULL,
 #'    \code{options("noaakey" = "<key NOAA emails you>")} to set up your
 #'    API access.
 #'
-#' @param station_df A dataframe containing station metadata, returned from
+#' @param stations A dataframe containing station metadata, returned from
 #'    the function \code{fips_stations}.
 #' @param percent_coverage A numeric value in the range of 0 to 1 that specifies
 #'    the desired percentage coverage for the weather variable (i.e., what
@@ -101,21 +102,21 @@ weather_fips <- function(fips, percent_coverage = NULL,
 #' averaged_data <- list$averaged
 #' station_info <- list$stations
 #' }
-weather_fips_df <- function(station_df, percent_coverage = NULL,
+weather_fips_df <- function(stations, percent_coverage = NULL,
                             var = "all", date_min = NULL, date_max = NULL){
 
   # get tidy full dataset for all monitors
   # meteo_pull_monitors() from helpers_ghcnd.R in ropenscilabs/rnoaa
-  stations <- station_df$id
-  meteo_df <- meteo_pull_monitors(monitors = stations,
+  quiet_pull_monitors <- purrr::quietly(rnoaa::meteo_pull_monitors)
+  meteo_df <- quiet_pull_monitors(monitors = stations$id,
                                   keep_flags = FALSE,
                                   date_min = date_min,
                                   date_max = date_max,
-                                  var = var)
+                                  var = var)$result
 
   # calculate coverage for each weather variable
   # meteo_coverage() from meteo_utils.R in ropenscilabs/rnoaa
-  coverage_df <- meteo_coverage(meteo_df, verbose = FALSE)
+  coverage_df <- rnoaa::meteo_coverage(meteo_df, verbose = FALSE)
 
   # filter station dataset based on specified coverage
   filtered <- filter_coverage(coverage_df,
@@ -129,11 +130,9 @@ weather_fips_df <- function(station_df, percent_coverage = NULL,
   # contributed to each daily average
   averaged <- ave_weather(filtered_data)
 
-  stations_metadata <- fips_stations(fips = fips, date_min = date_min,
-                                    date_max = date_max)
-  station_data <- dplyr::filter_(stations_metadata, ~ id %in% good_monitors)
+  stations <- dplyr::filter_(stations, ~ id %in% good_monitors)
 
-  out <- list(averaged = averaged, stations = station_data)
+  out <- list(averaged = averaged, stations = stations)
 
   return(out)
 }

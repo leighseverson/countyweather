@@ -302,6 +302,3 @@ filter_hourly <- function(hourly_data, coverage,
 
   return(out)
 }
-
-
-
