@@ -382,12 +382,12 @@ plot_timeseries <- function(var, file_directory, file_type = "rds",
 
     file_name <- paste0(file_names[i], ".png")
     setwd(plot_directory)
-    png(filename = file_name)
-    plot(data$date, data[,var],
+    grDevices::png(filename = file_name)
+    graphics::plot(data$date, data[,var],
          type = "l", col = "red", main = file_names[i],
          xlab = "date", ylab = var,
          xlim = c(as.Date("1987-01-01"), as.Date("2005-12-31")))
-    dev.off()
+    grDevices::dev.off()
   }
 
 }
