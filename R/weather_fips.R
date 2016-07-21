@@ -8,11 +8,11 @@
 #'
 #' @inheritParams weather_fips_df
 #'
-#' @return A list with two elements. The first element (\code{data}) is a
+#' @return A list with two elements. The first element (\code{weather_data}) is a
 #'    dataframe of daily weather data averaged across multiple stations, as well
 #'    as columns (\code{"var"_reporting}) for each weather variable showing the
 #'    number of stations contributing to the average for that variable on that
-#'    day. The second element (\code{plot}) is a plot showing points for all
+#'    day. The second element (\code{station_map}) is a plot showing points for all
 #'    weather stations for a particular county satisfying the conditions present
 #'    in \code{weather_fips}'s arguments (percent_coverage, date_min, date_max,
 #'    and/or var).
@@ -96,7 +96,7 @@ weather_fips <- function(fips, percent_coverage = NULL,
 #' \dontrun{
 #' stations <- fips_stations(fips = "12086", date_min = "2010-01-01",
 #'                           date_max = "2010-02-01")
-#' list <- weather_fips_df(station_df = stations, percent_coverage = 0.90,
+#' list <- weather_fips_df(stations = stations, percent_coverage = 0.90,
 #'                       var = c("TMAX", "TMIN", "PRCP"),
 #'                       date_min = "2010-01-01", date_max = "2010-02-01")
 #' averaged_data <- list$averaged
@@ -108,7 +108,8 @@ weather_fips_df <- function(stations, percent_coverage = NULL,
   # get tidy full dataset for all monitors
   # meteo_pull_monitors() from helpers_ghcnd.R in ropenscilabs/rnoaa
   quiet_pull_monitors <- purrr::quietly(rnoaa::meteo_pull_monitors)
-  meteo_df <- quiet_pull_monitors(monitors = stations$id,
+  monitors <- stations$id
+  meteo_df <- quiet_pull_monitors(monitors = monitors,
                                   keep_flags = FALSE,
                                   date_min = date_min,
                                   date_max = date_max,
@@ -153,13 +154,13 @@ ave_weather <- function(weather_data){
   averaged_data <- tidyr::gather(weather_data, key, value, -id, -date) %>%
     dplyr::group_by_(.dots = c("date", "key")) %>%
     dplyr::summarize_(mean = ~ mean(value, na.rm = TRUE)) %>%
-    tidyr::spread(key = key, value = mean)
+    tidyr::spread_(key_col = "key", value_col = "mean")
 
   n_reporting <- tidyr::gather(weather_data, key, value, -id, -date) %>%
     dplyr::group_by_(.dots = c("date", "key")) %>%
     dplyr::summarize_(n_reporting = ~ sum(!is.na(value))) %>%
     dplyr::mutate_(key = ~ paste(key, "reporting", sep = "_")) %>%
-    tidyr::spread(key = key, value = n_reporting)
+    tidyr::spread_(key_col = "key", value_col = "n_reporting")
 
   averaged_data <- dplyr::left_join(averaged_data, n_reporting,
                              by = "date")
@@ -205,7 +206,7 @@ filter_coverage <- function(coverage_df, percent_coverage = NULL){
   return(filtered)
 }
 
-#' Plot weather stations for a particular county
+#' Plot daily weather stations for a particular county
 #'
 #' @param fips A character string giving the five-digit U.S. FIPS county code
 #'    of the county for which the user wants to pull weather data.
@@ -217,14 +218,16 @@ filter_coverage <- function(coverage_df, percent_coverage = NULL){
 #'    representing the location of a station. (Optional. The default size is 2).
 #'
 #' @return A plot showing points for all weather stations for a particular
-#'    county satisfying the conditions present in \code{stationmap_fips}'s
+#'    county satisfying the conditions present in \code{weather_fip_df}'s
 #'    arguments (percent_coverage, date_min, date_max, and/or var).
+#'    (\code{stationmap_fips} takes the resulting weather dataframe from this
+#'    function.)
 #'
 #' @examples
 #' \dontrun{
 #' all_stations <- fips_stations(fips = "12086", date_min = "1999-08-01",
 #'                           date_max = "1999-08-31")
-#' weather_data <- weather_fips_df(stations = all_stations$id, percent_coverage =
+#' weather_data <- weather_fips_df(stations = all_stations, percent_coverage =
 #'                                 0.90, var = "PRCP", date_min = "1999-08-01",
 #'                                 date_max = "1999-08-31")
 #' stationmap_fips(fips = "12086", weather_data = weather_data)
@@ -379,12 +382,12 @@ plot_timeseries <- function(var, file_directory, file_type = "rds",
 
     file_name <- paste0(file_names[i], ".png")
     setwd(plot_directory)
-    png(filename = file_name)
-    plot(data$date, data[,var],
+    grDevices::png(filename = file_name)
+    graphics::plot(data$date, data[,var],
          type = "l", col = "red", main = file_names[i],
          xlab = "date", ylab = var,
          xlim = c(as.Date("1987-01-01"), as.Date("2005-12-31")))
-    dev.off()
+    grDevices::dev.off()
   }
 
 }
