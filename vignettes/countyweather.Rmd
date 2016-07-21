@@ -148,8 +148,7 @@ Hourly weather data in this package is pulled from NOAA's Integrated Surface Dat
 
 Available hourly weather variables include `wind_direction`, `wind_speed`, `ceiling_height`, `visibility_distance`, `temperature`, `temperature_dewpoint`, and `air_pressure`. 
 
-```{r echo = FALSE, warning = FALSE, message = FALSE}
-library(knitr)
+```{r echo = FALSE}
 hourly_vars <- data.frame(variables = c("wind_direction", "wind_speed", 
                                         "ceiling_height", "visibility_distance", 
                                         "temperature", "temperature_dewpoint", 
@@ -169,7 +168,8 @@ hourly_vars <- data.frame(variables = c("wind_direction", "wind_speed",
                                       "36.8", "1090"))
 ```
 
-```{r}
+```{r warning = FALSE, message = FALSE}
+library(knitr)
 kable(hourly_vars, format = "markdown")
 ```
 
