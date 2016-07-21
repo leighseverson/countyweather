@@ -8,11 +8,11 @@
 #'
 #' @inheritParams weather_fips_df
 #'
-#' @return A list with two elements. The first element (\code{data}) is a
+#' @return A list with two elements. The first element (\code{weather_data}) is a
 #'    dataframe of daily weather data averaged across multiple stations, as well
 #'    as columns (\code{"var"_reporting}) for each weather variable showing the
 #'    number of stations contributing to the average for that variable on that
-#'    day. The second element (\code{plot}) is a plot showing points for all
+#'    day. The second element (\code{station_map}) is a plot showing points for all
 #'    weather stations for a particular county satisfying the conditions present
 #'    in \code{weather_fips}'s arguments (percent_coverage, date_min, date_max,
 #'    and/or var).

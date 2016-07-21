@@ -1,3 +1,38 @@
+#' Return average hourly weather data and a plot showing the location of weather
+#' stations for a particular county.
+#'
+#' Given a particular county FIPS code, this function returns a list with two
+#' elements: "data", a dataframe of hourly average weather values, and "plot",
+#' a plot showing the location of weather stations contributing to the average
+#' weather in "data".
+#'
+#' @inheritParams hourly_fips_df
+#'
+#' @return A list with two elements. The first element (\code{hourly_data}) is a
+#'    dataframe of daily weather data averaged across multiple stations, as well
+#'    as columns (\code{"var"_reporting}) for each weather variable showing the
+#'    number of stations contributing to the average for that variable for that
+#'    hour The second element (\code{hourly_map}) is a plot showing points for all
+#'    weather stations for a particular county satisfying the conditions present
+#'    in \code{hourly_fips}'s arguments (year, coverage, and/or var).
+#'
+#' @export
+hourly_fips <- function(fips, year, var = c("wind_direction", "wind_speed",
+                                            "ceiling_height", "visibility_distance",
+                                            "temperature", "temperature_dewpoint",
+                                            "air_pressure"),
+                        coverage = NULL, radius = 50){
+
+  weather_data <- hourly_fips_df(fips = fips, year = year, var = var,
+                                 coverage = coverage, radius = radius)
+  station_map <- hourly_stationmap
+
+  list <- list("hourly_data" = weather_data$averaged,
+               "hourly_map" = station_map)
+  return(list)
+
+}
+
 #' Return average hourly weather data for a particular county.
 #'
 #' \code{hourly_fips_df} returns a dataframe of average daily weather values
@@ -49,19 +84,24 @@ hourly_fips_df <- function(fips, year,
                                    "ceiling_height", "visibility_distance",
                                    "temperature", "temperature_dewpoint",
                                    "air_pressure"), radius = 50, coverage = NULL){
+
+  # hourly data for multiple monitors
   data <- isd_monitors_data(fips = fips, year = year, var = var, radius =
                                radius)
+
+  # if coverage is not null, filter stations
   if(!purrr::is_null(coverage)){
     data <- filter_hourly(hourly_data = data, coverage = coverage, var = var)
   }
 
+  # station meta data for one county
   station_metadata <- isd_fips_stations(fips)
-  stations <- data$usaf_station
 
+  # average hourly across multiple stations
   averaged <- ave_hourly(data)
 
-  #out <- list(averaged = averaged, stations = stations)
-  return(averaged)
+  out <- list(averaged = averaged, stations = station_metadata)
+  return(out)
 }
 
 #' Get station list for a particular US county
@@ -324,7 +364,11 @@ filter_hourly <- function(hourly_data, coverage,
 #'    county satisfying the conditions present in \code{ derp
 #'
 #' @examples
-#' \dontrun{}
+#' \dontrun{
+#' hourly_data <- hourly_fips_df <- (fips = "12086", year = 1992,
+#'                                   var = c("wind_speed", "temperature"))
+#' hourly_stationmap("12086", hourly_data)
+#' }
 #'
 #' @importFrom dplyr %>%
 hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
@@ -332,6 +376,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
 
   census_data <- countyweather::county_centers
   row_num <- which(grepl(fips, census_data$fips))
+  choro_fips <- as.numeric(census_data[row_num, "fips"])
   title <- census_data[row_num, "name"]
 
   to_map <- dplyr::select_(census_data, region = ~ region) %>%
@@ -341,4 +386,13 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
                               title = "", legend = "",
                               num_colors = 1, state_zoom = NULL,
                               county_zoom = choro_fips, reference_map = TRUE))
+
+  map <- map + ggplot2::geom_point(data = hourly_data$stations,
+                                   ggplot2::aes_(~ lon, ~ lat),
+                        colour = point_color, size = point_size) +
+    ggplot2::theme(legend.position = "none") +
+    ggplot2::ggtitle(title)
+
+  return(map)
+
 }
