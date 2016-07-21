@@ -105,7 +105,7 @@ andrew_hourly <- hourly_fips_df(fips = "12086", year = 1992,
 The output from this call includes the date-time of the observation (given in UTC), values for the weather variables selected, and the number of monitors reporting for each observation of each weather variable: 
 
 ```{r}
-head(andrew_hourly)
+head(andrew_hourly$averaged)
 ```
 
 Here are hourly values for the month of Hurricane Andrew:
@@ -135,12 +135,22 @@ Also, there are a few functions that allow the user to write out daily or hourly
 
 Functions in this package that pull daily weather values (`weather_fips()`, for example) are pulling data from the Daily Global Historical Climatology Network (GHCN-Daily) through NOAA's FTP server. 
 
-Users can specify which weather variables they would like to pull - the complete list of available weather variables can be found under 'element' from the GHCND's [readme file](http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt). 
+Users can specify which weather variables they would like to pull. The five core daily weather variables are precipitation (`PRCP`), snowfall (`SNOW`), snow depth (`SNWD`), maximum temperature (`TMAX`) and minimum temperature (`TMIN`). The daily weather data is filtered so that included weather variables fall within a range of possible values. These ranges were chosen to include national maximum recorded values.
+
+```{r echo = FALSE, warning = FALSE, message = FALSE}
+daily_vars <- data.frame(variables = c("PRCP", "SNOW", "SNWD", "TMAX", "TMIN"), 
+                         description = c("precipitation", "snowfall", "snow depth", "maximum temperature", "minumum temperature"), 
+                         units = c("mm", "mm", "mm", "degrees Celsius", "degrees Celsius"), 
+                         most_extreme_value = c("1100 mm", "1600 mm", "11500 mm", "57 degrees C", "-62 degrees C"))
+library(knitr)
+kable(daily_vars, format = "markdown")
+```
+
+The daily weather function \code{weather_fips} defaults to pull these five core weather variables. However, there are several additional, non-core variables available (for example, `ACMC` gives the "average cloudiness midnight to midnight from 30-second ceilometer data (percent))." The complete list of available weather variables can be found under 'element' from the GHCND's [readme file](http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt). 
+
 While the datasets resulting from functions in this package return a cleaned and aggregated dataset, this journal article by Menne et al. (2012) gives more information aboout the raw data in the GHCND database: 
 
-Menne, M.J., I. Durre, R.S. Vose, B.E. Gleason, and T.G. Houston, 2012:  An overview 
-of the Global Historical Climatology Network-Daily Database.  Journal of Atmospheric 
-and Oceanic Technology, 29, 897-910, doi:10.1175/JTECH-D-11-00103.1. 
+Menne, M.J., I. Durre, R.S. Vose, B.E. Gleason, and T.G. Houston, 2012:  An overview of the Global Historical Climatology Network-Daily Database.  Journal of Atmospheric and Oceanic Technology, 29, 897-910, doi:10.1175/JTECH-D-11-00103.1. 
 
 ### Hourly weather data 
 
@@ -149,7 +159,7 @@ Hourly weather data in this package is pulled from NOAA's Integrated Surface Dat
 Available hourly weather variables include `wind_direction`, `wind_speed`, `ceiling_height`, `visibility_distance`, `temperature`, `temperature_dewpoint`, and `air_pressure`. 
 
 ```{r echo = FALSE}
-hourly_vars <- data.frame(variables = c("wind_direction", "wind_speed", 
+hourly_vars <- data.frame(variable = c("wind_direction", "wind_speed", 
                                         "ceiling_height", "visibility_distance", 
                                         "temperature", "temperature_dewpoint", 
                                         "air_pressure"), 
