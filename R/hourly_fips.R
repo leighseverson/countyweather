@@ -242,13 +242,13 @@ ave_hourly <- function(hourly_data){
   averaged_data <- tidyr::gather(df, key, value, -id, -date_time) %>%
     dplyr::group_by_(~ date_time, ~ key) %>%
     dplyr::summarize_(mean = ~ mean(value, na.rm = TRUE)) %>%
-    tidyr::spread(key = key, value = mean)
+    tidyr::spread_(key = key, value = mean)
 
   n_reporting <- tidyr::gather(df, key, value, -id, -date_time) %>%
     dplyr::group_by_(~ date_time, ~ key) %>%
-    dplyr::summarize_(n_reporting = ~ sum(!is.na(value))) %>%
+    dplyr::summarise_(n_reporting = ~ sum(!is.na(value))) %>%
     dplyr::mutate_(key = ~ paste(key, "reporting", sep = "_")) %>%
-    tidyr::spread(key = key, value = n_reporting)
+    tidyr::spread_(key = key, value = n_reporting)
 
   averaged_data <- dplyr::left_join(averaged_data, n_reporting,
                                     by = "date_time")
@@ -285,16 +285,16 @@ filter_hourly <- function(hourly_data, coverage,
                                   "air_pressure")){
 
   df <- hourly_data %>%
-    tidyr::unite(station, usaf_station, wban_station, sep = "-") %>%
+    tidyr::unite_(station, usaf_station, wban_station, sep = "-") %>%
     dplyr::select_(-date_time, -latitude, -longitude) %>%
-    tidyr::gather(key, value, -station) %>%
+    tidyr::gather_(key, value, -station) %>%
     dplyr::group_by_(station, key) %>%
     dplyr::summarize(coverage = ~ mean(!is.na(value)))
 
   filtered <- hourly_data %>%
-    tidyr::unite(station, usaf_station, wban_station, sep = "-") %>%
+    tidyr::unite_(station, usaf_station, wban_station, sep = "-") %>%
     dplyr::select_(-latitude, -longitude) %>%
-    tidyr::gather(key, value, -station, -date_time) %>%
+    tidyr::gather_(key, value, -station, -date_time) %>%
     dplyr::left_join(df, by = c("station", "key")) %>%
     dplyr::filter_(~ coverage > 0.80) %>%
     dplyr::group_by_(date_time, key)
@@ -302,11 +302,11 @@ filter_hourly <- function(hourly_data, coverage,
   df2 <- filtered %>%
     dplyr::summarize_(n_reporting = ~ sum(!is.na(value))) %>%
     dplyr::mutate_(key = ~ paste(key, "reporting", sep = "_")) %>%
-    tidyr::spread(key = key, value = n_reporting)
+    tidyr::spread_(key = key, value = n_reporting)
 
   df3 <- filtered %>%
     dplyr::summarize(value = ~ mean(value, na.rm = TRUE)) %>%
-    tidyr::spread(key = key, value = value)
+    tidyr::spread_(key = key, value = value)
 
   out <- dplyr::full_join(df3, df2, by = "date_time")
 
