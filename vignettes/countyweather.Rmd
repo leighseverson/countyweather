@@ -174,7 +174,6 @@ kable(hourly_vars, format = "markdown")
 ```
 
 There are other columns available in addition to these weather variables such as quality codes (for example, `wind_direction_quality`). For more information about the weather variables described in the above table and other available columns, see the [ISD documentation file](ftp://ftp.ncdc.noaa.gov/pub/data/noaa/ish-format-document.pdf). 
-
 ## Error and warning messages you may get
 
 ### Not able to pull data from a monitor
