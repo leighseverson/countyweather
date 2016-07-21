@@ -8,7 +8,7 @@
 #'
 #' @inheritParams weather_fips_df
 #'
-#' @return A list with two elements. The first element (\code{weather_data}) is a
+#' @return A list with two elements. The first element (\code{daily_weather}) is a
 #'    dataframe of daily weather data averaged across multiple stations, as well
 #'    as columns (\code{"var"_reporting}) for each weather variable showing the
 #'    number of stations contributing to the average for that variable on that
@@ -27,22 +27,25 @@
 #'                    date_min = "2010-01-01", date_max = "2010-02-01",
 #'                    var = "PRCP")
 #'
-#' weather_data <- ex$weather_data
+#' weather_data <- ex$daily_weather
 #' station_map <- ex$station_map
 #' }
 #' @export
 weather_fips <- function(fips, percent_coverage = NULL,
-                         date_min = NULL, date_max = NULL, var = "all"){
+                         date_min = NULL, date_max = NULL,
+                         var = c("PRCP", "SNOW", "SNWD", "TMAX", "TMIN"),
+                         average_data = TRUE){
   stations <- fips_stations(fips = fips, date_min = date_min,
                             date_max = date_max)
   weather_data <- weather_fips_df(stations = stations,
                                   date_min = date_min,
                                   date_max = date_max,
                                   percent_coverage = percent_coverage,
-                                  var = var)
+                                  var = var,
+                                  average_data = average_data)
   station_map <- stationmap_fips(fips = fips,
                                  weather_data = weather_data)
-  list <- list("weather_data" = weather_data$averaged,
+  list <- list("daily_weather" = weather_data$daily_weather,
                "station_map" = station_map)
   return(list)
 }
@@ -84,13 +87,15 @@ weather_fips <- function(fips, percent_coverage = NULL,
 #'    in your dataset in "yyyy-mm-dd" format. (Optional.)
 #' @param var A character vector specifying desired weather variables. For
 #'    example, var = c("TMIN", "TMAX", "PRCP"). (Optional.)
+#' @param average_data TRUE / FALSE to indicate if you want the function to
+#'    average daily weather data across multiple monitors.
 #'
-#' @return A list with two elements. \code{averaged} is a dataframe of daily
+#' @return A list with two elements. \code{daily_weather} is a dataframe of daily
 #'    weather data averaged across multiple monitors, as well as columns
 #'    (\code{"var"_reporting}) for each weather variable showing the number of
 #'    stations contributing to the average for that variable on that day.
-#'    The element \code{stations} is a vector of weather stations contributing
-#'    to the average value in the \code{averaged} dataframe.
+#'    The element \code{daily_stations} is a vector of weather stations contributing
+#'    to the average value in the \code{daily_weather} dataframe.
 #'
 #' @examples
 #' \dontrun{
@@ -99,11 +104,13 @@ weather_fips <- function(fips, percent_coverage = NULL,
 #' list <- weather_fips_df(stations = stations, percent_coverage = 0.90,
 #'                       var = c("TMAX", "TMIN", "PRCP"),
 #'                       date_min = "2010-01-01", date_max = "2010-02-01")
-#' averaged_data <- list$averaged
+#' averaged_data <- list$daily_weather
 #' station_info <- list$stations
 #' }
 weather_fips_df <- function(stations, percent_coverage = NULL,
-                            var = "all", date_min = NULL, date_max = NULL){
+                            var = c("PRCP", "SNOW", "SNWD", "TMAX", "TMIN"),
+                            date_min = NULL, date_max = NULL,
+                            average_data = TRUE){
 
   # get tidy full dataset for all monitors
   # meteo_pull_monitors() from helpers_ghcnd.R in ropenscilabs/rnoaa
@@ -127,13 +134,42 @@ weather_fips_df <- function(stations, percent_coverage = NULL,
   # filter weather dataset based on stations with specified coverage
   filtered_data <- dplyr::filter_(meteo_df, ~ id %in% good_monitors)
 
+  # steps to filter out erroneous data from individual stations
+  # precipitation
+  if("PRCP" %in% var & max(filtered_data$prcp, na.rm = TRUE) > 1100){
+    bad_prcp <- which(with(filtered_data, prcp > 1100))
+    filtered_data <- filtered_data[-bad_prcp,]
+  }
+  # snowfall
+  if("SNOW" %in% var & max(filtered_data$snow, na.rm = TRUE) > 1600){
+    bad_snow <- which(with(filtered_data, snow > 1600))
+    filtered_data <- filtered_data[-bad_snow,]
+  }
+  # snow depth
+  if("SNWD" %in% var & max(filtered_data$snwd, na.rm = TRUE) > 11500){
+    bad_snwd <- which(with(filtered_data, snwd > 11500))
+    filtered_data <- filtered_data[-bad_snwd,]
+  }
+  # tmax
+  if("TMAX" %in% var & max(filtered_data$tmax, na.rm = TRUE) > 57){
+    bad_tmax <- which(with(filtered_data, tmax > 57))
+    filtered_data <- filtered_data[-bad_tmax,]
+  }
+  # tmin
+  if("TMIN" %in% var & min(filtered_data$tmin, na.rm = TRUE) < -62){
+    bad_tmin <- which(with(filtered_data, tmin < -62))
+    filtered_data <- filtered_data[-bad_tmin,]
+  }
+
   # average across stations, add a column for number of stations that
   # contributed to each daily average
-  averaged <- ave_weather(filtered_data)
+  if(average_data == TRUE){
+    filtered_data <- ave_weather(filtered_data)
+  }
 
   stations <- dplyr::filter_(stations, ~ id %in% good_monitors)
 
-  out <- list(averaged = averaged, stations = stations)
+  out <- list("daily_weather" = filtered_data, "daily_stations" = stations)
 
   return(out)
 }
@@ -229,7 +265,7 @@ filter_coverage <- function(coverage_df, percent_coverage = NULL){
 #'                           date_max = "1999-08-31")
 #' weather_data <- weather_fips_df(stations = all_stations, percent_coverage =
 #'                                 0.90, var = "PRCP", date_min = "1999-08-01",
-#'                                 date_max = "1999-08-31")
+#'                                 date_max = "1999-08-31")$daily_weather
 #' stationmap_fips(fips = "12086", weather_data = weather_data)
 #' }
 #'
@@ -291,6 +327,7 @@ stationmap_fips <- function(fips, weather_data, point_color = "firebrick",
 #'
 #' @export
 county_timeseries <- function(fips, percent_coverage, date_min, date_max, var,
+                              average_data = TRUE,
                               out_directory, out_type = "rds"){
 
   if(!dir.exists(out_directory)){
@@ -302,7 +339,8 @@ county_timeseries <- function(fips, percent_coverage, date_min, date_max, var,
                                 date_max = date_max)
       out_df <- weather_fips_df(stations = stations,
                                 percent_coverage = percent_coverage,
-                                var = var)
+                                var = var,
+                                average_data = average_data)$daily_weather
       out_file <- paste0(out_directory, "/", fips[i], ".", out_type)
       if(out_type == "rds"){
         saveRDS(out_df, file = out_file)
@@ -344,6 +382,10 @@ county_timeseries <- function(fips, percent_coverage, date_min, date_max, var,
 #' defaults to .rds files.
 #' @param plot_directory The absolute or relative pathname for the directory
 #' where you would like the plots to be saved.
+#' @param date_min A character string giving the earliest date present in the
+#' timeseries dataframe in "yyyy-mm-dd" format. (Optional.)
+#' @param date_max  A character string giving the latest date present in the
+#' timeseries dataframe in "yyyy-mm-dd" format. (Optional.)
 #'
 #' @examples
 #' \dontrun{
@@ -361,7 +403,7 @@ county_timeseries <- function(fips, percent_coverage, date_min, date_max, var,
 #' }
 #' @export
 plot_timeseries <- function(var, file_directory, file_type = "rds",
-                            plot_directory){
+                            plot_directory, date_min, date_max){
 
   files <- list.files(file_directory)
 
@@ -386,7 +428,7 @@ plot_timeseries <- function(var, file_directory, file_type = "rds",
     graphics::plot(data$date, data[,var],
          type = "l", col = "red", main = file_names[i],
          xlab = "date", ylab = var,
-         xlim = c(as.Date("1987-01-01"), as.Date("2005-12-31")))
+         xlim = c(as.Date(date_min), as.Date(date_max)))
     grDevices::dev.off()
   }
 
