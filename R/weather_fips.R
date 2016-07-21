@@ -136,29 +136,43 @@ weather_fips_df <- function(stations, percent_coverage = NULL,
 
   # steps to filter out erroneous data from individual stations
   # precipitation
-  if("PRCP" %in% var & max(filtered_data$prcp, na.rm = TRUE) > 1100){
-    bad_prcp <- which(with(filtered_data, prcp > 1100))
-    filtered_data <- filtered_data[-bad_prcp,]
+  if("PRCP" %in% var){
+    if(max(filtered_data$prcp, na.rm = TRUE) > 1100){
+      bad_prcp <- which(with(filtered_data, prcp > 1100))
+      filtered_data <- filtered_data[-bad_prcp,]
+    }
   }
+
   # snowfall
-  if("SNOW" %in% var & max(filtered_data$snow, na.rm = TRUE) > 1600){
-    bad_snow <- which(with(filtered_data, snow > 1600))
-    filtered_data <- filtered_data[-bad_snow,]
+  if("SNOW" %in% var){
+    if(max(filtered_data$snow, na.rm = TRUE) > 1600){
+      bad_snow <- which(with(filtered_data, snow > 1600))
+      filtered_data <- filtered_data[-bad_snow,]
+    }
   }
+
   # snow depth
-  if("SNWD" %in% var & max(filtered_data$snwd, na.rm = TRUE) > 11500){
-    bad_snwd <- which(with(filtered_data, snwd > 11500))
-    filtered_data <- filtered_data[-bad_snwd,]
+  if("SNWD" %in% var){
+    if(max(filtered_data$snwd, na.rm = TRUE) > 11500){
+      bad_snwd <- which(with(filtered_data, snwd > 11500))
+      filtered_data <- filtered_data[-bad_snwd,]
+    }
   }
+
   # tmax
-  if("TMAX" %in% var & max(filtered_data$tmax, na.rm = TRUE) > 57){
-    bad_tmax <- which(with(filtered_data, tmax > 57))
-    filtered_data <- filtered_data[-bad_tmax,]
+  if("TMAX" %in% var){
+    if(max(filtered_data$tmax, na.rm = TRUE) > 57){
+      bad_tmax <- which(with(filtered_data, tmax > 57))
+      filtered_data <- filtered_data[-bad_tmax,]
+    }
   }
+
   # tmin
-  if("TMIN" %in% var & min(filtered_data$tmin, na.rm = TRUE) < -62){
-    bad_tmin <- which(with(filtered_data, tmin < -62))
-    filtered_data <- filtered_data[-bad_tmin,]
+  if("TMIN" %in% var){
+    if(min(filtered_data$tmin, na.rm = TRUE) < -62){
+      bad_tmin <- which(with(filtered_data, tmin < -62))
+      filtered_data <- filtered_data[-bad_tmin,]
+    }
   }
 
   # average across stations, add a column for number of stations that
