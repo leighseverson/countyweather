@@ -242,13 +242,13 @@ ave_hourly <- function(hourly_data){
   averaged_data <- tidyr::gather(df, key, value, -id, -date_time) %>%
     dplyr::group_by_(~ date_time, ~ key) %>%
     dplyr::summarize_(mean = ~ mean(value, na.rm = TRUE)) %>%
-    tidyr::spread_(key = key, value = mean)
+    tidyr::spread_(key_col = "key", value_col = "mean")
 
   n_reporting <- tidyr::gather(df, key, value, -id, -date_time) %>%
     dplyr::group_by_(~ date_time, ~ key) %>%
     dplyr::summarise_(n_reporting = ~ sum(!is.na(value))) %>%
     dplyr::mutate_(key = ~ paste(key, "reporting", sep = "_")) %>%
-    tidyr::spread_(key = key, value = n_reporting)
+    tidyr::spread_(key_col = "key", value_col = "n_reporting")
 
   averaged_data <- dplyr::left_join(averaged_data, n_reporting,
                                     by = "date_time")
@@ -302,11 +302,11 @@ filter_hourly <- function(hourly_data, coverage,
   df2 <- filtered %>%
     dplyr::summarize_(n_reporting = ~ sum(!is.na(value))) %>%
     dplyr::mutate_(key = ~ paste(key, "reporting", sep = "_")) %>%
-    tidyr::spread_(key = key, value = n_reporting)
+    tidyr::spread_(key_col = "key", value_col = "n_reporting")
 
   df3 <- filtered %>%
     dplyr::summarize(value = ~ mean(value, na.rm = TRUE)) %>%
-    tidyr::spread_(key = key, value = value)
+    tidyr::spread_(key_col = "key", value_col = "value")
 
   out <- dplyr::full_join(df3, df2, by = "date_time")
 
