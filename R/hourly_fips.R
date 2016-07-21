@@ -183,7 +183,18 @@ int_surface_data <- function(usaf_code, wban_code, year,
                                      "air_pressure")){
   quiet_isd <- purrr::quietly(rnoaa::isd)
   isd_df <- quiet_isd(usaf = usaf_code, wban = wban_code, year = year)
-  isd_df <- isd_df$result$data
+
+#  year <- c(1999, 2000)
+#  good_st <- sapply(mult_stations, function(x) !is.null(dim(x)))
+#  if(sum(good_st) > 0){
+#    st_out_list <- lapply(which(good_st), function(x) mult_stations[[x]])
+#    st_out_df <- dplyr::bind_rows(st_out_list)
+#  } else(
+#    stop("None of the stations had available data.")
+#  )
+
+# goal is to replace the last line of code (isd_df <- ) with code that binds
+# multiple years together. Trying to avoid a loop but that might be the move.
 
   # select variables if `var` isn't "all"
   if(length(var) == 1 && var == "all"){
