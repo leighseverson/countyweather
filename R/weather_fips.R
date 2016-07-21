@@ -154,13 +154,13 @@ ave_weather <- function(weather_data){
   averaged_data <- tidyr::gather(weather_data, key, value, -id, -date) %>%
     dplyr::group_by_(.dots = c("date", "key")) %>%
     dplyr::summarize_(mean = ~ mean(value, na.rm = TRUE)) %>%
-    tidyr::spread_(key = key, value = mean)
+    tidyr::spread_(key_col = "key", value_col = "mean")
 
   n_reporting <- tidyr::gather(weather_data, key, value, -id, -date) %>%
     dplyr::group_by_(.dots = c("date", "key")) %>%
     dplyr::summarize_(n_reporting = ~ sum(!is.na(value))) %>%
     dplyr::mutate_(key = ~ paste(key, "reporting", sep = "_")) %>%
-    tidyr::spread_(key = key, value = n_reporting)
+    tidyr::spread_(key_col = "key", value_col = "n_reporting")
 
   averaged_data <- dplyr::left_join(averaged_data, n_reporting,
                              by = "date")
