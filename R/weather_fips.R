@@ -302,7 +302,8 @@ county_timeseries <- function(fips, percent_coverage, date_min, date_max, var,
                                 date_max = date_max)
       out_df <- weather_fips_df(stations = stations,
                                 percent_coverage = percent_coverage,
-                                var = var)
+                                var = var, date_min = date_min,
+                                date_max = date_max)
       out_file <- paste0(out_directory, "/", fips[i], ".", out_type)
       if(out_type == "rds"){
         saveRDS(out_df, file = out_file)
