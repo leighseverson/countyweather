@@ -213,7 +213,7 @@ int_surface_data <- function(usaf_code, wban_code, year,
   isd_df <- dplyr::select_(isd_df, .dots = subset_vars)
 
   na_code_vars <- colnames(isd_df)[apply(isd_df, 2, max) %in%
-                                 c(999, 9999, 99999, 999999)]
+                                 c(99.9, 999, 999.9, 9999, 9999.9, 99999, 999999)]
 
   for(na_var in na_code_vars){
     isd_df[[na_var]] <- as.numeric(isd_df[[na_var]])
