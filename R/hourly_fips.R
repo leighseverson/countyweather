@@ -23,8 +23,13 @@ hourly_fips <- function(fips, year, var = c("wind_direction", "wind_speed",
                                             "air_pressure"),
                         coverage = NULL, radius = 50){
 
-  weather_data <- hourly_fips_df(fips = fips, year = year, var = var,
-                                 coverage = coverage, radius = radius)
+  hourly_list <- lapply(year, function(x) hourly_fips_df(fips = fips,
+                                                           year = x,
+                                                           var = var,
+                                                           coverage = coverage,
+                                                           radius = radius))
+  weather_data <- dplyr::bind_rows(hourly_list)
+
   station_map <- hourly_stationmap
 
   list <- list("hourly_data" = weather_data$averaged,
@@ -45,8 +50,9 @@ hourly_fips <- function(fips, year, var = c("wind_direction", "wind_speed",
 #'
 #' @param fips A character string giving the five-digit U.S. FIPS county code
 #'    of the county for which the user wants to pull weather data.
-#' @param year The year for which you want to pull hourly data. \code{year} can
-#'    be in the range from 1901 to the current year.
+#' @param year The year or a vector of years for which you want to pull hourly
+#'    data. Values for \code{year} can be in the range from 1901 to the current
+#'    year.
 #' @param var A character vector specifying desired weather variables. For
 #'    example, var = c("wind_speed", "temperature"). (Optional. \code{var}
 #'    includes all possible weather variables by default, which include
@@ -86,8 +92,11 @@ hourly_fips_df <- function(fips, year,
                                    "air_pressure"), radius = 50, coverage = NULL){
 
   # hourly data for multiple monitors
-  data <- isd_monitors_data(fips = fips, year = year, var = var, radius =
-                               radius)
+  hourly_list <- lapply(year, function(x) isd_monitors_data(fips = fips,
+                                                              year = x,
+                                                              var = var,
+                                                              radius = radius))
+  data <- dplyr::bind_rows(hourly_list)
 
   # if coverage is not null, filter stations
   if(!purrr::is_null(coverage)){
