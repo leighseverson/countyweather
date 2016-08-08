@@ -41,5 +41,7 @@ Tools of open science for environmental health research
 Case study 
 ==========================
 
+[@Dirac1953888]
+
 References {#references .unnumbered}
 ==========
