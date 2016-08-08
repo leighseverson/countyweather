@@ -115,8 +115,7 @@ weather_fips_df <- function(stations, percent_coverage = NULL,
   # get tidy full dataset for all monitors
   # meteo_pull_monitors() from helpers_ghcnd.R in ropenscilabs/rnoaa
   quiet_pull_monitors <- purrr::quietly(rnoaa::meteo_pull_monitors)
-  monitors <- stations$id
-  meteo_df <- quiet_pull_monitors(monitors = monitors,
+  meteo_df <- quiet_pull_monitors(monitors = stations$id,
                                   keep_flags = FALSE,
                                   date_min = date_min,
                                   date_max = date_max,
@@ -201,12 +200,21 @@ weather_fips_df <- function(stations, percent_coverage = NULL,
 #'
 ave_weather <- function(weather_data){
 
-  averaged_data <- tidyr::gather(weather_data, key, value, -id, -date) %>%
+  all_cols <- colnames(weather_data)
+  not_vars <- c("id", "date")
+  g_cols <- all_cols[!all_cols %in% not_vars]
+
+  #not sure about -id -date cols - how to do NSE here
+  averaged_data <- tidyr::gather_(weather_data, key_col = "key",
+                                 value_col = "value",
+                                 gather_cols = g_cols) %>%
     dplyr::group_by_(.dots = c("date", "key")) %>%
     dplyr::summarize_(mean = ~ mean(value, na.rm = TRUE)) %>%
     tidyr::spread_(key_col = "key", value_col = "mean")
 
-  n_reporting <- tidyr::gather(weather_data, key, value, -id, -date) %>%
+  n_reporting <- tidyr::gather_(weather_data, key_col = "key",
+                                value_col = "value",
+                                gather_cols = g_cols) %>%
     dplyr::group_by_(.dots = c("date", "key")) %>%
     dplyr::summarize_(n_reporting = ~ sum(!is.na(value))) %>%
     dplyr::mutate_(key = ~ paste(key, "reporting", sep = "_")) %>%
@@ -243,16 +251,16 @@ filter_coverage <- function(coverage_df, percent_coverage = NULL){
   }
 
   filtered <- dplyr::select_(coverage_df,
-                            .dots = c("-start_date", "-end_date",
+                            .dots = list("-start_date", "-end_date",
                                       "-total_obs")) %>%
     tidyr::gather(key, covered, -id)  %>%
     dplyr::filter_(~ covered >= percent_coverage) %>%
     dplyr::mutate_(covered = ~ 1) %>%
-    dplyr::group_by_(.dots = "id") %>%
+    dplyr::group_by_(.dots = list("id")) %>%
     dplyr::mutate_(good_monitor = ~ sum(!is.na(covered)) > 0) %>%
     dplyr::ungroup() %>%
     dplyr::filter_(~ good_monitor) %>%
-    dplyr::select_(.dots = c("-good_monitor"))
+    dplyr::select_(.dots = list("-good_monitor"))
   return(filtered)
 }
 
