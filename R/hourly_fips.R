@@ -221,7 +221,7 @@ int_surface_data <- function(usaf_code, wban_code, year,
   isd_df <- dplyr::select_(isd_df, .dots = subset_vars)
 
   na_code_vars <- colnames(isd_df)[apply(isd_df, 2, max) %in%
-                                 c(999, 9999, 99999, 999999)]
+                                 c(99.9, 999, 999.9, 9999, 9999.9, 99999, 999999)]
 
   for(na_var in na_code_vars){
     isd_df[[na_var]] <- as.numeric(isd_df[[na_var]])
@@ -268,6 +268,11 @@ isd_monitors_data <- function(fips, year, var = c("wind_direction", "wind_speed"
   good_st <- sapply(mult_stations, function(x) !is.null(dim(x)))
   if(sum(good_st) > 0){
     st_out_list <- lapply(which(good_st), function(x) mult_stations[[x]])
+    st_out_list <- lapply(st_out_list, function(x){
+      x$usaf_station <- as.numeric(x$usaf_station)
+      x$wban_station <- as.numeric(x$wban_station)
+      return(x)
+    })
     st_out_df <- dplyr::bind_rows(st_out_list)
   } else(
     stop("None of the stations had available data.")
