@@ -191,6 +191,7 @@ int_surface_data <- function(usaf_code, wban_code, year,
                                      "air_pressure")){
   quiet_isd <- purrr::quietly(rnoaa::isd)
   isd_df <- quiet_isd(usaf = usaf_code, wban = wban_code, year = year)
+  isd_df <- isd_df$result$data
 
 #  year <- c(1999, 2000)
 #  good_st <- sapply(mult_stations, function(x) !is.null(dim(x)))

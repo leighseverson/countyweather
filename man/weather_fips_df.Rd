@@ -8,6 +8,9 @@ weather_fips_df(stations, percent_coverage = NULL, var = "all",
   date_min = NULL, date_max = NULL)
 }
 \arguments{
+\item{stations}{A dataframe containing station metadata, returned from
+the function \code{fips_stations}.}
+
 \item{percent_coverage}{A numeric value in the range of 0 to 1 that specifies
 the desired percentage coverage for the weather variable (i.e., what
 percent of each weather variable must be non-missing to include data from
@@ -23,9 +26,6 @@ example, var = c("TMIN", "TMAX", "PRCP"). (Optional.)}
 
 \item{date_max}{A character string giving the latest date you want
 in your dataset in "yyyy-mm-dd" format. (Optional.)}
-
-\item{station_df}{A dataframe containing station metadata, returned from
-the function \code{fips_stations}.}
 }
 \value{
 A list with two elements. \code{averaged} is a dataframe of daily
