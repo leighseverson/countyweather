@@ -21,18 +21,15 @@ hourly_fips <- function(fips, year, var = c("wind_direction", "wind_speed",
                                             "ceiling_height", "visibility_distance",
                                             "temperature", "temperature_dewpoint",
                                             "air_pressure"),
-                        coverage = NULL, radius = 50){
+                        coverage = NULL, radius = 50, average_data = TRUE){
 
-  hourly_list <- lapply(year, function(x) hourly_fips_df(fips = fips,
-                                                           year = x,
-                                                           var = var,
-                                                           coverage = coverage,
-                                                           radius = radius))
-  weather_data <- dplyr::bind_rows(hourly_list)
+  weather_data <- hourly_fips_df(fips = fips, year = year, var = var,
+                                 coverage = coverage, radius = radius,
+                                 average_data = average_data)
 
   station_map <- hourly_stationmap
 
-  list <- list("hourly_data" = weather_data$averaged,
+  list <- list("hourly_data" = weather_data$data,
                "hourly_map" = station_map)
   return(list)
 
@@ -107,9 +104,11 @@ hourly_fips_df <- function(fips, year,
   station_metadata <- isd_fips_stations(fips)
 
   # average hourly across multiple stations
-  averaged <- ave_hourly(data)
+  if(average_data == TRUE){
+    data <- ave_hourly(data)
+  }
 
-  out <- list(averaged = averaged, stations = station_metadata)
+  out <- list(data = data, stations = station_metadata)
   return(out)
 }
 
@@ -416,3 +415,66 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
   return(map)
 
 }
+
+#' Write hourly weather timeseries files for U.S. counties
+#'
+#' Given a vector of U.S. county FIPS codes, this function creates timeseries
+#' dataframes giving: 1. the values for specified weather variables, and 2. the
+#' number of weather stations contributing to the average for each day within the
+#' specified date range.
+#'
+#' @return Writes out a directory with daily weather files for each FIPS code
+#' specified.
+#'
+#' @inheritParams hourly_fips_df
+#' @param out_directory The absolute or relative pathname for the directory
+#' where you would like the timeseries files to be saved.
+#' @param out_type A character string indicating that you would like either .rds
+#' files (out_type = "rds") or .csv files (out_type = ".csv"). This option
+#' defaults to .rds files.
+#'
+#' @note If the function is unable to pull weather data for a particular county
+#' given the specified percent coverage, date range, and/or weather variables,
+#' \code{county_timeseries} will not produce a file for that county.
+#'
+#' @examples
+#' \dontrun{
+#' county_timeseries(fips = c("41005", "13089"), coverage = 0.90, year = 1992,
+#'                   var = c("wind_speed", "temperature"),
+#'                   out_directory = "~/timeseries_data")
+#' }
+#' @export
+hourly_timeseries <- function(fips, coverage = NULL, year,
+                              var = c("wind_direction", "wind_speed",
+                                      "ceiling_height", "visibility_distance",
+                                      "temperature", "temperature_dewpoint",
+                                      "air_pressure"), radius = 50,
+                              average_data = TRUE,
+                              out_directory, out_type = "rds"){
+  if(!dir.exists(out_directory)){
+    dir.create(out_directory)
+  }
+  for(i in 1:length(fips)) {
+    possibleError <- tryCatch({
+      out_df <- hourly_fips_df(fips = fips[i], year = year, var = var,
+                               coverage = coverage,
+                               average_data = average_data)$averaged
+      out_file <- paste0(out_directory, "/", fips[i], ".", out_type)
+      if(out_type == "rds"){
+        saveRDS(out_df, file = out_file)
+      } else if (out_type == "csv"){
+        utils::write.csv(out_df, file = out_file, row.names = FALSE)
+      }
+    }
+    ,
+    error = function(e) {
+      e
+      print(paste0("Unable to pull weather data for FIPS code ", fips[i],
+                   " for the specified percent coverage, year(s), and/or",
+                   " weather variables."))
+    }
+    )
+    if(inherits(possibleError, "error")) next
+  }
+}
+
