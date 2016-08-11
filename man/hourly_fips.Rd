@@ -7,14 +7,16 @@ stations for a particular county.}
 \usage{
 hourly_fips(fips, year, var = c("wind_direction", "wind_speed",
   "ceiling_height", "visibility_distance", "temperature",
-  "temperature_dewpoint", "air_pressure"), coverage = NULL, radius = 50)
+  "temperature_dewpoint", "air_pressure"), coverage = NULL, radius = 50,
+  average_data = TRUE)
 }
 \arguments{
 \item{fips}{A character string giving the five-digit U.S. FIPS county code
 of the county for which the user wants to pull weather data.}
 
-\item{year}{The year for which you want to pull hourly data. \code{year} can
-be in the range from 1901 to the current year.}
+\item{year}{The year or a vector of years for which you want to pull hourly
+data. Values for \code{year} can be in the range from 1901 to the current
+year.}
 
 \item{var}{A character vector specifying desired weather variables. For
 example, var = c("wind_speed", "temperature"). (Optional. \code{var}
@@ -33,13 +35,16 @@ a monitor when calculating daily values averaged across monitors.)
 \item{radius}{A numeric value giving the radius, in kilometers from the
 county's population-weighted center, within which to pull weather
 monitors. \code{radius} defaults to 50.}
+
+\item{average_data}{TRUE / FALSE to indicate if you want the function to
+average daily weather data across multiple monitors.}
 }
 \value{
 A list with two elements. The first element (\code{hourly_data}) is a
    dataframe of daily weather data averaged across multiple stations, as well
    as columns (\code{"var"_reporting}) for each weather variable showing the
    number of stations contributing to the average for that variable for that
-   hour The second element (\code{hourly_map}) is a plot showing points for all
+   hour The second element (\code{station_map}) is a plot showing points for all
    weather stations for a particular county satisfying the conditions present
    in \code{hourly_fips}'s arguments (year, coverage, and/or var).
 }
