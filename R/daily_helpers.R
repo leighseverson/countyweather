@@ -184,7 +184,7 @@ stationmap_fips <- function(fips, weather_data, point_color = "firebrick",
                                                          num_colors = 1, state_zoom = NULL,
                                                          county_zoom = choro_fips, reference_map = TRUE))
 
-  map <- map + ggplot2::geom_point(data = weather_data$station_map,
+  map <- map + ggplot2::geom_point(data = weather_data$station_df,
                                    ggplot2::aes_(~ longitude, ~ latitude),
                                    colour = point_color, size = point_size) +
     ggplot2::theme(legend.position = "none") +
