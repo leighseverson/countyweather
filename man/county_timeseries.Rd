@@ -5,7 +5,7 @@
 \title{Write daily weather timeseries files for U.S. counties}
 \usage{
 county_timeseries(fips, percent_coverage, date_min, date_max, var,
-  out_directory, out_type = "rds")
+  average_data = TRUE, out_directory, out_type = "rds")
 }
 \arguments{
 \item{percent_coverage}{A numeric value in the range of 0 to 1 that specifies
@@ -23,6 +23,9 @@ in your dataset in "yyyy-mm-dd" format. (Optional.)}
 
 \item{var}{A character vector specifying desired weather variables. For
 example, var = c("TMIN", "TMAX", "PRCP"). (Optional.)}
+
+\item{average_data}{TRUE / FALSE to indicate if you want the function to
+average daily weather data across multiple monitors.}
 
 \item{out_directory}{The absolute or relative pathname for the directory
 where you would like the timeseries files to be saved.}

@@ -2,7 +2,7 @@
 % Please edit documentation in R/weather_fips.R
 \name{stationmap_fips}
 \alias{stationmap_fips}
-\title{Plot weather stations for a particular county}
+\title{Plot daily weather stations for a particular county}
 \usage{
 stationmap_fips(fips, weather_data, point_color = "firebrick",
   point_size = 2)
@@ -22,19 +22,21 @@ representing the location of a station. (Optional. The default size is 2).}
 }
 \value{
 A plot showing points for all weather stations for a particular
-   county satisfying the conditions present in \code{stationmap_fips}'s
+   county satisfying the conditions present in \code{weather_fip_df}'s
    arguments (percent_coverage, date_min, date_max, and/or var).
+   (\code{stationmap_fips} takes the resulting weather dataframe from this
+   function.)
 }
 \description{
-Plot weather stations for a particular county
+Plot daily weather stations for a particular county
 }
 \examples{
 \dontrun{
 all_stations <- fips_stations(fips = "12086", date_min = "1999-08-01",
                           date_max = "1999-08-31")
-weather_data <- weather_fips_df(stations = all_stations$id, percent_coverage =
+weather_data <- weather_fips_df(stations = all_stations, percent_coverage =
                                 0.90, var = "PRCP", date_min = "1999-08-01",
-                                date_max = "1999-08-31")
+                                date_max = "1999-08-31")$daily_weather
 stationmap_fips(fips = "12086", weather_data = weather_data)
 }
 

@@ -4,8 +4,9 @@
 \alias{weather_fips_df}
 \title{Return average daily weather data for a particular county.}
 \usage{
-weather_fips_df(stations, percent_coverage = NULL, var = "all",
-  date_min = NULL, date_max = NULL)
+weather_fips_df(stations, percent_coverage = NULL, var = c("PRCP", "SNOW",
+  "SNWD", "TMAX", "TMIN"), date_min = NULL, date_max = NULL,
+  average_data = TRUE)
 }
 \arguments{
 \item{stations}{A dataframe containing station metadata, returned from
@@ -26,14 +27,17 @@ example, var = c("TMIN", "TMAX", "PRCP"). (Optional.)}
 
 \item{date_max}{A character string giving the latest date you want
 in your dataset in "yyyy-mm-dd" format. (Optional.)}
+
+\item{average_data}{TRUE / FALSE to indicate if you want the function to
+average daily weather data across multiple monitors.}
 }
 \value{
-A list with two elements. \code{averaged} is a dataframe of daily
+A list with two elements. \code{daily_weather} is a dataframe of daily
    weather data averaged across multiple monitors, as well as columns
    (\code{"var"_reporting}) for each weather variable showing the number of
    stations contributing to the average for that variable on that day.
-   The element \code{stations} is a vector of weather stations contributing
-   to the average value in the \code{averaged} dataframe.
+   The element \code{daily_stations} is a vector of weather stations contributing
+   to the average value in the \code{daily_weather} dataframe.
 }
 \description{
 \code{weather_fips_df} returns a list of two elements. The element
@@ -63,10 +67,10 @@ Because this function uses the NOAA API to identify the weather
 \dontrun{
 stations <- fips_stations(fips = "12086", date_min = "2010-01-01",
                           date_max = "2010-02-01")
-list <- weather_fips_df(station_df = stations, percent_coverage = 0.90,
+list <- weather_fips_df(stations = stations, percent_coverage = 0.90,
                       var = c("TMAX", "TMIN", "PRCP"),
                       date_min = "2010-01-01", date_max = "2010-02-01")
-averaged_data <- list$averaged
+averaged_data <- list$daily_weather
 station_info <- list$stations
 }
 }
