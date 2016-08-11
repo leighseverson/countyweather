@@ -12,7 +12,6 @@ knitr::opts_chunk$set(
 )
 ```
 
-
 ```{r echo = FALSE}
 library(countyweather)
 options("noaakey" = Sys.getenv("noaakey"))
@@ -61,7 +60,7 @@ Currently, this package can pull daily and hourly weather data for variables lik
 Here is an example of creating a dataset with daily precipitation for Miami-Dade county (FIPS = 12086) for August 1992, when Hurricane Andrew stuck: 
 
 ```{r warning = FALSE, message = FALSE}
-andrew_precip <- weather_fips(fips = "12086", 
+andrew_precip <- daily_fips(fips = "12086", 
                             date_min = "1992-08-01", 
                             date_max = "1992-08-31",
                             var = "PRCP")
@@ -72,7 +71,7 @@ The output from this function call includes both the weather dataset (`andrew_pr
 Here are the first few rows of the dataset: 
 
 ```{r}
-head(andrew_precip$weather_data)
+head(andrew_precip$daily_data)
 ```
 
 The dataset includes columns for date (`date`), precipitation (in mm, `prcp`), and also the number of stations used to calculated each precipitation observation (`prcp_reporting`).
@@ -81,8 +80,8 @@ Here is a plot of this data:
 
 ```{r fig.width = 6, fig.height = 4}
 library(ggplot2)
-ggplot(andrew_precip$weather_data, aes(x = date, y = prcp,
-                                       color = prcp_reporting)) + 
+ggplot(andrew_precip$daily_data, aes(x = date, y = prcp,
+                                     color = prcp_reporting)) + 
   geom_line() + 
   theme_minimal() + 
   xlab("Date in 1992") + ylab("Daily rainfall (mm)") + 
@@ -102,14 +101,14 @@ andrew_precip$station_map
 Here is an example of pulling hourly data for Miami-Dade, again for the period around Hurricane Andrew:
 
 ```{r}
-andrew_hourly <- hourly_fips_df(fips = "12086", year = 1992,
-                                var = c("wind_speed", "temperature"))
+andrew_hourly <- hourly_df(fips = "12086", year = 1992,
+                           var = c("wind_speed", "temperature"))
 ```
 
 The output from this call includes the date-time of the observation (given in UTC), values for the weather variables selected, and the number of monitors reporting for each observation of each weather variable: 
 
 ```{r}
-head(andrew_hourly)
+head(andrew_hourly$hourly_data)
 ```
 
 Here are hourly values for the month of Hurricane Andrew:
@@ -117,7 +116,7 @@ Here are hourly values for the month of Hurricane Andrew:
 ```{r fig.width = 8, fig.height = 4, message = FALSE, warning = FALSE}
 library(dplyr)
 library(lubridate)
-to_plot <- andrew_hourly %>%
+to_plot <- andrew_hourly$hourly_data %>%
   filter(months(date_time) == "August")
 ggplot(to_plot, aes(x = date_time, y = wind_speed,
                     color = wind_speed_reporting)) + 
@@ -127,31 +126,11 @@ ggplot(to_plot, aes(x = date_time, y = wind_speed,
   scale_color_continuous(name = "# monitors\nreporting")
 ```
 
-### Pulling data from stream gauges
-
-There are also some functions in this package to pull stream gauge data by FIPS code. (Note: This functionality is still in development.)
-
-```{r}
-andrew_streams <- stream_data(fips = "12086", date_min = "1992-08-01",
-                             date_max = "1992-08-31")
-```
-
-The returned data gives the average daily stream flow for all stream gauges in the county over the time period:
-
-```{r}
-head(andrew_streams)
-```
-
-```{r fig.width = 6, fig.height = 4}
-ggplot(andrew_streams, aes(x = dates, y = mean)) + 
-  geom_line() + theme_minimal()
-```
-
-This section is still in development, because these measurments need to be compared to typical values for each stream gauge to get a realistic view of when flooding / high stream flow occurred at different gauge locations.
-
 ## Futher options available in the package
 
 For hourly and daily weather, the user can choose to filter out any monitors that report variables for less that a certain percent of time (`coverage`). For example, if you were to set `coverage` to 0.90, only monitors that reported non-missing values at least 90% of the time would be included in your data. 
+
+Also, there are a few functions that allow the user to write out daily or hourly timeseries datasets as RDS or CSV files to a specified local directory, as well as plots of this data. For daily weather data, see the functions \code{county_timeseries} and \code{plot_timeseries}. For hourly, see \code{hourly_timeseries} and \code{hourly_plots}. 
 
 ## More on the weather data
 
@@ -159,13 +138,22 @@ For hourly and daily weather, the user can choose to filter out any monitors tha
 
 Functions in this package that pull daily weather values (`weather_fips()`, for example) are pulling data from the Daily Global Historical Climatology Network (GHCN-Daily) through NOAA's FTP server. 
 
-Users can specify which weather variables they would like to pull - the complete list of available weather variables can be found under 'element' from the GHCND's [readme file](http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt). 
+Users can specify which weather variables they would like to pull. The five core daily weather variables are precipitation (`PRCP`), snowfall (`SNOW`), snow depth (`SNWD`), maximum temperature (`TMAX`) and minimum temperature (`TMIN`). The daily weather data is filtered so that included weather variables fall within a range of possible values. These ranges were chosen to include national maximum recorded values.
+
+```{r echo = FALSE, warning = FALSE, message = FALSE}
+daily_vars <- data.frame(variables = c("PRCP", "SNOW", "SNWD", "TMAX", "TMIN"), 
+                         description = c("precipitation", "snowfall", "snow depth", "maximum temperature", "minumum temperature"), 
+                         units = c("mm", "mm", "mm", "degrees Celsius", "degrees Celsius"), 
+                         most_extreme_value = c("1100 mm", "1600 mm", "11500 mm", "57 degrees C", "-62 degrees C"))
+library(knitr)
+kable(daily_vars, format = "markdown")
+```
+
+The daily weather function \code{weather_fips} defaults to pull these five core weather variables. However, there are several additional, non-core variables available (for example, `ACMC` gives the "average cloudiness midnight to midnight from 30-second ceilometer data (percent))." The complete list of available weather variables can be found under 'element' from the GHCND's [readme file](http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt). 
 
 While the datasets resulting from functions in this package return a cleaned and aggregated dataset, this journal article by Menne et al. (2012) gives more information aboout the raw data in the GHCND database: 
 
-Menne, M.J., I. Durre, R.S. Vose, B.E. Gleason, and T.G. Houston, 2012:  An overview 
-of the Global Historical Climatology Network-Daily Database.  Journal of Atmospheric 
-and Oceanic Technology, 29, 897-910, doi:10.1175/JTECH-D-11-00103.1. 
+Menne, M.J., I. Durre, R.S. Vose, B.E. Gleason, and T.G. Houston, 2012:  An overview of the Global Historical Climatology Network-Daily Database.  Journal of Atmospheric and Oceanic Technology, 29, 897-910, doi:10.1175/JTECH-D-11-00103.1. 
 
 ### Hourly weather data 
 
@@ -173,9 +161,8 @@ Hourly weather data in this package is pulled from NOAA's Integrated Surface Dat
 
 Available hourly weather variables include `wind_direction`, `wind_speed`, `ceiling_height`, `visibility_distance`, `temperature`, `temperature_dewpoint`, and `air_pressure`. 
 
-```{r echo = FALSE, warning = FALSE}
-library(knitr)
-hourly_vars <- data.frame(variables = c("wind_direction", "wind_speed", 
+```{r echo = FALSE}
+hourly_vars <- data.frame(variable = c("wind_direction", "wind_speed", 
                                         "ceiling_height", "visibility_distance", 
                                         "temperature", "temperature_dewpoint", 
                                         "air_pressure"), 
@@ -192,19 +179,19 @@ hourly_vars <- data.frame(variables = c("wind_direction", "wind_speed",
                           minimum = c("1", "0", "0", "0", "-93.2", "-98.2", "860"), 
                           maximum = c("360", "90", "22000 (indicates 'Unlimited')", "160000", "61.8", 
                                       "36.8", "1090"))
+```
 
+```{r warning = FALSE, message = FALSE}
+library(knitr)
 kable(hourly_vars, format = "markdown")
 ```
 
-There are other columns available in addition to these weather variables (for example, )
-
-For more information about 
-
-### Stream flow data 
-
+There are other columns available in addition to these weather variables such as quality codes (for example, `wind_direction_quality`). For more information about the weather variables described in the above table and other available columns, see the [ISD documentation file](ftp://ftp.ncdc.noaa.gov/pub/data/noaa/ish-format-document.pdf). 
 ## Error and warning messages you may get
 
 ### Not able to pull data from a monitor
+
+The following error message will come up if there isn't available data (for your specified date range, coverage, and weather variables) for a particular monitor or monitors: 
 
 ```
 In rnoaa::meteo_pull_monitors(monitors = stations, keep_flags = FALSE,  :
