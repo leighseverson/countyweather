@@ -6,13 +6,13 @@
 #' a plot showing the location of weather stations contributing to the average
 #' weather in "data".
 #'
-#' @inheritParams hourly_fips_df
+#' @inheritParams hourly_df
 #'
 #' @return A list with two elements. The first element (\code{hourly_data}) is a
 #'    dataframe of daily weather data averaged across multiple stations, as well
 #'    as columns (\code{"var"_reporting}) for each weather variable showing the
 #'    number of stations contributing to the average for that variable for that
-#'    hour The second element (\code{hourly_map}) is a plot showing points for all
+#'    hour The second element (\code{station_map}) is a plot showing points for all
 #'    weather stations for a particular county satisfying the conditions present
 #'    in \code{hourly_fips}'s arguments (year, coverage, and/or var).
 #'
@@ -23,21 +23,21 @@ hourly_fips <- function(fips, year, var = c("wind_direction", "wind_speed",
                                             "air_pressure"),
                         coverage = NULL, radius = 50, average_data = TRUE){
 
-  weather_data <- hourly_fips_df(fips = fips, year = year, var = var,
+  weather_data <- hourly_df(fips = fips, year = year, var = var,
                                  coverage = coverage, radius = radius,
                                  average_data = average_data)
 
   station_map <- hourly_stationmap
 
-  list <- list("hourly_data" = weather_data$data,
-               "hourly_map" = station_map)
+  list <- list("hourly_data" = weather_data$hourly_data,
+               "station_map" = station_map)
   return(list)
 
 }
 
 #' Return average hourly weather data for a particular county.
 #'
-#' \code{hourly_fips_df} returns a dataframe of average daily weather values
+#' \code{hourly_df} returns a dataframe of average daily weather values
 #' for a particular county, year, and/or specified "coverage."
 #'
 #' This function serves as a wrapper to several functions from the \code{rnoaa}
@@ -57,6 +57,8 @@ hourly_fips <- function(fips, year, var = c("wind_direction", "wind_speed",
 #'    "visibility_distance", "temperature", "temperature_dewpoint",
 #'    "air_pressure")}. Alternatively, you can specify var = "all" to include
 #'    additional flag and quality codes.
+#' @param average_data TRUE / FALSE to indicate if you want the function to
+#'    average daily weather data across multiple monitors.
 #' @param radius A numeric value giving the radius, in kilometers from the
 #'    county's population-weighted center, within which to pull weather
 #'    monitors. \code{radius} defaults to 50.
@@ -77,16 +79,19 @@ hourly_fips <- function(fips, year, var = c("wind_direction", "wind_speed",
 #'
 #' @examples
 #' \dontrun{
-#' df <- hourly_fips_df(fips = "12086", year = 1992, var = c("wind_speed",
+#' df <- hourly_df(fips = "12086", year = 1992, var = c("wind_speed",
 #'                      "temperature"))
+#' data <- df$hourly_data
+#' station_info <- df$station_df
 #' }
 #'
 #' @export
-hourly_fips_df <- function(fips, year,
+hourly_df <- function(fips, year,
                            var = c("wind_direction", "wind_speed",
                                    "ceiling_height", "visibility_distance",
                                    "temperature", "temperature_dewpoint",
-                                   "air_pressure"), radius = 50, coverage = NULL){
+                                   "air_pressure"),
+                           average_data = TRUE, radius = 50, coverage = NULL){
 
   # hourly data for multiple monitors
   hourly_list <- lapply(year, function(x) isd_monitors_data(fips = fips,
@@ -108,7 +113,7 @@ hourly_fips_df <- function(fips, year,
     data <- ave_hourly(data)
   }
 
-  out <- list(data = data, stations = station_metadata)
+  out <- list("hourly_data" = data, "station_df" = station_metadata)
   return(out)
 }
 
@@ -390,8 +395,8 @@ filter_hourly <- function(hourly_data, coverage,
 #'
 #' @examples
 #' \dontrun{
-#' hourly_data <- hourly_fips_df <- (fips = "12086", year = 1992,
-#'                                   var = c("wind_speed", "temperature"))
+#' hourly_data <- hourly_df(fips = "12086", year = 1992,
+#'                          var = c("wind_speed", "temperature"))
 #' hourly_stationmap("12086", hourly_data)
 #' }
 #'
@@ -432,7 +437,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
 #' @return Writes out a directory with daily weather files for each FIPS code
 #' specified.
 #'
-#' @inheritParams hourly_fips_df
+#' @inheritParams hourly_df
 #' @param out_directory The absolute or relative pathname for the directory
 #' where you would like the timeseries files to be saved.
 #' @param out_type A character string indicating that you would like either .rds
@@ -447,7 +452,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
 #' \dontrun{
 #' county_timeseries(fips = c("41005", "13089"), coverage = 0.90, year = 1992,
 #'                   var = c("wind_speed", "temperature"),
-#'                   out_directory = "~/timeseries_data")
+#'                   out_directory = "~/timeseries_hourly")
 #' }
 #' @export
 hourly_timeseries <- function(fips, coverage = NULL, year,
@@ -462,9 +467,9 @@ hourly_timeseries <- function(fips, coverage = NULL, year,
   }
   for(i in 1:length(fips)) {
     possibleError <- tryCatch({
-      out_df <- hourly_fips_df(fips = fips[i], year = year, var = var,
+      out_df <- hourly_df(fips = fips[i], year = year, var = var,
                                coverage = coverage,
-                               average_data = average_data)$averaged
+                               average_data = average_data)$hourly_data
       out_file <- paste0(out_directory, "/", fips[i], ".", out_type)
       if(out_type == "rds"){
         saveRDS(out_df, file = out_file)
@@ -484,3 +489,65 @@ hourly_timeseries <- function(fips, coverage = NULL, year,
   }
 }
 
+#' Write plot files for hourly weather timeseries dataframes
+#'
+#' This function writes out a directory with plots for every timeseries file
+#' present in the specified directory (produced by the \code{hourly_timeseries}
+#' function) for a particular weather variable. These plots are meant to aid in
+#' initial exploratory analysis.
+#'
+#' @return Writes out a directory with plots of timeseries data for a given
+#' weather variable for each file present in the directory specified.
+#'
+#' @param var A character string (all lower-case) specifying which weather
+#' variable present in the timeseries dataframe you would like to produce
+#' plots for. For example, var = "wind_speed".
+#' @param file_directory The absolute or relative pathname for the directory
+#' where your daily timeseries dataframes (produced by \code{county_timeseries})
+#' are saved.
+#' @param file_type A character string indicating the type of timeseries files
+#' you would like to produce plots for (either "rds" or "csv"). This option
+#' defaults to .rds files.
+#' @param plot_directory The absolute or relative pathname for the directory
+#' where you would like the plots to be saved.
+#' @param year A year or vecotr of years giving the year(s) present in the
+#' timeseries dataframe.
+#' @examples
+#' \dontrun{
+#'plot_hourly_timeseries(var = "wind_speed", year = 1992,
+#'                file_directory = "~/timeseries_hourly",
+#'                plot_directory = "~/timeseries_plots")
+#'}
+#' @export
+plot_hourly_timeseries <- function(var, year, file_directory, file_type = "rds",
+                                  plot_directory){
+  files <- list.files(file_directory)
+
+  date_min <- paste0(min(year), "-01-01 00:00:00")
+  date_max <- paste0(max(year), "-12-31 23:00:00")
+
+  if(!dir.exists(plot_directory)){
+    dir.create(plot_directory)
+  }
+
+  if(file_type == "rds"){
+    file_names <- gsub(".rds", "", files)
+  } else if (file_type == "csv"){
+    file_names <- gsbu(".csv", "", files)
+  }
+
+  for(i in 1:length(files)){
+
+    setwd(file_directory)
+    data <- readRDS(files[i])
+
+    file_name <- paste0(file_names[i], ".png")
+    setwd(plot_directory)
+    grDevices::png(filename = file_name)
+    graphics::plot(data$date_time, data[,var],
+                   type = "l", col = "red", main = file_names[i],
+                   xlab = "date", ylab = var,
+                   xlim = c(as.Date(date_min), as.Date(date_max)))
+    grDevices::dev.off()
+  }
+}

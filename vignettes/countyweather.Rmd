@@ -57,7 +57,7 @@ Currently, this package can pull daily and hourly weather data for variables lik
 Here is an example of creating a dataset with daily precipitation for Miami-Dade county (FIPS = 12086) for August 1992, when Hurricane Andrew stuck: 
 
 ```{r warning = FALSE, message = FALSE}
-andrew_precip <- weather_fips(fips = "12086", 
+andrew_precip <- daily_fips(fips = "12086", 
                             date_min = "1992-08-01", 
                             date_max = "1992-08-31",
                             var = "PRCP")
@@ -68,7 +68,7 @@ The output from this function call includes both the weather dataset (`andrew_pr
 Here are the first few rows of the dataset: 
 
 ```{r}
-head(andrew_precip$weather_data)
+head(andrew_precip$daily_data)
 ```
 
 The dataset includes columns for date (`date`), precipitation (in mm, `prcp`), and also the number of stations used to calculated each precipitation observation (`prcp_reporting`).
@@ -77,8 +77,8 @@ Here is a plot of this data:
 
 ```{r fig.width = 6, fig.height = 4}
 library(ggplot2)
-ggplot(andrew_precip$weather_data, aes(x = date, y = prcp,
-                                       color = prcp_reporting)) + 
+ggplot(andrew_precip$daily_data, aes(x = date, y = prcp,
+                                     color = prcp_reporting)) + 
   geom_line() + 
   theme_minimal() + 
   xlab("Date in 1992") + ylab("Daily rainfall (mm)") + 
@@ -98,14 +98,14 @@ andrew_precip$station_map
 Here is an example of pulling hourly data for Miami-Dade, again for the period around Hurricane Andrew:
 
 ```{r}
-andrew_hourly <- hourly_fips_df(fips = "12086", year = 1992,
-                                var = c("wind_speed", "temperature"))
+andrew_hourly <- hourly_df(fips = "12086", year = 1992,
+                           var = c("wind_speed", "temperature"))
 ```
 
 The output from this call includes the date-time of the observation (given in UTC), values for the weather variables selected, and the number of monitors reporting for each observation of each weather variable: 
 
 ```{r}
-head(andrew_hourly$averaged)
+head(andrew_hourly$hourly_data)
 ```
 
 Here are hourly values for the month of Hurricane Andrew:
@@ -113,7 +113,7 @@ Here are hourly values for the month of Hurricane Andrew:
 ```{r fig.width = 8, fig.height = 4, message = FALSE, warning = FALSE}
 library(dplyr)
 library(lubridate)
-to_plot <- andrew_hourly %>%
+to_plot <- andrew_hourly$hourly_data %>%
   filter(months(date_time) == "August")
 ggplot(to_plot, aes(x = date_time, y = wind_speed,
                     color = wind_speed_reporting)) + 

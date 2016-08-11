@@ -14,7 +14,7 @@
 #'    number of stations contributing to the average for that variable on that
 #'    day. The second element (\code{station_map}) is a plot showing points for all
 #'    weather stations for a particular county satisfying the conditions present
-#'    in \code{weather_fips}'s arguments (percent_coverage, date_min, date_max,
+#'    in \code{weather_fips}'s arguments (coverage, date_min, date_max,
 #'    and/or var).
 #'
 #' @note You must have a NOAA API to use this function, and you need to set
@@ -23,7 +23,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' ex <- weather_fips("08031", percent_coverage = 0.90,
+#' ex <- weather_fips("08031", coverage = 0.90,
 #'                    date_min = "2010-01-01", date_max = "2010-02-01",
 #'                    var = "PRCP")
 #'
@@ -31,7 +31,7 @@
 #' station_map <- ex$station_map
 #' }
 #' @export
-weather_fips <- function(fips, percent_coverage = NULL,
+weather_fips <- function(fips, coverage = NULL,
                          date_min = NULL, date_max = NULL,
                          var = c("PRCP", "SNOW", "SNWD", "TMAX", "TMIN"),
                          average_data = TRUE){
@@ -40,7 +40,7 @@ weather_fips <- function(fips, percent_coverage = NULL,
   weather_data <- weather_fips_df(stations = stations,
                                   date_min = date_min,
                                   date_max = date_max,
-                                  percent_coverage = percent_coverage,
+                                  coverage = coverage,
                                   var = var,
                                   average_data = average_data)
   station_map <- stationmap_fips(fips = fips,
@@ -75,7 +75,7 @@ weather_fips <- function(fips, percent_coverage = NULL,
 #'
 #' @param stations A dataframe containing station metadata, returned from
 #'    the function \code{fips_stations}.
-#' @param percent_coverage A numeric value in the range of 0 to 1 that specifies
+#' @param coverage A numeric value in the range of 0 to 1 that specifies
 #'    the desired percentage coverage for the weather variable (i.e., what
 #'    percent of each weather variable must be non-missing to include data from
 #'    a monitor when calculating daily values averaged across monitors.
@@ -101,13 +101,13 @@ weather_fips <- function(fips, percent_coverage = NULL,
 #' \dontrun{
 #' stations <- fips_stations(fips = "12086", date_min = "2010-01-01",
 #'                           date_max = "2010-02-01")
-#' list <- weather_fips_df(stations = stations, percent_coverage = 0.90,
+#' list <- weather_fips_df(stations = stations, coverage = 0.90,
 #'                       var = c("TMAX", "TMIN", "PRCP"),
 #'                       date_min = "2010-01-01", date_max = "2010-02-01")
 #' averaged_data <- list$daily_weather
 #' station_info <- list$stations
 #' }
-weather_fips_df <- function(stations, percent_coverage = NULL,
+weather_fips_df <- function(stations, coverage = NULL,
                             var = c("PRCP", "SNOW", "SNWD", "TMAX", "TMIN"),
                             date_min = NULL, date_max = NULL,
                             average_data = TRUE){
@@ -127,7 +127,7 @@ weather_fips_df <- function(stations, percent_coverage = NULL,
 
   # filter station dataset based on specified coverage
   filtered <- filter_coverage(coverage_df,
-                              percent_coverage = percent_coverage)
+                              coverage = coverage)
   good_monitors <- unique(filtered$id)
 
   # filter weather dataset based on stations with specified coverage
@@ -232,7 +232,7 @@ ave_weather <- function(weather_data){
 #' daily observations).
 #'
 #' @param coverage_df A \code{meteo_coverage} dataframe
-#' @param percent_coverage A numeric value in the range of 0 to 1 that specifies
+#' @param coverage A numeric value in the range of 0 to 1 that specifies
 #'    the desired percentage coverage for the weather variable (i.e., what
 #'    percent of each weather variable must be non-missing to include data from
 #'    a monitor when calculating daily values averaged across monitors.
@@ -244,17 +244,17 @@ ave_weather <- function(weather_data){
 #'
 #' @importFrom dplyr %>%
 #'
-filter_coverage <- function(coverage_df, percent_coverage = NULL){
+filter_coverage <- function(coverage_df, coverage = NULL){
 
-  if (is.null(percent_coverage)){
-    percent_coverage <- 0
+  if (is.null(coverage)){
+    coverage <- 0
   }
 
   filtered <- dplyr::select_(coverage_df,
                             .dots = list("-start_date", "-end_date",
                                       "-total_obs")) %>%
     tidyr::gather(key, covered, -id)  %>%
-    dplyr::filter_(~ covered >= percent_coverage) %>%
+    dplyr::filter_(~ covered >= coverage) %>%
     dplyr::mutate_(covered = ~ 1) %>%
     dplyr::group_by_(.dots = list("id")) %>%
     dplyr::mutate_(good_monitor = ~ sum(!is.na(covered)) > 0) %>%
@@ -277,7 +277,7 @@ filter_coverage <- function(coverage_df, percent_coverage = NULL){
 #'
 #' @return A plot showing points for all weather stations for a particular
 #'    county satisfying the conditions present in \code{weather_fip_df}'s
-#'    arguments (percent_coverage, date_min, date_max, and/or var).
+#'    arguments (coverage, date_min, date_max, and/or var).
 #'    (\code{stationmap_fips} takes the resulting weather dataframe from this
 #'    function.)
 #'
@@ -285,7 +285,7 @@ filter_coverage <- function(coverage_df, percent_coverage = NULL){
 #' \dontrun{
 #' all_stations <- fips_stations(fips = "12086", date_min = "1999-08-01",
 #'                           date_max = "1999-08-31")
-#' weather_data <- weather_fips_df(stations = all_stations, percent_coverage =
+#' weather_data <- weather_fips_df(stations = all_stations, coverage =
 #'                                 0.90, var = "PRCP", date_min = "1999-08-01",
 #'                                 date_max = "1999-08-31")$daily_weather
 #' stationmap_fips(fips = "12086", weather_data = weather_data)
@@ -341,14 +341,14 @@ stationmap_fips <- function(fips, weather_data, point_color = "firebrick",
 #'
 #' @examples
 #' \dontrun{
-#' county_timeseries(fips = c("41005", "13089"), percent_coverage = 0.90,
+#' county_timeseries(fips = c("41005", "13089"), coverage = 0.90,
 #'            date_min = "2000-01-01", date_max = "2000-01-10",
 #'            var = c("TMAX", "TMIN", "PRCP"),
 #'            out_directory = "~/timeseries_data")
 #' }
 #'
 #' @export
-county_timeseries <- function(fips, percent_coverage, date_min, date_max, var,
+county_timeseries <- function(fips, coverage, date_min, date_max, var,
                               average_data = TRUE,
                               out_directory, out_type = "rds"){
 
@@ -360,9 +360,9 @@ county_timeseries <- function(fips, percent_coverage, date_min, date_max, var,
       stations <- fips_stations(fips = fips[i], date_min = date_min,
                                 date_max = date_max)
       out_df <- weather_fips_df(stations = stations,
-                                percent_coverage = percent_coverage,
+                                coverage = coverage,
                                 var = var, date_min = date_min,
-                                date_max = date_max)
+                                date_max = date_max)$daily_weather
 
       out_file <- paste0(out_directory, "/", fips[i], ".", out_type)
       if(out_type == "rds"){
