@@ -29,6 +29,14 @@
 #'
 #' weather_data <- ex$daily_weather
 #' station_map <- ex$station_map
+#'
+#' mobile_ex <- weather_fips("01097", percent_coverage = 0,
+#'                           date_min = "1997-07-13",
+#'                           date_max = "1997-07-25",
+#'                           var = "PRCP", average_data = FALSE)
+#' library(ggplot2)
+#' ggplot(mobile_ex$daily_weather, aes(x = date, y = prcp, color = id)) +
+#'        geom_line()
 #' }
 #' @export
 weather_fips <- function(fips, percent_coverage = NULL,
@@ -301,7 +309,7 @@ stationmap_fips <- function(fips, weather_data, point_color = "firebrick",
                            num_colors = 1, state_zoom = NULL,
                            county_zoom = choro_fips, reference_map = TRUE))
 
-  map <- map + ggplot2::geom_point(data = weather_data$stations,
+  map <- map + ggplot2::geom_point(data = weather_data$daily_stations,
                                    ggplot2::aes_(~ longitude, ~ latitude),
                           colour = point_color, size = point_size) +
     ggplot2::theme(legend.position = "none") +
