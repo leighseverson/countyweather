@@ -283,7 +283,7 @@ filter_hourly <- function(hourly_data, coverage,
 #'
 #' @importFrom dplyr %>%
 hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
-                              point_size = 2){
+                              point_size = 2, station_label = FALSE){
 
   census_data <- countyweather::county_centers
   row_num <- which(grepl(fips, census_data$fips))
@@ -301,9 +301,9 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
   if(station_label == TRUE){
     map <- map + ggplot2::geom_point(data = hourly_data$station_df,
                                      ggplot2::aes_(~ lon, ~ lat),
-                                     colour = point_color, size = point_size) +
+                                     col = point_color, size = point_size) +
       ggplot2::geom_text(data = hourly_data$station_df,
-                         ggplot2::aes_(~ lon, ~ lat, ~ label = usaf_code),
+                         ggplot2::aes_(~ lon, ~ lat, label = ~usaf),
                 fontface = "bold") +
       ggplot2::theme(legend.position = "none") +
       ggplot2::ggtitle(title)
@@ -316,3 +316,13 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
   }
   return(map)
 }
+
+map <- map + ggplot2::geom_point(data = weather_data$station_df,
+                                 ggplot2::aes_(~ longitude, ~ latitude),
+                                 col = point_color, size = point_size) +
+  ggplot2::geom_text(data = weather_data$station_df,
+                     ggplot2::aes_(~ longitude, ~ latitude,
+                                   label = ~id),
+                     fontface = "bold") +
+  ggplot2::theme(legend.position = "none") +
+  ggplot2::ggtitle(title)

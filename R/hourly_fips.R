@@ -21,13 +21,15 @@ hourly_fips <- function(fips, year, var = c("wind_direction", "wind_speed",
                                             "ceiling_height", "visibility_distance",
                                             "temperature", "temperature_dewpoint",
                                             "air_pressure"),
-                        coverage = NULL, radius = 50, average_data = TRUE){
+                        coverage = NULL, radius = 50, average_data = TRUE,
+                        station_label = FALSE){
 
   weather_data <- hourly_df(fips = fips, year = year, var = var,
                                  coverage = coverage, radius = radius,
                                  average_data = average_data)
 
-  station_map <- hourly_stationmap(fips = fips, hourly_data = weather_data)
+  station_map <- hourly_stationmap(fips = fips, hourly_data = weather_data,
+                                   station_label = FALSE)
 
   list <- list("hourly_data" = weather_data$hourly_data,
                "station_map" = station_map)
