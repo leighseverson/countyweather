@@ -11,11 +11,11 @@
 #'
 #' @param fips A five-digit U.S. FIPS code in numeric or factor format.
 #' @param date_min Accepts date in character, ISO format ("yyyy-mm-dd"). The
-#' dataframe returned will include only stations that have data for dates
-#' including and after the specified date.
+#'    dataframe returned will include only stations that have data for dates
+#'    including and after the specified date.
 #' @param date_max Accepts date in character, ISO format ("yyyy-mm-dd"). The
-#' dataframe returned will include only stations that have data for dates
-#' including and before the specified date.
+#'    dataframe returned will include only stations that have data for dates
+#'    including and before the specified date.
 #'
 #' @examples
 #' \dontrun{

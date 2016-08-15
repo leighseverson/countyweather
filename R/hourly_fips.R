@@ -8,6 +8,10 @@
 #'
 #' @inheritParams hourly_df
 #'
+#' @param station_label TRUE / FALSE to indicate if you want your plot of
+#'    weather station locations to include labels indicating station usaf id
+#'    numbers.
+#'
 #' @return A list with two elements. The first element (\code{hourly_data}) is a
 #'    dataframe of daily weather data averaged across multiple stations, as well
 #'    as columns (\code{"var"_reporting}) for each weather variable showing the
@@ -47,11 +51,12 @@ hourly_fips <- function(fips, year, var = c("wind_direction", "wind_speed",
 #' This function filters and averages across NOAA ISD/ISH stations based on
 #' user-specified coverage specifications.
 #'
-#' @param fips A character string giving the five-digit U.S. FIPS county code
-#'    of the county for which the user wants to pull weather data.
-#' @param year The year or a vector of years for which you want to pull hourly
-#'    data. Values for \code{year} can be in the range from 1901 to the current
-#'    year.
+#' @param fips A character string or vector giving the five-digit U.S. FIPS
+#'    county code of the county or counties for which the user wants to pull
+#'    weather data.
+#' @param year a four digit number or vector of numbers indicating the year or
+#'    years for which you want to pull hourly data. Values for \code{year} can
+#'    be in the range from 1901 to the current year.
 #' @param var A character vector specifying desired weather variables. For
 #'    example, var = c("wind_speed", "temperature"). (Optional. \code{var}
 #'    includes all possible weather variables by default, which include
@@ -225,7 +230,7 @@ plot_hourly_timeseries <- function(var, year, file_directory, file_type = "rds",
   if(file_type == "rds"){
     file_names <- gsub(".rds", "", files)
   } else if (file_type == "csv"){
-    file_names <- gsbu(".csv", "", files)
+    file_names <- gsub(".csv", "", files)
   }
 
   for(i in 1:length(files)){

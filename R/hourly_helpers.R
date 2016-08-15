@@ -48,7 +48,9 @@ isd_fips_stations <- function(fips, verbose = TRUE, radius = 50){
 #'    monitor.
 #' @param year A four-digit numeric giving the year for which to pull data.
 #' @param var A character vector listing the weather variables to pull. Choices
-#'    include ...
+#'    include "wind_direction", "wind_speed", "ceiling_height",
+#'    "visibility_distance", "temperature", "temperature_dewpoint", and
+#'    "air_pressure."
 #'
 #' @return This function returns the same type of dataframe as that returned
 #'    by the \code{isd} function from the \code{rnoaa} package, but with the
@@ -128,8 +130,15 @@ int_surface_data <- function(usaf_code, wban_code, year,
 #' the population-weighted center of a US county, based on the county's FIPS
 #' code.
 #'
-#' @inheritParams isd_fips_stations
-#' @inheritParams int_surface_data
+#' @param fips A five-digit FIPS county code.
+#' @param year A four-digit numeric giving the year for which to pull data.
+#' @param var A character vector listing the weather variables to pull. Choices
+#'    include "wind_direction", "wind_speed", "ceiling_height",
+#'    "visibility_distance", "temperature", "temperature_dewpoint", and
+#'    "air_pressure."
+#' @param radius A numeric value giving the radius, in kilometers from the
+#'    county's population-weighted center, within which to pull weather
+#'    monitors.
 #'
 #' @examples
 #' \dontrun{
@@ -174,14 +183,11 @@ isd_monitors_data <- function(fips, year, var = c("wind_direction", "wind_speed"
 #' Average hourly weather data across multiple stations.
 #'
 #' \code{ave_hourly} returns a dataframe with hourly weather averaged across
-#' stations, as well as columns showing the number of stations
-#'
-#' \code{ave_hourly} returns a dataframe with hourly weather averaged across
 #' stations, as well as columns showing the number of stations contributing to
 #' average for each variable and each hour.
 #'
 #' @param hourly_data A dataframe with hourly weather observations. This
-#' dataframe is returned from the function \code{isd_monitors_data}.
+#'    dataframe is returned from the function \code{isd_monitors_data}.
 #'
 #' @importFrom dplyr %>%
 ave_hourly <- function(hourly_data){
@@ -213,9 +219,9 @@ ave_hourly <- function(hourly_data){
 #'
 #' @param hourly_data A \code{isd_monitors_data} dataframe
 #' @param coverage A numeric value in the range of 0 to 1 that specifies the
-#' desired percentage coverage for each weather variable (i.e., what percent
-#' of each weather variable must be non-missing to include the data from a
-#' station when calculating hourly values averaged across stations). (Optional).
+#'    desired percentage coverage for each weather variable (i.e., what percent
+#'    of each weather variable must be non-missing to include the data from a
+#'    station when calculating hourly values averaged across stations).
 #' @param var A character vector specifying desired weather variables. For
 #'    example, var = c("wind_speed", "temperature"). (Optional. \code{var}
 #'    includes all possible weather variables by default, which include
@@ -266,13 +272,22 @@ filter_hourly <- function(hourly_data, coverage,
 
 #' Plot hourly weather stations for a particular county
 #'
-#' @param fips
-#' @param hourly_data
-#' @param point_color
-#' @param point_size
+#' @param fips A five-digit FIPS county code.
+#' @param hourly_data hourly_data A dataframe with hourly weather observations. This
+#'    dataframe is returned from the function \code{isd_monitors_data}.
+#' @param point_color point_color The specified \code{ggplot2} color for each point
+#'    representing the location of a station. (Optional. This argument defaults
+#'    to "firebrick.")
+#' @param point_size The specified \code{ggplot2} size for each point
+#'    representing the location of a station. (Optional. The default size is 2).
+#' @param station_label TRUE / FALSE If TRUE, includes labels giving the id for
+#'    monitor on the map. The default is FALSE. (Optional.)
 #'
 #' @return A plot showing points for all weather stations for a particular
-#'    county satisfying the conditions present in \code{ derp
+#'    county satisfying the conditions present in \code{hourly_df}'s
+#'    arguments (year(s) and/or var).
+#'    (\code{stationmap_fips} takes the resulting weather dataframe from this
+#'    function.)
 #'
 #' @examples
 #' \dontrun{

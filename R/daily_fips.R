@@ -8,6 +8,9 @@
 #'
 #' @inheritParams daily_df
 #'
+#' @param station_label TRUE / FALSE to indicate if you want your plot of
+#'    weather station locations to include labels indicating station ids.
+#'
 #' @return A list with two elements. The first element (\code{daily_data}) is a
 #'    dataframe of daily weather data averaged across multiple stations, as well
 #'    as columns (\code{"var"_reporting}) for each weather variable showing the
@@ -319,7 +322,7 @@ plot_daily_timeseries <- function(var, file_directory, file_type = "rds",
     file_name <- paste0(file_names[i], ".png")
     setwd(plot_directory)
     grDevices::png(filename = file_name)
-    graphics::plot(df[,date], df[,var],
+    graphics::plot(df$date, df[,var],
          type = "l", col = "red", main = file_names[i],
          xlab = "date", ylab = var,
          xlim = c(as.Date(date_min), as.Date(date_max)))
