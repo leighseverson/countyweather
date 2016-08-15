@@ -27,7 +27,7 @@ hourly_fips <- function(fips, year, var = c("wind_direction", "wind_speed",
                                  coverage = coverage, radius = radius,
                                  average_data = average_data)
 
-  station_map <- hourly_stationmap
+  station_map <- hourly_stationmap(fips = fips, hourly_data = weather_data)
 
   list <- list("hourly_data" = weather_data$hourly_data,
                "station_map" = station_map)
