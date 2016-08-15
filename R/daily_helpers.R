@@ -25,6 +25,7 @@
 #' }
 #'
 #' @importFrom dplyr %>%
+#' @export
 fips_stations <- function(fips, date_min = NULL, date_max = NULL){
   FIPS <- paste0('FIPS:', fips)
   station_ids <- rnoaa::ncdc_stations(datasetid = 'GHCND', locationid = FIPS,
@@ -143,7 +144,7 @@ filter_coverage <- function(coverage_df, coverage = NULL){
 #'
 #' @param fips A character string giving the five-digit U.S. FIPS county code
 #'    of the county for which the user wants to pull weather data.
-#' @param weather_data An object returned from \code{daily_df}.
+#' @param weather_data A list returned from \code{daily_df}.
 #' @param point_color The specified \code{ggplot2} color for each point
 #'    representing the location of a station. (Optional. This argument defaults
 #'    to "firebrick.")
@@ -151,7 +152,7 @@ filter_coverage <- function(coverage_df, coverage = NULL){
 #'    representing the location of a station. (Optional. The default size is 2).
 #'
 #' @return A plot showing points for all weather stations for a particular
-#'    county satisfying the conditions present in \code{weather_fip_df}'s
+#'    county satisfying the conditions present in \code{daily_df}'s
 #'    arguments (coverage, date_min, date_max, and/or var).
 #'    (\code{stationmap_fips} takes the resulting weather dataframe from this
 #'    function.)
@@ -184,7 +185,7 @@ stationmap_fips <- function(fips, weather_data, point_color = "firebrick",
                                                          num_colors = 1, state_zoom = NULL,
                                                          county_zoom = choro_fips, reference_map = TRUE))
 
-  map <- map + ggplot2::geom_point(data = weather_data$stations,
+  map <- map + ggplot2::geom_point(data = weather_data$station_df,
                                    ggplot2::aes_(~ longitude, ~ latitude),
                                    colour = point_color, size = point_size) +
     ggplot2::theme(legend.position = "none") +
