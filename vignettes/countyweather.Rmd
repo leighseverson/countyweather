@@ -101,7 +101,7 @@ Here is an example of pulling hourly data for Miami-Dade, again for the period a
 
 ```{r}
 andrew_hourly <- hourly_fips(fips = "12086", year = 1992,
-                           var = c("wind_speed", "temperature"), station_label = TRUE)
+                           var = c("wind_speed", "temperature"))
 ```
 
 The output from this call includes the date-time of the observation (given in UTC), values for the weather variables selected, and the number of monitors reporting for each observation of each weather variable: 

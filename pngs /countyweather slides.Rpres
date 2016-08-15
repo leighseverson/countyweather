@@ -1,0 +1,36 @@
+---
+title: ""
+author: Rachel Severson
+date: June 3, 2016
+output: beamer_presentation
+---
+
+# Reading data from online into R
+
+![census](census.png)
+
+---
+
+# `read.csv()`
+
+```{r}
+url <- paste0("http://www2.census.gov/geo/docs/reference/",
+                "codes/files/national_county.txt")
+  county_names <- read.csv(url, header = FALSE, colClasses = "character")
+head(county_names)
+```
+
+---
+
+
+
+```{r}
+summary(cars)
+```
+
+Slide With Plot
+========================================================
+
+```{r, echo=FALSE}
+plot(cars)
+```
