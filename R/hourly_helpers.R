@@ -316,13 +316,3 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
   }
   return(map)
 }
-
-map <- map + ggplot2::geom_point(data = weather_data$station_df,
-                                 ggplot2::aes_(~ longitude, ~ latitude),
-                                 col = point_color, size = point_size) +
-  ggplot2::geom_text(data = weather_data$station_df,
-                     ggplot2::aes_(~ longitude, ~ latitude,
-                                   label = ~id),
-                     fontface = "bold") +
-  ggplot2::theme(legend.position = "none") +
-  ggplot2::ggtitle(title)

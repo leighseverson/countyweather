@@ -34,7 +34,7 @@
 daily_fips <- function(fips, coverage = NULL,
                          date_min = NULL, date_max = NULL,
                          var = c("PRCP", "SNOW", "SNWD", "TMAX", "TMIN"),
-                         average_data = TRUE){
+                         average_data = TRUE, station_label = FALSE){
   stations <- fips_stations(fips = fips, date_min = date_min,
                             date_max = date_max)
   weather_data <- daily_df(stations = stations,
@@ -44,7 +44,8 @@ daily_fips <- function(fips, coverage = NULL,
                                   var = var,
                                   average_data = average_data)
   station_map <- stationmap_fips(fips = fips,
-                                 weather_data = weather_data)
+                                 weather_data = weather_data,
+                                 station_label = station_label)
   list <- list("daily_data" = weather_data$daily_data,
                "station_map" = station_map)
   return(list)
@@ -217,7 +218,7 @@ daily_df <- function(stations, coverage = NULL,
 #' }
 #'
 #' @export
-daily_timeseries <- function(fips, coverage, date_min, date_max, var,
+daily_timeseries <- function(fips, coverage = NULL, date_min, date_max, var,
                               average_data = TRUE,
                               out_directory, out_type = "rds"){
 
@@ -231,7 +232,8 @@ daily_timeseries <- function(fips, coverage, date_min, date_max, var,
       out_df <- daily_df(stations = stations,
                                 coverage = coverage,
                                 var = var, date_min = date_min,
-                                date_max = date_max)$daily_data
+                                date_max = date_max,
+                         average_data = average_data)$daily_data
 
       out_file <- paste0(out_directory, "/", fips[i], ".", out_type)
       if(out_type == "rds"){
@@ -312,12 +314,12 @@ plot_daily_timeseries <- function(var, file_directory, file_type = "rds",
   for(i in 1:length(files)){
 
     setwd(file_directory)
-    data <- readRDS(files[i])
+    df <- readRDS(files[i])
 
     file_name <- paste0(file_names[i], ".png")
     setwd(plot_directory)
     grDevices::png(filename = file_name)
-    graphics::plot(data$date, data[,var],
+    graphics::plot(df[,date], df[,var],
          type = "l", col = "red", main = file_names[i],
          xlab = "date", ylab = var,
          xlim = c(as.Date(date_min), as.Date(date_max)))
@@ -325,3 +327,8 @@ plot_daily_timeseries <- function(var, file_directory, file_type = "rds",
   }
 
 }
+
+
+
+
+

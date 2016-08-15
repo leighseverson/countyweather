@@ -52,6 +52,8 @@ This package allows you to pull data based on a US county's corresponding Federa
 
 Currently, this package can pull daily and hourly weather data for variables like temperature and precipitation. (For resources with complete lists of available weather variables, see the section titled 'More on the weather data'). The weather data is collected at monitors, and there are often multiple weather monitors within a county. This package allows you to specify a county and then will pull weather data from all monitors in that county over a specified date range, and average the daily or hourly values to generate an average time series for that county. There is an option (`average_data = TRUE / FALSE`) that allows the user to get the data before it has been averaged across weather stations. 
 
+The two main functions in the countyweather package are `daily_fips` and `hourly_fips`. They pull daily and hourly weather data, respectively. For more about the sources of data for these two functions, see the section titled "More about the weather data."
+
 ### Pulling daily data
 
 Here is an example of creating a dataset with daily precipitation for Miami-Dade county (FIPS code = 12086) for August 1992, when Hurricane Andrew stuck: 
@@ -99,7 +101,7 @@ Here is an example of pulling hourly data for Miami-Dade, again for the period a
 
 ```{r}
 andrew_hourly <- hourly_fips(fips = "12086", year = 1992,
-                           var = c("wind_speed", "temperature"))
+                           var = c("wind_speed", "temperature"), station_label = TRUE)
 ```
 
 The output from this call includes the date-time of the observation (given in UTC), values for the weather variables selected, and the number of monitors reporting for each observation of each weather variable: 
@@ -131,7 +133,31 @@ For hourly and daily weather, the user can choose to filter out any monitors tha
 
 ### Writing out timeseries files 
 
-There are a few functions that allow the user to write out daily or hourly timeseries datasets as RDS or CSV files to a specified local directory, as well as plots of this data. For daily weather data, see the functions \code{county_timeseries} and \code{plot_timeseries}. For hourly, see \code{hourly_timeseries} and \code{hourly_plots}. 
+There are a few functions that allow the user to write out daily or hourly timeseries datasets as RDS or CSV files to a specified local directory, as well as plots of this data. For daily weather data, see the functions \code{county_timeseries} and \code{plot_timeseries}. For hourly, see \code{hourly_timeseries} and \code{hourly_plots}. If we wanted to compare daily weather in the month of August for several counties in southern Florida, we could run: 
+
+```{r eval = FALSE}
+fl_counties <- c("12086", "12087", "12011", "12021", "12099", "12051", "12071")
+
+daily_timeseries(fips = fl_counties, date_min = "1992-08-01", 
+                 date_max = "1992-08-31", var = "PRCP", 
+                 out_directory = "~/Documents/andrew_data")
+```
+
+`daily_timeseries()` saves each county's timeseries as a separate .rds file in the directory specified in the `out_directory` option. The function `plot_daily_timeseries` writes out plots for each of these .rds files. 
+
+```{r eval = FALSE}
+plot_daily_timeseries("prcp", file_directory = "~/Documents/andrew_data", 
+                      plot_directory = "~/Documents/andrew_plots", 
+                      date_min = "1992-08-01", date_max = "1992-08-31")
+```
+
+Here's an example of what the timeseries plot for Miami-Dade County (fips = 12086) would look like: 
+
+```{r echo = FALSE}
+df <- andrew_precip$daily_data
+plot(df$date, df$prcp, type = "l", col = "red", main = "12086", xlab = "date", 
+     ylab = "prcp", xlim = c(as.Date("1992-08-01"), as.Date("1992-08-31")))
+```
 
 ### `average_data` 
 
