@@ -31,6 +31,7 @@ average daily weather data across multiple monitors.}
 
 \item{station_label}{TRUE / FALSE to indicate if you want your plot of
 weather station locations to include labels indicating station ids.}
+
 }
 \value{
 A list with two elements. The first element (\code{daily_data}) is a
@@ -61,6 +62,14 @@ ex <- daily_fips("08031", coverage = 0.90,
 
 weather_data <- ex$daily_data
 station_map <- ex$station_map
+
+mobile_ex <- weather_fips("01097", percent_coverage = 0,
+                          date_min = "1997-07-13",
+                          date_max = "1997-07-25",
+                          var = "PRCP", average_data = FALSE)
+library(ggplot2)
+ggplot(mobile_ex$daily_weather, aes(x = date, y = prcp, color = id)) +
+       geom_line()
 }
 }
 
