@@ -298,12 +298,21 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
                                                          num_colors = 1, state_zoom = NULL,
                                                          county_zoom = choro_fips, reference_map = TRUE))
 
-  map <- map + ggplot2::geom_point(data = hourly_data$station_df,
-                                   ggplot2::aes_(~ lon, ~ lat),
-                                   colour = point_color, size = point_size) +
-    ggplot2::theme(legend.position = "none") +
-    ggplot2::ggtitle(title)
-
+  if(station_label == TRUE){
+    map <- map + ggplot2::geom_point(data = hourly_data$station_df,
+                                     ggplot2::aes_(~ lon, ~ lat),
+                                     colour = point_color, size = point_size) +
+      ggplot2::geom_text(data = hourly_data$station_df,
+                         ggplot2::aes_(~ lon, ~ lat, ~ label = usaf_code),
+                fontface = "bold") +
+      ggplot2::theme(legend.position = "none") +
+      ggplot2::ggtitle(title)
+  } else {
+    map <- map + ggplot2::geom_point(data = hourly_data$station_df,
+                                     ggplot2::aes_(~ lon, ~ lat),
+                                     colour = point_color, size = point_size) +
+      ggplot2::theme(legend.position = "none") +
+      ggplot2::ggtitle(title)
+  }
   return(map)
-
 }

@@ -150,6 +150,8 @@ filter_coverage <- function(coverage_df, coverage = NULL){
 #'    to "firebrick.")
 #' @param point_size The specified \code{ggplot2} size for each point
 #'    representing the location of a station. (Optional. The default size is 2).
+#' @param station_label TRUE / FALSE If TRUE, includes labels giving the id for
+#'    monitor on the map. The default is FALSE. (Optional.)
 #'
 #' @return A plot showing points for all weather stations for a particular
 #'    county satisfying the conditions present in \code{daily_df}'s
@@ -170,7 +172,7 @@ filter_coverage <- function(coverage_df, coverage = NULL){
 #' @importFrom dplyr %>%
 #'
 stationmap_fips <- function(fips, weather_data, point_color = "firebrick",
-                            point_size = 2){
+                            point_size = 2, station_label = FALSE){
 
   census_data <- countyweather::county_centers
   row_num <- which(grepl(fips, census_data$fips))
@@ -185,11 +187,23 @@ stationmap_fips <- function(fips, weather_data, point_color = "firebrick",
                                                          num_colors = 1, state_zoom = NULL,
                                                          county_zoom = choro_fips, reference_map = TRUE))
 
-  map <- map + ggplot2::geom_point(data = weather_data$station_df,
-                                   ggplot2::aes_(~ longitude, ~ latitude),
-                                   colour = point_color, size = point_size) +
-    ggplot2::theme(legend.position = "none") +
-    ggplot2::ggtitle(title)
+  if(station_label == TRUE){
+    map <- map + ggplot2::geom_point(data = weather_data$station_df,
+                                     ggplot2::aes_(~ longitude, ~ latitude),
+                                     col = point_color, size = point_size) +
+      ggplot2::geom_text(data = weather_data$station_df,
+                         ggplot2::aes_(~ longitude, ~ latitude,
+                                                   label = ~id),
+                fontface = "bold") +
+      ggplot2::theme(legend.position = "none") +
+      ggplot2::ggtitle(title)
+  } else {
+    map <- map + ggplot2::geom_point(data = weather_data$station_df,
+                                     ggplot2::aes_(~ longitude, ~ latitude),
+                                     colour = point_color, size = point_size) +
+      ggplot2::theme(legend.position = "none") +
+      ggplot2::ggtitle(title)
+  }
 
   return(map)
 }
