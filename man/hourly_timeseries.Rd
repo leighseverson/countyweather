@@ -20,9 +20,9 @@ percent of each weather variable must be non-missing to include data from
 a monitor when calculating daily values averaged across monitors.)
 (Optional.)}
 
-\item{year}{a four digit number or vector of numbers indicating the year or
-years for which you want to pull hourly data. Values for \code{year} can
-be in the range from 1901 to the current year.}
+\item{year}{The year or a vector of years for which you want to pull hourly
+data. Values for \code{year} can be in the range from 1901 to the current
+year.}
 
 \item{var}{A character vector specifying desired weather variables. For
 example, var = c("wind_speed", "temperature"). (Optional. \code{var}
