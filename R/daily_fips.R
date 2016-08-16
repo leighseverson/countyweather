@@ -304,6 +304,8 @@ daily_timeseries <- function(fips, coverage, date_min, date_max, var,
 #'                file_directory = "~/Desktop/exposure_data/ihapps_timeseries",
 #'                plot_directory = "~/Desktop/exposure_data/plots_tmin")
 #' }
+#' @importFrom dplyr %>%
+#'
 #' @export
 plot_daily_timeseries <- function(var, file_directory, file_type = "rds",
                             plot_directory, date_min, date_max){
@@ -322,13 +324,16 @@ plot_daily_timeseries <- function(var, file_directory, file_type = "rds",
 
   for(i in 1:length(files)){
 
-    setwd(file_directory)
-    data <- readRDS(files[i])
+    #setwd(file_directory)
+    data <- readRDS(paste0(file_directory, "/", files[i])) %>%
+      dplyr::ungroup() %>%
+      as.data.frame()
 
     file_name <- paste0(file_names[i], ".png")
-    setwd(plot_directory)
-    grDevices::png(filename = file_name)
-    graphics::plot(data$date, data[,var],
+    #setwd(plot_directory)
+    grDevices::png(filename = paste0(plot_directory, "/", file_name))
+    data$to_plot <- data[ , var]
+    graphics::plot(data$date, data$to_plot,
          type = "l", col = "red", main = file_names[i],
          xlab = "date", ylab = var,
          xlim = c(as.Date(date_min), as.Date(date_max)))
