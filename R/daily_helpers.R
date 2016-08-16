@@ -29,7 +29,7 @@ fips_stations <- function(fips, date_min = NULL, date_max = NULL){
   FIPS <- paste0('FIPS:', fips)
   station_ids <- rnoaa::ncdc_stations(datasetid = 'GHCND', locationid = FIPS,
                                       limit = 10)
-  df <- station_ids$data
+  station_df <- station_ids$data
   if(station_ids$meta$totalCount > 10){
     how_many_more <- station_ids$meta$totalCount - 10
     more_stations <- rnoaa::ncdc_stations(datasetid = 'GHCND',
