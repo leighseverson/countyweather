@@ -126,10 +126,15 @@ filter_coverage <- function(coverage_df, coverage = NULL){
     coverage <- 0
   }
 
+  all_cols <- colnames(coverage_df)
+  not_vars <- c("id", "start_date", "end_date", "total_obs")
+  g_cols <- all_cols[!all_cols %in% not_vars]
+
   filtered <- dplyr::select_(coverage_df,
                              .dots = list("-start_date", "-end_date",
                                           "-total_obs")) %>%
-    tidyr::gather(key, covered, -id)  %>%
+    tidyr::gather_(key_col = "key", value_col = "covered",
+                   gather_cols = g_cols)  %>%
     dplyr::filter_(~ covered >= coverage) %>%
     dplyr::mutate_(covered = ~ 1) %>%
     dplyr::group_by_(.dots = list("id")) %>%
