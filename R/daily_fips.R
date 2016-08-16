@@ -144,6 +144,7 @@ daily_df <- function(stations, coverage = NULL,
   # steps to filter out erroneous data from individual stations
   # precipitation
   if("PRCP" %in% var){
+    filtered_data$prcp <- filtered_data$prcp / 10
     if(max(filtered_data$prcp, na.rm = TRUE) > 1100){
       bad_prcp <- which(with(filtered_data, prcp > 1100))
       filtered_data <- filtered_data[-bad_prcp,]
@@ -168,6 +169,7 @@ daily_df <- function(stations, coverage = NULL,
 
   # tmax
   if("TMAX" %in% var){
+    filtered_data$tmax <- filtered_data$tmax / 10
     if(max(filtered_data$tmax, na.rm = TRUE) > 57){
       bad_tmax <- which(with(filtered_data, tmax > 57))
       filtered_data <- filtered_data[-bad_tmax,]
@@ -176,6 +178,7 @@ daily_df <- function(stations, coverage = NULL,
 
   # tmin
   if("TMIN" %in% var){
+    filtered_data$tmin <- filtered_data$tmin / 10
     if(min(filtered_data$tmin, na.rm = TRUE) < -62){
       bad_tmin <- which(with(filtered_data, tmin < -62))
       filtered_data <- filtered_data[-bad_tmin,]
