@@ -6,8 +6,7 @@
 stations for a particular county.}
 \usage{
 daily_fips(fips, coverage = NULL, date_min = NULL, date_max = NULL,
-  var = c("PRCP", "SNOW", "SNWD", "TMAX", "TMIN"), average_data = TRUE,
-  station_label = FALSE)
+  var = "all", average_data = TRUE, station_label = FALSE)
 }
 \arguments{
 \item{coverage}{A numeric value in the range of 0 to 1 that specifies
@@ -31,7 +30,6 @@ average daily weather data across multiple monitors.}
 
 \item{station_label}{TRUE / FALSE to indicate if you want your plot of
 weather station locations to include labels indicating station ids.}
-
 }
 \value{
 A list with two elements. The first element (\code{daily_data}) is a

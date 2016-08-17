@@ -4,9 +4,7 @@
 \alias{int_surface_data}
 \title{Get hourly data for a single monitor}
 \usage{
-int_surface_data(usaf_code, wban_code, year, var = c("wind_direction",
-  "wind_speed", "ceiling_height", "visibility_distance", "temperature",
-  "temperature_dewpoint", "air_pressure"))
+int_surface_data(usaf_code, wban_code, year, var = "all")
 }
 \arguments{
 \item{usaf_code}{A character string with a six-digit [usaf?] code for the

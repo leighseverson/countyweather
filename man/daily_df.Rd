@@ -4,8 +4,8 @@
 \alias{daily_df}
 \title{Return average daily weather data for a particular county.}
 \usage{
-daily_df(stations, coverage = NULL, var = c("PRCP", "SNOW", "SNWD", "TMAX",
-  "TMIN"), date_min = NULL, date_max = NULL, average_data = TRUE)
+daily_df(stations, coverage = NULL, var = "all", date_min = NULL,
+  date_max = NULL, average_data = TRUE)
 }
 \arguments{
 \item{stations}{A dataframe containing station metadata, returned from
