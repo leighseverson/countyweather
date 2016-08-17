@@ -18,9 +18,8 @@ years for which you want to pull hourly data. Values for \code{year} can
 be in the range from 1901 to the current year.}
 
 \item{var}{A character vector specifying desired weather variables. For
-example, var = c("wind_speed", "temperature"). (Optional. \code{var}
-includes all possible weather variables by default, which include
-\code{c("wind_direction", "wind_speed", "ceiling_height",
+example, var = c("wind_speed", "temperature"). The core weather variables
+available include \code{c("wind_direction", "wind_speed", "ceiling_height",
 "visibility_distance", "temperature", "temperature_dewpoint",
 "air_pressure")}. Alternatively, you can specify var = "all" to include
 additional flag and quality codes.}
@@ -28,8 +27,7 @@ additional flag and quality codes.}
 \item{coverage}{A numeric value in the range of 0 to 1 that specifies
 the desired percentage coverage for the weather variable (i.e., what
 percent of each weather variable must be non-missing to include data from
-a monitor when calculating daily values averaged across monitors.)
-(Optional.)}
+a monitor when calculating daily values averaged across monitors.)}
 
 \item{radius}{A numeric value giving the radius, in kilometers from the
 county's population-weighted center, within which to pull weather
@@ -47,7 +45,7 @@ A list with two elements. The first element (\code{hourly_data}) is a
    dataframe of daily weather data averaged across multiple stations, as well
    as columns (\code{"var"_reporting}) for each weather variable showing the
    number of stations contributing to the average for that variable for that
-   hour The second element (\code{station_map}) is a plot showing points for all
+   hour. The second element (\code{station_map}) is a plot showing points for all
    weather stations for a particular county satisfying the conditions present
    in \code{hourly_fips}'s arguments (year, coverage, and/or var).
 }
@@ -56,5 +54,8 @@ Given a particular county FIPS code, this function returns a list with two
 elements: "data", a dataframe of hourly average weather values, and "plot",
 a plot showing the location of weather stations contributing to the average
 weather in "data".
+}
+\note{
+: Observation times are vased on Coordinated Universal Time Code (UTC).
 }
 

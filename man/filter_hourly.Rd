@@ -15,9 +15,8 @@ of each weather variable must be non-missing to include the data from a
 station when calculating hourly values averaged across stations).}
 
 \item{var}{A character vector specifying desired weather variables. For
-example, var = c("wind_speed", "temperature"). (Optional. \code{var}
-includes all possible weather variables by default, which include
-\code{c("wind_direction", "wind_speed", "ceiling_height",
+example, var = c("wind_speed", "temperature"). The core avaialbe weather
+variables include \code{c("wind_direction", "wind_speed", "ceiling_height",
 "visibility_distance", "temperature", "temperature_dewpoint",
 "air_pressure")}. Alternatively, you can specify var = "all" to include
 additional flag and quality codes.}
