@@ -93,12 +93,12 @@ daily_fips <- function(fips, coverage = NULL,
 #'    a monitor when calculating daily values averaged across monitors.
 #'    (Optional.)
 #' @param date_min A character string giving the earliest date you want
-#'    in your dataset in "yyyy-mm-dd" format. (Optional.)
+#'    in your dataset in "yyyy-mm-dd" format.
 #' \code{date_min}.
 #' @param date_max A character string giving the latest date you want
-#'    in your dataset in "yyyy-mm-dd" format. (Optional.)
+#'    in your dataset in "yyyy-mm-dd" format.
 #' @param var A character vector specifying desired weather variables. For
-#'    example, var = c("TMIN", "TMAX", "PRCP"). (Optional.)
+#'    example, var = c("TMIN", "TMAX", "PRCP").
 #' @param average_data TRUE / FALSE to indicate if you want the function to
 #'    average daily weather data across multiple monitors.
 #'

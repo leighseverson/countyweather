@@ -112,7 +112,6 @@ ave_weather <- function(weather_data){
 #'    the desired percentage coverage for the weather variable (i.e., what
 #'    percent of each weather variable must be non-missing to include data from
 #'    a monitor when calculating daily values averaged across monitors.
-#'    (Optional.)
 #'
 #' @return a \code{dataframe} with stations that meet the specified coverage
 #'    requirements for weather variables included in the dataframe present in
@@ -151,12 +150,11 @@ filter_coverage <- function(coverage_df, coverage = NULL){
 #'    of the county for which the user wants to pull weather data.
 #' @param weather_data A list returned from \code{daily_df}.
 #' @param point_color The specified \code{ggplot2} color for each point
-#'    representing the location of a station. (Optional. This argument defaults
-#'    to "firebrick.")
+#'    representing the location of a station.
 #' @param point_size The specified \code{ggplot2} size for each point
-#'    representing the location of a station. (Optional. The default size is 2).
+#'    representing the location of a station.
 #' @param station_label TRUE / FALSE If TRUE, includes labels giving the id for
-#'    monitor on the map. The default is FALSE. (Optional.)
+#'    monitor on the map. The default is FALSE.
 #'
 #' @return A plot showing points for all weather stations for a particular
 #'    county satisfying the conditions present in \code{daily_df}'s
