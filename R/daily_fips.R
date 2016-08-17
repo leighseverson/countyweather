@@ -7,6 +7,7 @@
 #' weather in "data".
 #'
 #' @inheritParams daily_df
+#' @inheritParams fips_stations
 #'
 #' @param station_label TRUE / FALSE to indicate if you want your plot of
 #'    weather station locations to include labels indicating station ids.
@@ -213,6 +214,7 @@ daily_df <- function(stations, coverage = NULL,
 #' specified.
 #'
 #' @inheritParams daily_df
+#' @inheritParams fips_stations
 #' @param out_directory The absolute or relative pathname for the directory
 #' where you would like the timeseries files to be saved.
 #' @param out_type A character string indicating that you would like either .rds
