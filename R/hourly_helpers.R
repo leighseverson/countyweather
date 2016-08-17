@@ -216,7 +216,7 @@ ave_hourly <- function(hourly_data){
                                      "-latitude", "-longitude"))
 
   all_cols <- colnames(df)
-  not_vars <- c("id", "date")
+  not_vars <- c("id", "date_time")
   g_cols <- all_cols[!all_cols %in% not_vars]
 
   averaged_data <- df %>%
