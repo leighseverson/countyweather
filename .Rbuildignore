@@ -4,6 +4,5 @@
 ^README\.Rmd$
 ^README-.*\.png$
 ^writing$
-^pngs $
-^Untitled-figure$
+
 
