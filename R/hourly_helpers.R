@@ -166,6 +166,26 @@ isd_monitors_data <- function(fips, year, var = c("wind_direction", "wind_speed"
     st_out_list <- lapply(st_out_list, function(x){
       x$usaf_station <- as.numeric(x$usaf_station)
       x$wban_station <- as.numeric(x$wban_station)
+
+      if("wind_direction" %in% var){
+        x$wind_direction <- as.numeric(x$wind_direction)
+      }
+      if("ceiling_height" %in% var){
+        x$ceiling_height <- as.numeric(x$ceiling_height)
+      }
+      if("visibility_distance" %in% var){
+        x$visibility_distance <- as.numeric(x$visibility_distance)
+      }
+      if("temperature" %in% var){
+        x$temperature <- as.numeric(x$temperature)
+      }
+      if("temperature_dewpoint" %in% var){
+        x$temperature_dewpoint <- as.numeric(x$temperature_dewpoint)
+      }
+      if("air_pressure" %in% var){
+        x$air_pressure <- as.numeric(x$air_pressure)
+      }
+
       return(x)
     })
     st_out_df <- dplyr::bind_rows(st_out_list)
