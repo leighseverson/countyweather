@@ -267,14 +267,14 @@ filter_hourly <- function(hourly_data, coverage,
 
   df <- hourly_data %>%
     tidyr::unite_(station, usaf_station, wban_station, sep = "-") %>%
-    dplyr::select_(-date_time, -latitude, -longitude) %>%
+    dplyr::select_(quote(-date_time), quote(-latitude), quote(-longitude)) %>%
     tidyr::gather_(key, value, -station) %>%
     dplyr::group_by_(station, key) %>%
     dplyr::summarize_(coverage = ~ mean(!is.na(value)))
 
   filtered <- hourly_data %>%
     tidyr::unite_(station, usaf_station, wban_station, sep = "-") %>%
-    dplyr::select_(-latitude, -longitude) %>%
+    dplyr::select_(quote(-latitude), quote(-longitude)) %>%
     tidyr::gather_(key, value, -station, -date_time) %>%
     dplyr::left_join(df, by = c("station", "key")) %>%
     dplyr::filter_(~ coverage > 0.80) %>%
