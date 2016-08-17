@@ -248,9 +248,8 @@ ave_hourly <- function(hourly_data){
 #'    of each weather variable must be non-missing to include the data from a
 #'    station when calculating hourly values averaged across stations).
 #' @param var A character vector specifying desired weather variables. For
-#'    example, var = c("wind_speed", "temperature"). (Optional. \code{var}
-#'    includes all possible weather variables by default, which include
-#'    \code{c("wind_direction", "wind_speed", "ceiling_height",
+#'    example, var = c("wind_speed", "temperature"). The core avaialbe weather
+#'    variables include \code{c("wind_direction", "wind_speed", "ceiling_height",
 #'    "visibility_distance", "temperature", "temperature_dewpoint",
 #'    "air_pressure")}. Alternatively, you can specify var = "all" to include
 #'    additional flag and quality codes.
@@ -309,12 +308,11 @@ filter_hourly <- function(hourly_data, coverage,
 #' @param hourly_data hourly_data A dataframe with hourly weather observations. This
 #'    dataframe is returned from the function \code{isd_monitors_data}.
 #' @param point_color point_color The specified \code{ggplot2} color for each point
-#'    representing the location of a station. (Optional. This argument defaults
-#'    to "firebrick.")
+#'    representing the location of a station.
 #' @param point_size The specified \code{ggplot2} size for each point
-#'    representing the location of a station. (Optional. The default size is 2).
+#'    representing the location of a station.
 #' @param station_label TRUE / FALSE If TRUE, includes labels giving the id for
-#'    monitor on the map. The default is FALSE. (Optional.)
+#'    monitor on the map. The default is FALSE.
 #'
 #' @return A plot showing points for all weather stations for a particular
 #'    county satisfying the conditions present in \code{hourly_df}'s
