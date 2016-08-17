@@ -24,11 +24,11 @@ Imports:
     ggplot2 (>= 2.1.0),
     lubridate (>= 1.5.6),
     purrr (>= 0.2.1),
-    rnoaa (>= 0.5.2),
     tidyr (>= 0.3.1)
 RoxygenNote: 5.0.1
 Depends:
     R (>= 3.2.3)
 Suggests: knitr,
     rmarkdown
+Remotes: geanders/rnoaa
 VignetteBuilder: knitr
