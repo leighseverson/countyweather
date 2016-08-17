@@ -4,9 +4,7 @@
 \alias{isd_monitors_data}
 \title{Pull hourly data for multiple monitors}
 \usage{
-isd_monitors_data(fips, year, var = c("wind_direction", "wind_speed",
-  "ceiling_height", "visibility_distance", "temperature",
-  "temperature_dewpoint", "air_pressure"), radius = 50)
+isd_monitors_data(fips, year, var = "all", radius = 50)
 }
 \arguments{
 \item{fips}{A five-digit FIPS county code.}

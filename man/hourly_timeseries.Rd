@@ -4,10 +4,8 @@
 \alias{hourly_timeseries}
 \title{Write hourly weather timeseries files for U.S. counties}
 \usage{
-hourly_timeseries(fips, coverage = NULL, year, var = c("wind_direction",
-  "wind_speed", "ceiling_height", "visibility_distance", "temperature",
-  "temperature_dewpoint", "air_pressure"), radius = 50, average_data = TRUE,
-  out_directory, out_type = "rds")
+hourly_timeseries(fips, coverage = NULL, year, var = "all", radius = 50,
+  average_data = TRUE, out_directory, out_type = "rds")
 }
 \arguments{
 \item{fips}{A character string or vector giving the five-digit U.S. FIPS
@@ -20,9 +18,9 @@ percent of each weather variable must be non-missing to include data from
 a monitor when calculating daily values averaged across monitors.)
 (Optional.)}
 
-\item{year}{The year or a vector of years for which you want to pull hourly
-data. Values for \code{year} can be in the range from 1901 to the current
-year.}
+\item{year}{a four digit number or vector of numbers indicating the year or
+years for which you want to pull hourly data. Values for \code{year} can
+be in the range from 1901 to the current year.}
 
 \item{var}{A character vector specifying desired weather variables. For
 example, var = c("wind_speed", "temperature"). (Optional. \code{var}

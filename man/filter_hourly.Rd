@@ -4,9 +4,7 @@
 \alias{filter_hourly}
 \title{Filter NOAA ISD stations based on "coverage" requirements.}
 \usage{
-filter_hourly(hourly_data, coverage, var = c("wind_direction", "wind_speed",
-  "ceiling_height", "visibility_distance", "temperature",
-  "temperature_dewpoint", "air_pressure"))
+filter_hourly(hourly_data, coverage, var = "all")
 }
 \arguments{
 \item{hourly_data}{A \code{isd_monitors_data} dataframe}

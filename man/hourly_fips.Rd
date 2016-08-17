@@ -5,18 +5,17 @@
 \title{Return average hourly weather data and a plot showing the location of weather
 stations for a particular county.}
 \usage{
-hourly_fips(fips, year, var = c("wind_direction", "wind_speed",
-  "ceiling_height", "visibility_distance", "temperature",
-  "temperature_dewpoint", "air_pressure"), coverage = NULL, radius = 50,
+hourly_fips(fips, year, var = "all", coverage = NULL, radius = 50,
   average_data = TRUE, station_label = FALSE)
 }
 \arguments{
-\item{fips}{A character string giving the five-digit U.S. FIPS county code
-of the county for which the user wants to pull weather data.}
+\item{fips}{A character string or vector giving the five-digit U.S. FIPS
+county code of the county or counties for which the user wants to pull
+weather data.}
 
-\item{year}{The year or a vector of years for which you want to pull hourly
-data. Values for \code{year} can be in the range from 1901 to the current
-year.}
+\item{year}{a four digit number or vector of numbers indicating the year or
+years for which you want to pull hourly data. Values for \code{year} can
+be in the range from 1901 to the current year.}
 
 \item{var}{A character vector specifying desired weather variables. For
 example, var = c("wind_speed", "temperature"). (Optional. \code{var}
@@ -42,7 +41,6 @@ average daily weather data across multiple monitors.}
 \item{station_label}{TRUE / FALSE to indicate if you want your plot of
 weather station locations to include labels indicating station usaf id
 numbers.}
-
 }
 \value{
 A list with two elements. The first element (\code{hourly_data}) is a
