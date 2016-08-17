@@ -44,7 +44,7 @@
 #' @export
 daily_fips <- function(fips, coverage = NULL,
                          date_min = NULL, date_max = NULL,
-                         var = c("PRCP", "SNOW", "SNWD", "TMAX", "TMIN"),
+                         var = "all",
                          average_data = TRUE, station_label = FALSE){
   stations <- fips_stations(fips = fips, date_min = date_min,
                             date_max = date_max)
@@ -120,7 +120,7 @@ daily_fips <- function(fips, coverage = NULL,
 #' station_info <- list$stations
 #' }
 daily_df <- function(stations, coverage = NULL,
-                            var = c("PRCP", "SNOW", "SNWD", "TMAX", "TMIN"),
+                            var = "all",
                             date_min = NULL, date_max = NULL,
                             average_data = TRUE){
 
@@ -338,8 +338,3 @@ plot_daily_timeseries <- function(var, file_directory, file_type = "rds",
   }
 
 }
-
-
-
-
-
