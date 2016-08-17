@@ -21,10 +21,7 @@
 #'    in \code{hourly_fips}'s arguments (year, coverage, and/or var).
 #'
 #' @export
-hourly_fips <- function(fips, year, var = c("wind_direction", "wind_speed",
-                                            "ceiling_height", "visibility_distance",
-                                            "temperature", "temperature_dewpoint",
-                                            "air_pressure"),
+hourly_fips <- function(fips, year, var = "all",
                         coverage = NULL, radius = 50, average_data = TRUE,
                         station_label = FALSE){
 
@@ -94,10 +91,7 @@ hourly_fips <- function(fips, year, var = c("wind_direction", "wind_speed",
 #'
 #' @export
 hourly_df <- function(fips, year,
-                           var = c("wind_direction", "wind_speed",
-                                   "ceiling_height", "visibility_distance",
-                                   "temperature", "temperature_dewpoint",
-                                   "air_pressure"),
+                           var = "all",
                            average_data = TRUE, radius = 50, coverage = NULL){
 
   # hourly data for multiple monitors
@@ -153,10 +147,7 @@ hourly_df <- function(fips, year,
 #' }
 #' @export
 hourly_timeseries <- function(fips, coverage = NULL, year,
-                              var = c("wind_direction", "wind_speed",
-                                      "ceiling_height", "visibility_distance",
-                                      "temperature", "temperature_dewpoint",
-                                      "air_pressure"), radius = 50,
+                              var = "all", radius = 50,
                               average_data = TRUE,
                               out_directory, out_type = "rds"){
   if(!dir.exists(out_directory)){
