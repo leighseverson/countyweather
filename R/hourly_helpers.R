@@ -73,10 +73,7 @@ isd_fips_stations <- function(fips, verbose = TRUE, radius = 50){
 #'                                     var = c("wind_speed", "temperature"))
 #' }
 int_surface_data <- function(usaf_code, wban_code, year,
-                             var = c("wind_direction", "wind_speed",
-                                     "ceiling_height", "visibility_distance",
-                                     "temperature", "temperature_dewpoint",
-                                     "air_pressure")){
+                             var = "all"){
   quiet_isd <- purrr::quietly(rnoaa::isd)
   isd_df <- quiet_isd(usaf = usaf_code, wban = wban_code, year = year)
   isd_df <- isd_df$result$data
@@ -148,10 +145,7 @@ int_surface_data <- function(usaf_code, wban_code, year,
 #'    geom_point(alpha = 0.5, size = 0.2) +
 #'    facet_wrap(~ usaf_station, ncol = 1)
 #' }
-isd_monitors_data <- function(fips, year, var = c("wind_direction", "wind_speed",
-                                                  "ceiling_height", "visibility_distance",
-                                                  "temperature", "temperature_dewpoint",
-                                                  "air_pressure"),
+isd_monitors_data <- function(fips, year, var = "all",
                               radius = 50){
   ids <- isd_fips_stations(fips, radius = radius)
 
@@ -167,23 +161,28 @@ isd_monitors_data <- function(fips, year, var = c("wind_direction", "wind_speed"
       x$usaf_station <- as.numeric(x$usaf_station)
       x$wban_station <- as.numeric(x$wban_station)
 
-      if("wind_direction" %in% var){
+      cols <- colnames(st_out_list[[1]])
+
+      if("wind_direction" %in% cols){
         x$wind_direction <- as.numeric(x$wind_direction)
       }
-      if("ceiling_height" %in% var){
+      if("ceiling_height" %in% cols){
         x$ceiling_height <- as.numeric(x$ceiling_height)
       }
-      if("visibility_distance" %in% var){
+      if("visibility_distance" %in% cols){
         x$visibility_distance <- as.numeric(x$visibility_distance)
       }
-      if("temperature" %in% var){
+      if("temperature" %in% cols){
         x$temperature <- as.numeric(x$temperature)
       }
-      if("temperature_dewpoint" %in% var){
+      if("temperature_dewpoint" %in% cols){
         x$temperature_dewpoint <- as.numeric(x$temperature_dewpoint)
       }
-      if("air_pressure" %in% var){
+      if("air_pressure" %in% cols){
         x$air_pressure <- as.numeric(x$air_pressure)
+      }
+      if("GF1_lowest_cloud_base_height" %in% cols){
+        x$GF1_lowest_cloud_base_height <- as.numeric(x$GF1_lowest_cloud_base_height)
       }
 
       return(x)
@@ -256,10 +255,7 @@ ave_hourly <- function(hourly_data){
 #'
 #' @importFrom dplyr %>%
 filter_hourly <- function(hourly_data, coverage,
-                          var = c("wind_direction", "wind_speed",
-                                  "ceiling_height", "visibility_distance",
-                                  "temperature", "temperature_dewpoint",
-                                  "air_pressure")){
+                          var = "all"){
 
   df <- hourly_data %>%
     tidyr::unite_(station, usaf_station, wban_station, sep = "-") %>%
