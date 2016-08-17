@@ -216,19 +216,17 @@ ave_hourly <- function(hourly_data){
                                      "-latitude", "-longitude"))
 
   all_cols <- colnames(df)
-  not_vars <- c("id", "date_time")
+  not_vars <- c("date_time", "id")
   g_cols <- all_cols[!all_cols %in% not_vars]
 
-  averaged_data <- df %>%
-    tidyr::gather_(key_col = "key", value_col = "value",
-                   gather_cols = g_cols) %>%
+  averaged_data <- tidyr::gather_(data = df, key_col = "key",
+                                  value_col = "value", gather_cols = g_cols) %>%
     dplyr::group_by_(~ date_time, ~ key) %>%
     dplyr::summarize_(mean = ~ mean(value, na.rm = TRUE)) %>%
     tidyr::spread_(key_col = "key", value_col = "mean")
 
-  n_reporting <- df %>%
-    tidyr::gather_(key_col = "key", value_col = "value",
-                   gather_cols = g_cols) %>%
+  n_reporting <- tidyr::gather_(data = df, key_col = "key", value_col = "value",
+                                gather_cols = g_cols) %>%
     dplyr::group_by_(~ date_time, ~ key) %>%
     dplyr::summarise_(n_reporting = ~ sum(!is.na(value))) %>%
     dplyr::mutate_(key = ~ paste(key, "reporting", sep = "_")) %>%
@@ -265,20 +263,31 @@ ave_hourly <- function(hourly_data){
 filter_hourly <- function(hourly_data, coverage,
                           var = "all"){
 
+  all_cols <- colnames(hourly_data)
+  not_vars <- c("usaf_station", "wban_station", "date_time", "latitude",
+                "longitude")
+  g_cols <- all_cols[!all_cols %in% not_vars]
+
+  group_cols <- c("station", "key")
+
   df <- hourly_data %>%
-    tidyr::unite_(station, usaf_station, wban_station, sep = "-") %>%
+    tidyr::unite_(col = "station", from = c("usaf_station", "wban_station"),
+                  sep = "-") %>%
     dplyr::select_(quote(-date_time), quote(-latitude), quote(-longitude)) %>%
-    tidyr::gather_(key, value, -station) %>%
-    dplyr::group_by_(station, key) %>%
+    tidyr::gather_(key_col = "key", value_col = "value", gather_cols = g_cols) %>%
+    dplyr::group_by_(.dots = group_cols) %>%
     dplyr::summarize_(coverage = ~ mean(!is.na(value)))
 
+  group_cols <- c("date_time", "key")
+
   filtered <- hourly_data %>%
-    tidyr::unite_(station, usaf_station, wban_station, sep = "-") %>%
+    tidyr::unite_(col = "station", from = c("usaf_station", "wban_station"),
+                  sep = "-") %>%
     dplyr::select_(quote(-latitude), quote(-longitude)) %>%
-    tidyr::gather_(key, value, -station, -date_time) %>%
+    tidyr::gather_(key_col = "key", value_col = "value", gather_cols = g_cols) %>%
     dplyr::left_join(df, by = c("station", "key")) %>%
     dplyr::filter_(~ coverage > 0.80) %>%
-    dplyr::group_by_(date_time, key)
+    dplyr::group_by_(.dots = group_cols)
 
   df2 <- filtered %>%
     dplyr::summarize_(n_reporting = ~ sum(!is.na(value))) %>%
