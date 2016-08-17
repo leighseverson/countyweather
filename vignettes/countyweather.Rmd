@@ -203,10 +203,9 @@ kable(qual, format = "markdown")
 
 
 ```{r}
-ex <- hourly_fips("12086", 1992, var = c("wind_speed", "wind_speed_quality"))
+ex <- hourly_fips("12086", 1992, var = c("wind_speed", "wind_speed_quality"),
+                  average_data = FALSE)
 ex_data <- ex$hourly_data
-
-
 ```
 
 ## More on the weather data
