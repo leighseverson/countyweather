@@ -14,7 +14,9 @@ isd_monitors_data(fips, year, var = c("wind_direction", "wind_speed",
 \item{year}{A four-digit numeric giving the year for which to pull data.}
 
 \item{var}{A character vector listing the weather variables to pull. Choices
-include ...}
+include "wind_direction", "wind_speed", "ceiling_height",
+"visibility_distance", "temperature", "temperature_dewpoint", and
+"air_pressure."}
 
 \item{radius}{A numeric value giving the radius, in kilometers from the
 county's population-weighted center, within which to pull weather

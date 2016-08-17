@@ -11,11 +11,11 @@
 #'
 #' @param fips A five-digit U.S. FIPS code in numeric or factor format.
 #' @param date_min Accepts date in character, ISO format ("yyyy-mm-dd"). The
-#' dataframe returned will include only stations that have data for dates
-#' including and after the specified date.
+#'    dataframe returned will include only stations that have data for dates
+#'    including and after the specified date.
 #' @param date_max Accepts date in character, ISO format ("yyyy-mm-dd"). The
-#' dataframe returned will include only stations that have data for dates
-#' including and before the specified date.
+#'    dataframe returned will include only stations that have data for dates
+#'    including and before the specified date.
 #'
 #' @examples
 #' \dontrun{
@@ -25,6 +25,7 @@
 #' }
 #'
 #' @importFrom dplyr %>%
+#' @export
 fips_stations <- function(fips, date_min = NULL, date_max = NULL){
   FIPS <- paste0('FIPS:', fips)
   station_ids <- rnoaa::ncdc_stations(datasetid = 'GHCND', locationid = FIPS,
@@ -125,10 +126,15 @@ filter_coverage <- function(coverage_df, coverage = NULL){
     coverage <- 0
   }
 
+  all_cols <- colnames(coverage_df)
+  not_vars <- c("id", "start_date", "end_date", "total_obs")
+  g_cols <- all_cols[!all_cols %in% not_vars]
+
   filtered <- dplyr::select_(coverage_df,
                              .dots = list("-start_date", "-end_date",
                                           "-total_obs")) %>%
-    tidyr::gather(key, covered, -id)  %>%
+    tidyr::gather_(key_col = "key", value_col = "covered",
+                   gather_cols = g_cols)  %>%
     dplyr::filter_(~ covered >= coverage) %>%
     dplyr::mutate_(covered = ~ 1) %>%
     dplyr::group_by_(.dots = list("id")) %>%
@@ -143,15 +149,17 @@ filter_coverage <- function(coverage_df, coverage = NULL){
 #'
 #' @param fips A character string giving the five-digit U.S. FIPS county code
 #'    of the county for which the user wants to pull weather data.
-#' @param weather_data An object returned from \code{daily_df}.
+#' @param weather_data A list returned from \code{daily_df}.
 #' @param point_color The specified \code{ggplot2} color for each point
 #'    representing the location of a station. (Optional. This argument defaults
 #'    to "firebrick.")
 #' @param point_size The specified \code{ggplot2} size for each point
 #'    representing the location of a station. (Optional. The default size is 2).
+#' @param station_label TRUE / FALSE If TRUE, includes labels giving the id for
+#'    monitor on the map. The default is FALSE. (Optional.)
 #'
 #' @return A plot showing points for all weather stations for a particular
-#'    county satisfying the conditions present in \code{weather_fip_df}'s
+#'    county satisfying the conditions present in \code{daily_df}'s
 #'    arguments (coverage, date_min, date_max, and/or var).
 #'    (\code{stationmap_fips} takes the resulting weather dataframe from this
 #'    function.)
@@ -169,7 +177,7 @@ filter_coverage <- function(coverage_df, coverage = NULL){
 #' @importFrom dplyr %>%
 #'
 stationmap_fips <- function(fips, weather_data, point_color = "firebrick",
-                            point_size = 2){
+                            point_size = 2, station_label = FALSE){
 
   census_data <- countyweather::county_centers
   row_num <- which(grepl(fips, census_data$fips))
@@ -184,11 +192,23 @@ stationmap_fips <- function(fips, weather_data, point_color = "firebrick",
                                                          num_colors = 1, state_zoom = NULL,
                                                          county_zoom = choro_fips, reference_map = TRUE))
 
-  map <- map + ggplot2::geom_point(data = weather_data$station_df,
-                                   ggplot2::aes_(~ longitude, ~ latitude),
-                                   colour = point_color, size = point_size) +
-    ggplot2::theme(legend.position = "none") +
-    ggplot2::ggtitle(title)
+  if(station_label == TRUE){
+    map <- map + ggplot2::geom_point(data = weather_data$station_df,
+                                     ggplot2::aes_(~ longitude, ~ latitude),
+                                     col = point_color, size = point_size) +
+      ggplot2::geom_text(data = weather_data$station_df,
+                         ggplot2::aes_(~ longitude, ~ latitude,
+                                                   label = ~id),
+                fontface = "bold") +
+      ggplot2::theme(legend.position = "none") +
+      ggplot2::ggtitle(title)
+  } else {
+    map <- map + ggplot2::geom_point(data = weather_data$station_df,
+                                     ggplot2::aes_(~ longitude, ~ latitude),
+                                     colour = point_color, size = point_size) +
+      ggplot2::theme(legend.position = "none") +
+      ggplot2::ggtitle(title)
+  }
 
   return(map)
 }

@@ -10,8 +10,9 @@ hourly_timeseries(fips, coverage = NULL, year, var = c("wind_direction",
   out_directory, out_type = "rds")
 }
 \arguments{
-\item{fips}{A character string giving the five-digit U.S. FIPS county code
-of the county for which the user wants to pull weather data.}
+\item{fips}{A character string or vector giving the five-digit U.S. FIPS
+county code of the county or counties for which the user wants to pull
+weather data.}
 
 \item{coverage}{A numeric value in the range of 0 to 1 that specifies
 the desired percentage coverage for the weather variable (i.e., what

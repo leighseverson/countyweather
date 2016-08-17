@@ -10,8 +10,9 @@ hourly_df(fips, year, var = c("wind_direction", "wind_speed",
   coverage = NULL)
 }
 \arguments{
-\item{fips}{A character string giving the five-digit U.S. FIPS county code
-of the county for which the user wants to pull weather data.}
+\item{fips}{A character string or vector giving the five-digit U.S. FIPS
+county code of the county or counties for which the user wants to pull
+weather data.}
 
 \item{year}{The year or a vector of years for which you want to pull hourly
 data. Values for \code{year} can be in the range from 1901 to the current

@@ -48,7 +48,9 @@ isd_fips_stations <- function(fips, verbose = TRUE, radius = 50){
 #'    monitor.
 #' @param year A four-digit numeric giving the year for which to pull data.
 #' @param var A character vector listing the weather variables to pull. Choices
-#'    include ...
+#'    include "wind_direction", "wind_speed", "ceiling_height",
+#'    "visibility_distance", "temperature", "temperature_dewpoint", and
+#'    "air_pressure."
 #'
 #' @return This function returns the same type of dataframe as that returned
 #'    by the \code{isd} function from the \code{rnoaa} package, but with the
@@ -71,10 +73,7 @@ isd_fips_stations <- function(fips, verbose = TRUE, radius = 50){
 #'                                     var = c("wind_speed", "temperature"))
 #' }
 int_surface_data <- function(usaf_code, wban_code, year,
-                             var = c("wind_direction", "wind_speed",
-                                     "ceiling_height", "visibility_distance",
-                                     "temperature", "temperature_dewpoint",
-                                     "air_pressure")){
+                             var = "all"){
   quiet_isd <- purrr::quietly(rnoaa::isd)
   isd_df <- quiet_isd(usaf = usaf_code, wban = wban_code, year = year)
   isd_df <- isd_df$result$data
@@ -128,8 +127,15 @@ int_surface_data <- function(usaf_code, wban_code, year,
 #' the population-weighted center of a US county, based on the county's FIPS
 #' code.
 #'
-#' @inheritParams isd_fips_stations
-#' @inheritParams int_surface_data
+#' @param fips A five-digit FIPS county code.
+#' @param year A four-digit numeric giving the year for which to pull data.
+#' @param var A character vector listing the weather variables to pull. Choices
+#'    include "wind_direction", "wind_speed", "ceiling_height",
+#'    "visibility_distance", "temperature", "temperature_dewpoint", and
+#'    "air_pressure."
+#' @param radius A numeric value giving the radius, in kilometers from the
+#'    county's population-weighted center, within which to pull weather
+#'    monitors.
 #'
 #' @examples
 #' \dontrun{
@@ -139,10 +145,7 @@ int_surface_data <- function(usaf_code, wban_code, year,
 #'    geom_point(alpha = 0.5, size = 0.2) +
 #'    facet_wrap(~ usaf_station, ncol = 1)
 #' }
-isd_monitors_data <- function(fips, year, var = c("wind_direction", "wind_speed",
-                                                  "ceiling_height", "visibility_distance",
-                                                  "temperature", "temperature_dewpoint",
-                                                  "air_pressure"),
+isd_monitors_data <- function(fips, year, var = "all",
                               radius = 50){
   ids <- isd_fips_stations(fips, radius = radius)
 
@@ -157,6 +160,31 @@ isd_monitors_data <- function(fips, year, var = c("wind_direction", "wind_speed"
     st_out_list <- lapply(st_out_list, function(x){
       x$usaf_station <- as.numeric(x$usaf_station)
       x$wban_station <- as.numeric(x$wban_station)
+
+      cols <- colnames(st_out_list[[1]])
+
+      if("wind_direction" %in% cols){
+        x$wind_direction <- as.numeric(x$wind_direction)
+      }
+      if("ceiling_height" %in% cols){
+        x$ceiling_height <- as.numeric(x$ceiling_height)
+      }
+      if("visibility_distance" %in% cols){
+        x$visibility_distance <- as.numeric(x$visibility_distance)
+      }
+      if("temperature" %in% cols){
+        x$temperature <- as.numeric(x$temperature)
+      }
+      if("temperature_dewpoint" %in% cols){
+        x$temperature_dewpoint <- as.numeric(x$temperature_dewpoint)
+      }
+      if("air_pressure" %in% cols){
+        x$air_pressure <- as.numeric(x$air_pressure)
+      }
+      if("GF1_lowest_cloud_base_height" %in% cols){
+        x$GF1_lowest_cloud_base_height <- as.numeric(x$GF1_lowest_cloud_base_height)
+      }
+
       return(x)
     })
     st_out_df <- dplyr::bind_rows(st_out_list)
@@ -174,14 +202,11 @@ isd_monitors_data <- function(fips, year, var = c("wind_direction", "wind_speed"
 #' Average hourly weather data across multiple stations.
 #'
 #' \code{ave_hourly} returns a dataframe with hourly weather averaged across
-#' stations, as well as columns showing the number of stations
-#'
-#' \code{ave_hourly} returns a dataframe with hourly weather averaged across
 #' stations, as well as columns showing the number of stations contributing to
 #' average for each variable and each hour.
 #'
 #' @param hourly_data A dataframe with hourly weather observations. This
-#' dataframe is returned from the function \code{isd_monitors_data}.
+#'    dataframe is returned from the function \code{isd_monitors_data}.
 #'
 #' @importFrom dplyr %>%
 ave_hourly <- function(hourly_data){
@@ -213,9 +238,9 @@ ave_hourly <- function(hourly_data){
 #'
 #' @param hourly_data A \code{isd_monitors_data} dataframe
 #' @param coverage A numeric value in the range of 0 to 1 that specifies the
-#' desired percentage coverage for each weather variable (i.e., what percent
-#' of each weather variable must be non-missing to include the data from a
-#' station when calculating hourly values averaged across stations). (Optional).
+#'    desired percentage coverage for each weather variable (i.e., what percent
+#'    of each weather variable must be non-missing to include the data from a
+#'    station when calculating hourly values averaged across stations).
 #' @param var A character vector specifying desired weather variables. For
 #'    example, var = c("wind_speed", "temperature"). (Optional. \code{var}
 #'    includes all possible weather variables by default, which include
@@ -230,10 +255,7 @@ ave_hourly <- function(hourly_data){
 #'
 #' @importFrom dplyr %>%
 filter_hourly <- function(hourly_data, coverage,
-                          var = c("wind_direction", "wind_speed",
-                                  "ceiling_height", "visibility_distance",
-                                  "temperature", "temperature_dewpoint",
-                                  "air_pressure")){
+                          var = "all"){
 
   df <- hourly_data %>%
     tidyr::unite_(station, usaf_station, wban_station, sep = "-") %>%
@@ -266,13 +288,22 @@ filter_hourly <- function(hourly_data, coverage,
 
 #' Plot hourly weather stations for a particular county
 #'
-#' @param fips
-#' @param hourly_data
-#' @param point_color
-#' @param point_size
+#' @param fips A five-digit FIPS county code.
+#' @param hourly_data hourly_data A dataframe with hourly weather observations. This
+#'    dataframe is returned from the function \code{isd_monitors_data}.
+#' @param point_color point_color The specified \code{ggplot2} color for each point
+#'    representing the location of a station. (Optional. This argument defaults
+#'    to "firebrick.")
+#' @param point_size The specified \code{ggplot2} size for each point
+#'    representing the location of a station. (Optional. The default size is 2).
+#' @param station_label TRUE / FALSE If TRUE, includes labels giving the id for
+#'    monitor on the map. The default is FALSE. (Optional.)
 #'
 #' @return A plot showing points for all weather stations for a particular
-#'    county satisfying the conditions present in \code{ derp
+#'    county satisfying the conditions present in \code{hourly_df}'s
+#'    arguments (year(s) and/or var).
+#'    (\code{stationmap_fips} takes the resulting weather dataframe from this
+#'    function.)
 #'
 #' @examples
 #' \dontrun{
@@ -283,7 +314,7 @@ filter_hourly <- function(hourly_data, coverage,
 #'
 #' @importFrom dplyr %>%
 hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
-                              point_size = 2){
+                              point_size = 2, station_label = FALSE){
 
   census_data <- countyweather::county_centers
   row_num <- which(grepl(fips, census_data$fips))
@@ -298,12 +329,21 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
                                                          num_colors = 1, state_zoom = NULL,
                                                          county_zoom = choro_fips, reference_map = TRUE))
 
-  map <- map + ggplot2::geom_point(data = hourly_data$stations,
-                                   ggplot2::aes_(~ lon, ~ lat),
-                                   colour = point_color, size = point_size) +
-    ggplot2::theme(legend.position = "none") +
-    ggplot2::ggtitle(title)
-
+  if(station_label == TRUE){
+    map <- map + ggplot2::geom_point(data = hourly_data$station_df,
+                                     ggplot2::aes_(~ lon, ~ lat),
+                                     col = point_color, size = point_size) +
+      ggplot2::geom_text(data = hourly_data$station_df,
+                         ggplot2::aes_(~ lon, ~ lat, label = ~usaf),
+                fontface = "bold") +
+      ggplot2::theme(legend.position = "none") +
+      ggplot2::ggtitle(title)
+  } else {
+    map <- map + ggplot2::geom_point(data = hourly_data$station_df,
+                                     ggplot2::aes_(~ lon, ~ lat),
+                                     colour = point_color, size = point_size) +
+      ggplot2::theme(legend.position = "none") +
+      ggplot2::ggtitle(title)
+  }
   return(map)
-
 }

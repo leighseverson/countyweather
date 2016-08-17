@@ -2,6 +2,7 @@
 
 export(daily_fips)
 export(daily_timeseries)
+export(fips_stations)
 export(hourly_df)
 export(hourly_fips)
 export(hourly_timeseries)

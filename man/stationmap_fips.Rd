@@ -5,13 +5,13 @@
 \title{Plot daily weather stations for a particular county}
 \usage{
 stationmap_fips(fips, weather_data, point_color = "firebrick",
-  point_size = 2)
+  point_size = 2, station_label = FALSE)
 }
 \arguments{
 \item{fips}{A character string giving the five-digit U.S. FIPS county code
 of the county for which the user wants to pull weather data.}
 
-\item{weather_data}{An object returned from \code{daily_df}.}
+\item{weather_data}{A list returned from \code{daily_df}.}
 
 \item{point_color}{The specified \code{ggplot2} color for each point
 representing the location of a station. (Optional. This argument defaults
@@ -19,10 +19,13 @@ to "firebrick.")}
 
 \item{point_size}{The specified \code{ggplot2} size for each point
 representing the location of a station. (Optional. The default size is 2).}
+
+\item{station_label}{TRUE / FALSE If TRUE, includes labels giving the id for
+monitor on the map. The default is FALSE. (Optional.)}
 }
 \value{
 A plot showing points for all weather stations for a particular
-   county satisfying the conditions present in \code{weather_fip_df}'s
+   county satisfying the conditions present in \code{daily_df}'s
    arguments (coverage, date_min, date_max, and/or var).
    (\code{stationmap_fips} takes the resulting weather dataframe from this
    function.)

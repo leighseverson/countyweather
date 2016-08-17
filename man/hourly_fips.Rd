@@ -8,7 +8,7 @@ stations for a particular county.}
 hourly_fips(fips, year, var = c("wind_direction", "wind_speed",
   "ceiling_height", "visibility_distance", "temperature",
   "temperature_dewpoint", "air_pressure"), coverage = NULL, radius = 50,
-  average_data = TRUE)
+  average_data = TRUE, station_label = FALSE)
 }
 \arguments{
 \item{fips}{A character string giving the five-digit U.S. FIPS county code
@@ -38,6 +38,11 @@ monitors. \code{radius} defaults to 50.}
 
 \item{average_data}{TRUE / FALSE to indicate if you want the function to
 average daily weather data across multiple monitors.}
+
+\item{station_label}{TRUE / FALSE to indicate if you want your plot of
+weather station locations to include labels indicating station usaf id
+numbers.}
+
 }
 \value{
 A list with two elements. The first element (\code{hourly_data}) is a

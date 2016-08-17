@@ -12,10 +12,6 @@ dataframe is returned from the function \code{isd_monitors_data}.}
 }
 \description{
 \code{ave_hourly} returns a dataframe with hourly weather averaged across
-stations, as well as columns showing the number of stations
-}
-\details{
-\code{ave_hourly} returns a dataframe with hourly weather averaged across
 stations, as well as columns showing the number of stations contributing to
 average for each variable and each hour.
 }

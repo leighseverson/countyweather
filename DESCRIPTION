@@ -19,12 +19,13 @@ Description: Interacts with NOAA data sources (including the NCDC API at
 License: GPL-2
 LazyData: TRUE
 Imports:
+    choroplethr (>= 3.5.2),
     dplyr (>= 0.4.3),
     ggplot2 (>= 2.1.0),
     lubridate (>= 1.5.6),
     purrr (>= 0.2.1),
     rnoaa (>= 0.5.2),
-    tidyr (>= 0.3.1),
+    tidyr (>= 0.3.1)
 RoxygenNote: 5.0.1
 Depends:
     R (>= 3.2.3)

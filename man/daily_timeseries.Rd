@@ -4,8 +4,8 @@
 \alias{daily_timeseries}
 \title{Write daily weather timeseries files for U.S. counties}
 \usage{
-daily_timeseries(fips, coverage, date_min, date_max, var, average_data = TRUE,
-  out_directory, out_type = "rds")
+daily_timeseries(fips, coverage = NULL, date_min, date_max, var,
+  average_data = TRUE, out_directory, out_type = "rds")
 }
 \arguments{
 \item{coverage}{A numeric value in the range of 0 to 1 that specifies

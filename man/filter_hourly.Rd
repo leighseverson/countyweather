@@ -14,7 +14,7 @@ filter_hourly(hourly_data, coverage, var = c("wind_direction", "wind_speed",
 \item{coverage}{A numeric value in the range of 0 to 1 that specifies the
 desired percentage coverage for each weather variable (i.e., what percent
 of each weather variable must be non-missing to include the data from a
-station when calculating hourly values averaged across stations). (Optional).}
+station when calculating hourly values averaged across stations).}
 
 \item{var}{A character vector specifying desired weather variables. For
 example, var = c("wind_speed", "temperature"). (Optional. \code{var}

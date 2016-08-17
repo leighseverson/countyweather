@@ -5,10 +5,30 @@
 \title{Plot hourly weather stations for a particular county}
 \usage{
 hourly_stationmap(fips, hourly_data, point_color = "firebrick",
-  point_size = 2)
+  point_size = 2, station_label = FALSE)
 }
 \arguments{
-\item{point_size}{}
+\item{fips}{A five-digit FIPS county code.}
+
+\item{hourly_data}{hourly_data A dataframe with hourly weather observations. This
+dataframe is returned from the function \code{isd_monitors_data}.}
+
+\item{point_color}{point_color The specified \code{ggplot2} color for each point
+representing the location of a station. (Optional. This argument defaults
+to "firebrick.")}
+
+\item{point_size}{The specified \code{ggplot2} size for each point
+representing the location of a station. (Optional. The default size is 2).}
+
+\item{station_label}{TRUE / FALSE If TRUE, includes labels giving the id for
+monitor on the map. The default is FALSE. (Optional.)}
+}
+\value{
+A plot showing points for all weather stations for a particular
+   county satisfying the conditions present in \code{hourly_df}'s
+   arguments (year(s) and/or var).
+   (\code{stationmap_fips} takes the resulting weather dataframe from this
+   function.)
 }
 \description{
 Plot hourly weather stations for a particular county
