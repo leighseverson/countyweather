@@ -16,9 +16,11 @@
 #'    dataframe of daily weather data averaged across multiple stations, as well
 #'    as columns (\code{"var"_reporting}) for each weather variable showing the
 #'    number of stations contributing to the average for that variable for that
-#'    hour The second element (\code{station_map}) is a plot showing points for all
+#'    hour. The second element (\code{station_map}) is a plot showing points for all
 #'    weather stations for a particular county satisfying the conditions present
 #'    in \code{hourly_fips}'s arguments (year, coverage, and/or var).
+#'
+#' @note: Observation times are vased on Coordinated Universal Time Code (UTC).
 #'
 #' @export
 hourly_fips <- function(fips, year, var = "all",
@@ -76,6 +78,8 @@ hourly_fips <- function(fips, year, var = "all",
 #'    as well as columns (\code{"var"_reporting}) for each weather variable
 #'    showing the number of stations contributing to the average for that
 #'    variable for each hour.
+#'
+#' @note: Observation times are vased on Coordinated Universal Time Code (UTC).
 #'
 #' @references For more information on this dataset and available weather and
 #' flag/quality variables, see
