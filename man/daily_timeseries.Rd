@@ -8,6 +8,8 @@ daily_timeseries(fips, coverage = NULL, date_min, date_max, var,
   average_data = TRUE, out_directory, out_type = "rds")
 }
 \arguments{
+\item{fips}{A five-digit U.S. FIPS code in numeric or factor format.}
+
 \item{coverage}{A numeric value in the range of 0 to 1 that specifies
 the desired percentage coverage for the weather variable (i.e., what
 percent of each weather variable must be non-missing to include data from

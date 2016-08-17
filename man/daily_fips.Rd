@@ -9,6 +9,8 @@ daily_fips(fips, coverage = NULL, date_min = NULL, date_max = NULL,
   var = "all", average_data = TRUE, station_label = FALSE)
 }
 \arguments{
+\item{fips}{A five-digit U.S. FIPS code in numeric or factor format.}
+
 \item{coverage}{A numeric value in the range of 0 to 1 that specifies
 the desired percentage coverage for the weather variable (i.e., what
 percent of each weather variable must be non-missing to include data from
