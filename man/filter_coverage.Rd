@@ -12,8 +12,7 @@ filter_coverage(coverage_df, coverage = NULL)
 \item{coverage}{A numeric value in the range of 0 to 1 that specifies
 the desired percentage coverage for the weather variable (i.e., what
 percent of each weather variable must be non-missing to include data from
-a monitor when calculating daily values averaged across monitors.
-(Optional.)}
+a monitor when calculating daily values averaged across monitors.}
 }
 \value{
 a \code{dataframe} with stations that meet the specified coverage

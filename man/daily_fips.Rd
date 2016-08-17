@@ -9,6 +9,8 @@ daily_fips(fips, coverage = NULL, date_min = NULL, date_max = NULL,
   var = "all", average_data = TRUE, station_label = FALSE)
 }
 \arguments{
+\item{fips}{A five-digit U.S. FIPS code in numeric or factor format.}
+
 \item{coverage}{A numeric value in the range of 0 to 1 that specifies
 the desired percentage coverage for the weather variable (i.e., what
 percent of each weather variable must be non-missing to include data from
@@ -16,14 +18,14 @@ a monitor when calculating daily values averaged across monitors.
 (Optional.)}
 
 \item{date_min}{A character string giving the earliest date you want
-   in your dataset in "yyyy-mm-dd" format. (Optional.)
+   in your dataset in "yyyy-mm-dd" format.
 \code{date_min}.}
 
 \item{date_max}{A character string giving the latest date you want
-in your dataset in "yyyy-mm-dd" format. (Optional.)}
+in your dataset in "yyyy-mm-dd" format.}
 
 \item{var}{A character vector specifying desired weather variables. For
-example, var = c("TMIN", "TMAX", "PRCP"). (Optional.)}
+example, var = c("TMIN", "TMAX", "PRCP").}
 
 \item{average_data}{TRUE / FALSE to indicate if you want the function to
 average daily weather data across multiple monitors.}

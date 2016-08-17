@@ -14,14 +14,13 @@ hourly_stationmap(fips, hourly_data, point_color = "firebrick",
 dataframe is returned from the function \code{isd_monitors_data}.}
 
 \item{point_color}{point_color The specified \code{ggplot2} color for each point
-representing the location of a station. (Optional. This argument defaults
-to "firebrick.")}
+representing the location of a station.}
 
 \item{point_size}{The specified \code{ggplot2} size for each point
-representing the location of a station. (Optional. The default size is 2).}
+representing the location of a station.}
 
 \item{station_label}{TRUE / FALSE If TRUE, includes labels giving the id for
-monitor on the map. The default is FALSE. (Optional.)}
+monitor on the map. The default is FALSE.}
 }
 \value{
 A plot showing points for all weather stations for a particular

@@ -14,14 +14,13 @@ of the county for which the user wants to pull weather data.}
 \item{weather_data}{A list returned from \code{daily_df}.}
 
 \item{point_color}{The specified \code{ggplot2} color for each point
-representing the location of a station. (Optional. This argument defaults
-to "firebrick.")}
+representing the location of a station.}
 
 \item{point_size}{The specified \code{ggplot2} size for each point
-representing the location of a station. (Optional. The default size is 2).}
+representing the location of a station.}
 
 \item{station_label}{TRUE / FALSE If TRUE, includes labels giving the id for
-monitor on the map. The default is FALSE. (Optional.)}
+monitor on the map. The default is FALSE.}
 }
 \value{
 A plot showing points for all weather stations for a particular

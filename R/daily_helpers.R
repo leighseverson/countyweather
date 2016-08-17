@@ -30,23 +30,23 @@ fips_stations <- function(fips, date_min = NULL, date_max = NULL){
   FIPS <- paste0('FIPS:', fips)
   station_ids <- rnoaa::ncdc_stations(datasetid = 'GHCND', locationid = FIPS,
                                       limit = 10)
-  df <- station_ids$data
+  station_df <- station_ids$data
   if(station_ids$meta$totalCount > 10){
     how_many_more <- station_ids$meta$totalCount - 10
     more_stations <- rnoaa::ncdc_stations(datasetid = 'GHCND',
                                           locationid = FIPS,
                                           limit = how_many_more,
                                           offset = 10 + 1)
-    station_df <- rbind(df, more_stations$data)
+    station_df <- rbind(station_df, more_stations$data)
   }
 
   # If either `min_date` or `max_date` option was null, set to a date that
   # will keep all monitors in the filtering.
   if(is.null(date_max)){
-    date_max <- min(df$maxdate)
+    date_max <- min(station_df$maxdate)
   }
   if(is.null(date_min)){
-    date_min <- max(df$mindate)
+    date_min <- max(station_df$mindate)
   }
 
   date_max <- lubridate::ymd(date_max)

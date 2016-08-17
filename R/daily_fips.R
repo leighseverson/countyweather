@@ -7,6 +7,7 @@
 #' weather in "data".
 #'
 #' @inheritParams daily_df
+#' @inheritParams fips_stations
 #'
 #' @param station_label TRUE / FALSE to indicate if you want your plot of
 #'    weather station locations to include labels indicating station ids.
@@ -148,6 +149,7 @@ daily_df <- function(stations, coverage = NULL,
   # steps to filter out erroneous data from individual stations
   # precipitation
   if("PRCP" %in% var){
+    filtered_data$prcp <- filtered_data$prcp / 10
     if(max(filtered_data$prcp, na.rm = TRUE) > 1100){
       bad_prcp <- which(with(filtered_data, prcp > 1100))
       filtered_data <- filtered_data[-bad_prcp,]
@@ -172,6 +174,7 @@ daily_df <- function(stations, coverage = NULL,
 
   # tmax
   if("TMAX" %in% var){
+    filtered_data$tmax <- filtered_data$tmax / 10
     if(max(filtered_data$tmax, na.rm = TRUE) > 57){
       bad_tmax <- which(with(filtered_data, tmax > 57))
       filtered_data <- filtered_data[-bad_tmax,]
@@ -180,6 +183,7 @@ daily_df <- function(stations, coverage = NULL,
 
   # tmin
   if("TMIN" %in% var){
+    filtered_data$tmin <- filtered_data$tmin / 10
     if(min(filtered_data$tmin, na.rm = TRUE) < -62){
       bad_tmin <- which(with(filtered_data, tmin < -62))
       filtered_data <- filtered_data[-bad_tmin,]
@@ -210,6 +214,7 @@ daily_df <- function(stations, coverage = NULL,
 #' specified.
 #'
 #' @inheritParams daily_df
+#' @inheritParams fips_stations
 #' @param out_directory The absolute or relative pathname for the directory
 #' where you would like the timeseries files to be saved.
 #' @param out_type A character string indicating that you would like either .rds
@@ -306,6 +311,8 @@ daily_timeseries <- function(fips, coverage = NULL, date_min, date_max, var,
 #'                file_directory = "~/Desktop/exposure_data/ihapps_timeseries",
 #'                plot_directory = "~/Desktop/exposure_data/plots_tmin")
 #' }
+#' @importFrom dplyr %>%
+#'
 #' @export
 plot_daily_timeseries <- function(var, file_directory, file_type = "rds",
                             plot_directory, date_min, date_max){
@@ -323,14 +330,14 @@ plot_daily_timeseries <- function(var, file_directory, file_type = "rds",
   }
 
   for(i in 1:length(files)){
-
-    setwd(file_directory)
-    df <- readRDS(files[i])
+    data <- readRDS(paste0(file_directory, "/", files[i])) %>%
+      dplyr::ungroup() %>%
+      as.data.frame()
 
     file_name <- paste0(file_names[i], ".png")
-    setwd(plot_directory)
-    grDevices::png(filename = file_name)
-    graphics::plot(df$date, df[,var],
+    grDevices::png(filename = paste0(plot_directory, "/", file_name))
+    data$to_plot <- data[ , var]
+    graphics::plot(data$date, data$to_plot,
          type = "l", col = "red", main = file_names[i],
          xlab = "date", ylab = var,
          xlim = c(as.Date(date_min), as.Date(date_max)))

@@ -23,7 +23,7 @@ You can use the following code for this set-up:
 ```{r eval = FALSE}
 library(devtools)
 
-install_github("ropenscilabs/rnoaa")
+install_github("geanders/rnoaa")
 library(rnoaa)
 
 install_github("leighseverson/countyweather")
