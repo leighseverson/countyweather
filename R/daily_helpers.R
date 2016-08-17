@@ -43,10 +43,10 @@ fips_stations <- function(fips, date_min = NULL, date_max = NULL){
   # If either `min_date` or `max_date` option was null, set to a date that
   # will keep all monitors in the filtering.
   if(is.null(date_max)){
-    date_max <- min(df$maxdate)
+    date_max <- min(station_df$maxdate)
   }
   if(is.null(date_min)){
-    date_min <- max(df$mindate)
+    date_min <- max(station_df$mindate)
   }
 
   date_max <- lubridate::ymd(date_max)
