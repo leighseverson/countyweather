@@ -14,7 +14,11 @@ library(countyweather)
 options("noaakey" = Sys.getenv("noaakey"))
 ```
 
-## Setting up to use the package
+While data from weather monitors is available at the specific location of the monitor, it is often useful to have estimates of daily or hourly weather aggregated at a larger spacial level. For US-based studies, it can be particularly userful to be able to pull time series of weather by county. For example, the health data used in environmental epidemiology studies is often aggregated at the county level for US studies, making it very useful for environmental epidemiology applications to be able to create weather datasets by county.
+
+This package builds on functions from the `rnoaa` package to identify weather monitors within a county based on its FIPS code and then pull weather data for a specified date range from those monitors. It then does some additional cleaning and aggregating to produce a single, county-level weather dataset. Further, it maps the monitors used for that county and date range and allows you to create and write datasets for many different counties using a single function call.
+
+## Required set-up for this package
 
 Currently, this package exists in a development version on GitHub. To use the function, you need to install it directly from GitHub using the `install_github` function from `devtools`. Further, the package relies on some functions that are in a development version of `rnoaa`, so you need to install that version of the `rnoaa` package. 
 
@@ -44,11 +48,9 @@ Save this text file as `.Renviron` in your home directory. (If prompted with a c
 options("noaakey" = Sys.getenv("noaakey"))
 ```
 
-This package draws mainly on functions from the `rnoaa` package to identify weather monitors within a county based on its FIPS code and then pull weather data for a specified date range from those monitors. It then does some additional cleaning and aggregating to produce a single, county-level weather dataset. Further, it maps the monitors used for that county and date range and allows you to create and write datasets for many different counties using a single function call.
-
 ## Basic examples of using the package
 
-This package allows you to pull data based on a US county's corresponding Federal Information Processing Standard (FIPS) code. FIPS codes are 5-digit codes that uniquely identify every US county. The first two digits specify state and the last three specify the county within the state. The health data used in environmental epidemiology studies is often aggregated at the county level for US studies, making it very useful to be able to create weather datasets by county. 
+This package allows you to pull data based on a US county's corresponding Federal Information Processing Standard (FIPS) code. FIPS codes are 5-digit codes that uniquely identify every US county. The first two digits specify state and the last three specify the county within the state.  
 
 Currently, this package can pull daily and hourly weather data for variables like temperature and precipitation. (For resources with complete lists of available weather variables, see the section titled 'More on the weather data'). The weather data is collected at monitors, and there are often multiple weather monitors within a county. This package allows you to specify a county and then will pull weather data from all monitors in that county over a specified date range, and average the daily or hourly values to generate an average time series for that county. There is an option (`average_data = TRUE / FALSE`) that allows the user to opt out of the default aggregation across weather stations. 
 
