@@ -8,13 +8,15 @@ daily_timeseries(fips, coverage = NULL, date_min, date_max, var,
   average_data = TRUE, out_directory, out_type = "rds")
 }
 \arguments{
-\item{fips}{A five-digit U.S. FIPS code in numeric or factor format.}
+\item{fips}{A string with the five-digit U.S. FIPS code of a county
+in numeric, character, or factor format.}
 
 \item{coverage}{A numeric value in the range of 0 to 1 that specifies
 the desired percentage coverage for the weather variable (i.e., what
 percent of each weather variable must be non-missing to include data from
-a monitor when calculating daily values averaged across monitors.
-(Optional.)}
+a monitor when calculating daily values averaged across monitors. The
+default is to include all monitors with any available data (i.e.,
+\code{coverage = 0}).}
 
 \item{date_min}{A character string giving the earliest date you want
    in your dataset in "yyyy-mm-dd" format.

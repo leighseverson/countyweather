@@ -14,8 +14,9 @@ the function \code{fips_stations}.}
 \item{coverage}{A numeric value in the range of 0 to 1 that specifies
 the desired percentage coverage for the weather variable (i.e., what
 percent of each weather variable must be non-missing to include data from
-a monitor when calculating daily values averaged across monitors.
-(Optional.)}
+a monitor when calculating daily values averaged across monitors. The
+default is to include all monitors with any available data (i.e.,
+\code{coverage = 0}).}
 
 \item{var}{A character vector specifying desired weather variables. For
 example, var = c("TMIN", "TMAX", "PRCP").}

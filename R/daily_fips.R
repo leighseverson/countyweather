@@ -1,10 +1,9 @@
-#' Return average daily weather data and a plot showing the location of weather
-#' stations for a particular county.
+#' Pull average daily weather data by US county
 #'
 #' Given a particular county FIPS code, this function returns a list with two
-#' elements: "data", a dataframe of daily average weather values, and "plot",
-#' a plot showing the location of weather stations contributing to the average
-#' weather in "data".
+#' elements: \code{daily_data}, a dataframe of daily average weather values, and
+#' \code{station_map}, a map showing the location of weather stations
+#' contributing to the average weather data in the \code{daily_data} dataframe.
 #'
 #' @inheritParams daily_df
 #' @inheritParams fips_stations
@@ -23,7 +22,8 @@
 #'
 #' @note You must have a NOAA API to use this function, and you need to set
 #'    that API code in your R session (e.g., using
-#'    \code{options(noaakey = "your key"}).
+#'    \code{options(noaakey = "your key")}, replacing "your key" with the API
+#'    key you've requested from NOAA).
 #'
 #' @examples
 #' \dontrun{
@@ -91,8 +91,9 @@ daily_fips <- function(fips, coverage = NULL,
 #' @param coverage A numeric value in the range of 0 to 1 that specifies
 #'    the desired percentage coverage for the weather variable (i.e., what
 #'    percent of each weather variable must be non-missing to include data from
-#'    a monitor when calculating daily values averaged across monitors.
-#'    (Optional.)
+#'    a monitor when calculating daily values averaged across monitors. The
+#'    default is to include all monitors with any available data (i.e.,
+#'    \code{coverage = 0}).
 #' @param date_min A character string giving the earliest date you want
 #'    in your dataset in "yyyy-mm-dd" format.
 #' \code{date_min}.

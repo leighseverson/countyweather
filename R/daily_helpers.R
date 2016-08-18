@@ -9,13 +9,14 @@
 #' Then run the code \code{options(noaakey = "your key")} before using this
 #' function.
 #'
-#' @param fips A five-digit U.S. FIPS code in numeric or factor format.
-#' @param date_min Accepts date in character, ISO format ("yyyy-mm-dd"). The
-#'    dataframe returned will include only stations that have data for dates
-#'    including and after the specified date.
-#' @param date_max Accepts date in character, ISO format ("yyyy-mm-dd"). The
-#'    dataframe returned will include only stations that have data for dates
-#'    including and before the specified date.
+#' @param fips A string with the five-digit U.S. FIPS code of a county
+#'    in numeric, character, or factor format.
+#' @param date_min A string with the desired starting date in character, ISO
+#'    format ("yyyy-mm-dd"). The dataframe returned will include only stations
+#'    that have data for dates including and after the specified date.
+#' @param date_max A string with the desired ending date in character, ISO
+#'    format ("yyyy-mm-dd"). The dataframe returned will include only stations
+#'    that have data for dates up to and including the specified date.
 #'
 #' @examples
 #' \dontrun{
