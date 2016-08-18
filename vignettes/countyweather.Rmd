@@ -82,6 +82,8 @@ andrew_precip <- daily_fips(fips = "12086", date_min = "1992-08-01",
                             date_max = "1992-08-31", var = "PRCP")
 ```
 
+This function performs some simple data cleaning and quality control on the weather data originally pulled from NOAA's web services; see the section later in this document on the weather data for more details, including the units for the weather observations collected by this function.
+
 The output from this function call includes both the weather dataset (`andrew_precip$daily_data`) and a map showing the locations of weather monitors included in the county-averaged dataset (`anderew_precip$station_map`). 
 
 Here are the first few rows of the dataset: 
@@ -110,26 +112,39 @@ A map is also included in the output of `daily_fips` with the monitors used for 
 andrew_precip$station_map
 ```
 
-This map uses functions from the `choroplethr` package to overlay weather monitor locations on a shaded map showing the county's boundaries. 
+This map uses functions from the `choroplethr` package to overlay weather monitor locations on a shaded map showing the county's boundaries [can we figure out the dates that these county boundary shapefiles are relevant for? For example, are they based on US county boundaries as of this year? As of the last census in 2010?]. 
 
 ### Pulling hourly data
 
-Here is an example of pulling hourly data for Miami-Dade, for the year of Hurricane Andrew. While daily data can be pulled by day (`date_min` and `date_max` take dates in "yyyy-mm-dd" format), hourly data is pulled by year:
+You can also use functions in the `county_weather` package to pull hourly wind speed and temperature data by county from NOAA's Integrated Surface Data (ISD) weather dataset. In this case, NOAA's web services will not identify weather monitors by FIPS, so instead this function will pull all monitors within a certain radius [what's the default radius?] of the county's population mean center to represent weather within that county [this is how we identify monitors for a county for the hourly data, right?]. 
+
+Here is an example of pulling hourly data for Miami-Dade, for the year of Hurricane Andrew. While daily weather data can be pulled using a date range specified to the day, hourly data can only be pulled by year, and must be pulled for one year at a time [is this right?], using the `year` argument:
 
 ```{r}
 andrew_hourly <- hourly_fips(fips = "12086", year = 1992,
                            var = c("wind_speed", "temperature"))
 ```
 
-The output from this call includes the date-time of the observation (given in UTC), values for the weather variables selected, and the number of monitors reporting for each observation of each weather variable: 
+The output from this call is a list object that includes the dataset of hourly values (`hourly_data`). This dataset includes. the date-time of the observation (given in UTC), values for the weather variables selected, and the number of monitors reporting for each observation of each weather variable: 
 
 ```{r}
 head(andrew_hourly$hourly_data)
 ```
 
-Here are hourly values for the month of Hurricane Andrew:
+If you need to get the timestamp for each observation in local time, you can use the `add_local_time` function from the `countytimezones` package to do that:
 
-```{r fig.width = 8, fig.height = 4, message = FALSE, warning = FALSE}
+```{r}
+andrew_hourly_data <- as.data.frame(andrew_hourly$hourly_data) 
+
+library(countytimezones)
+andrew_hourly_data <- add_local_time(df = andrew_hourly_data, fips = "12086",
+                                     datetime_colname = "date_time")
+head(andrew_hourly_data)
+```
+
+Here is a plot of hourly wind speeds for Miami-Dade County, FL, for the month of Hurricane Andrew:
+
+```{r fig.width = 7, fig.height = 3, message = FALSE, warning = FALSE}
 library(dplyr)
 library(lubridate)
 to_plot <- andrew_hourly$hourly_data %>%
@@ -142,13 +157,17 @@ ggplot(to_plot, aes(x = date_time, y = wind_speed,
   scale_color_continuous(name = "# monitors\nreporting")
 ```
 
-## Futher options available in the package
+Again, the intensity of conditions during Hurricane Andrew is clear, as is the reduction in the number of reporting monitors during the storm. 
 
-### `coverage` 
+The list object returned by `hourly_fips` also includes a map of monitor locations (`station_map`): 
 
-For hourly and daily weather, the user can choose to filter out any monitors that report variables for less that a certain percent of time (`coverage`). For example, if you were to set `coverage` to 0.90, only monitors that reported non-missing values at least 90% of the time would be included in your data. 
+```{r}
+andrew_hourly$station_map
+```
 
-### Writing out timeseries files 
+[For this station map, if we're pulling monitors by distance from the county center, then we'll have some outside the county boundaries. Does this map show monitors outside the county boundaries? If not, we may want to tweak the code to get a map that includes all of the monitors used for the county to calculate the hourly average, not just the ones that fall within the county boundaries.]
+
+## Writing out timeseries files 
 
 There are a few functions that allow the user to write out daily or hourly timeseries datasets as RDS or CSV files to a specified local directory, as well as plots of this data. For daily weather data, see the functions \code{county_timeseries} and \code{plot_timeseries}. For hourly, see \code{hourly_timeseries} and \code{hourly_plots}. If we wanted to compare daily weather in the month of August for several counties in southern Florida, we could run: 
 
@@ -175,6 +194,12 @@ df <- andrew_precip$daily_data
 plot(df$date, df$prcp, type = "l", col = "red", main = "12086", xlab = "date", 
      ylab = "prcp", xlim = c(as.Date("1992-08-01"), as.Date("1992-08-31")))
 ```
+
+## Futher options available in the package
+
+### `coverage` 
+
+For hourly and daily weather, the user can choose to filter out any monitors that report variables for less that a certain percent of time (`coverage`). For example, if you were to set `coverage` to 0.90, only monitors that reported non-missing values at least 90% of the time would be included in your data. 
 
 ### `average_data` 
 
