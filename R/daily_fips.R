@@ -20,10 +20,13 @@
 #'    in \code{daily_fips}'s arguments (coverage, date_min, date_max,
 #'    and/or var).
 #'
-#' @note You must have a NOAA API to use this function, and you need to set
-#'    that API code in your R session (e.g., using
+#' @note Because this function uses the NOAA API to identify the weather
+#'    monitors within a US county, you will need to get an access token from
+#'    NOAA to use this function. Visit NOAA's token request page
+#'    (\url{http://www.ncdc.noaa.gov/cdo-web/token}) to request a token by
+#'    email. You then need to set that API code in your R session (e.g., using
 #'    \code{options(noaakey = "your key")}, replacing "your key" with the API
-#'    key you've requested from NOAA).
+#'    key you've requested from NOAA). See the package vignette for more details.
 #'
 #' @examples
 #' \dontrun{
@@ -76,15 +79,15 @@ daily_fips <- function(fips, coverage = NULL,
 #' This function serves as a wrapper to several functions from the \code{rnoaa}
 #' package, which provides weather data from all relevant stations in a county.
 #' This function filters and averages across stations based on user-specified
-#' coverage specifications.
+#' coverage specifications for weather monitors.
 #'
 #' @note Because this function uses the NOAA API to identify the weather
 #'    monitors within a US county, you will need to get an access token from
 #'    NOAA to use this function. Visit NOAA's token request page
 #'    (\url{http://www.ncdc.noaa.gov/cdo-web/token}) to request a token by
-#'    email, and then use the code
-#'    \code{options("noaakey" = "<key NOAA emails you>")} to set up your
-#'    API access.
+#'    email. You then need to set that API code in your R session (e.g., using
+#'    \code{options(noaakey = "your key")}, replacing "your key" with the API
+#'    key you've requested from NOAA). See the package vignette for more details.
 #'
 #' @param stations A dataframe containing station metadata, returned from
 #'    the function \code{fips_stations}.
@@ -94,15 +97,21 @@ daily_fips <- function(fips, coverage = NULL,
 #'    a monitor when calculating daily values averaged across monitors. The
 #'    default is to include all monitors with any available data (i.e.,
 #'    \code{coverage = 0}).
-#' @param date_min A character string giving the earliest date you want
-#'    in your dataset in "yyyy-mm-dd" format.
-#' \code{date_min}.
-#' @param date_max A character string giving the latest date you want
-#'    in your dataset in "yyyy-mm-dd" format.
 #' @param var A character vector specifying desired weather variables. For
-#'    example, var = c("TMIN", "TMAX", "PRCP").
+#'    example, var = c("TMIN", "TMAX", "PRCP"). The default is \code{"all"},
+#'    which includes all available weather variables. For a full list of all
+#'    possible variable names, see NOAA's README file for the Daily Global
+#'    Historical Climatology Network (GHCN-Daily) at
+#'    \url{http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt}. Many of
+#'    the weather variables are available for some, but not all, monitors, so
+#'    your output from this function may not include all the variables
+#'    specified using this argument; if you specify a variable here but it is
+#'    not included in the output dataset, it means that it was not available in
+#'    the time range for any monitor in the county.
+#'
 #' @param average_data TRUE / FALSE to indicate if you want the function to
 #'    average daily weather data across multiple monitors.
+#' @inheritParams fips_stations
 #'
 #' @return A list with two elements. \code{daily_data} is a dataframe of daily
 #'    weather data averaged across multiple monitors, as well as columns

@@ -4,10 +4,13 @@
 #' a single U.S. county. This function has options to filter stations based on
 #' start and end date of available data, as well as percent of data coverage.
 #'
-#' A NOAA Token is required to use this function, which interacts with the NCDC
-#' API. Request a Token from here: \url{http://www.ncdc.noaa.gov/cdo-web/token}.
-#' Then run the code \code{options(noaakey = "your key")} before using this
-#' function.
+#' @note Because this function uses the NOAA API to identify the weather
+#'    monitors within a US county, you will need to get an access token from
+#'    NOAA to use this function. Visit NOAA's token request page
+#'    (\url{http://www.ncdc.noaa.gov/cdo-web/token}) to request a token by
+#'    email. You then need to set that API code in your R session (e.g., using
+#'    \code{options(noaakey = "your key")}, replacing "your key" with the API
+#'    key you've requested from NOAA). See the package vignette for more details.
 #'
 #' @param fips A string with the five-digit U.S. FIPS code of a county
 #'    in numeric, character, or factor format.
