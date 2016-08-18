@@ -73,15 +73,13 @@ Currently, this package can pull daily and hourly weather data for variables lik
 
 ### Pulling daily data
 
-The `daily_fips` function can be used to pull daily weather data for all monitors in a county. This daily weather data comes from NOAA's Global ... . This function pulls data from all monitors within the geographic boundaries of the county [this is true, right?]. When pulling data for a county, the user can specify date ranges (`date_min`, `date_max`), variables to include in the output dataset (`var`), and restrictions on how much non-missing data a monitor must have over the time period to be included when generating daily county average values (`coverage`). This function will pull any available data for the county under the specified restrictions and output both a dataset of average daily observations and a map plotting the stations used in the county-wide average data.
+The `daily_fips` function can be used to pull daily weather data for all monitors in a county. This daily weather data comes from NOAA's Global Historical Climatology Network. This function pulls data from all monitors within the geographic boundaries of the county [this is true, right?]. When pulling data for a county, the user can specify date ranges (`date_min`, `date_max`), variables to include in the output dataset (`var`), and restrictions on how much non-missing data a monitor must have over the time period to be included when generating daily county average values (`coverage`). This function will pull any available data for the county under the specified restrictions and output both a dataset of average daily observations and a map plotting the stations used in the county-wide average data.
 
 Here is an example of creating a dataset with daily precipitation for Miami-Dade county (FIPS code = 12086) for August 1992, when Hurricane Andrew stuck: 
 
 ```{r warning = FALSE, message = FALSE}
-andrew_precip <- daily_fips(fips = "12086", 
-                            date_min = "1992-08-01", 
-                            date_max = "1992-08-31",
-                            var = "PRCP")
+andrew_precip <- daily_fips(fips = "12086", date_min = "1992-08-01", 
+                            date_max = "1992-08-31", var = "PRCP")
 ```
 
 The output from this function call includes both the weather dataset (`andrew_precip$daily_data`) and a map showing the locations of weather monitors included in the county-averaged dataset (`anderew_precip$station_map`). 
@@ -92,27 +90,27 @@ Here are the first few rows of the dataset:
 head(andrew_precip$daily_data)
 ```
 
-The dataset includes columns for date (`date`), precipitation (in mm, `prcp`), and also the number of stations used to calculated each precipitation observation (`prcp_reporting`).
+The dataset includes columns for date (`date`), precipitation (in mm, `prcp`), and also the number of stations used to calculate each daily average precipitation observation (`prcp_reporting`).
 
-Here is a plot of this data:
+Here is a plot of this data, with colors used to show the number of monitors included in each daily observation:
 
-```{r fig.width = 6, fig.height = 4}
+```{r fig.width = 7, fig.height = 3}
 library(ggplot2)
-ggplot(andrew_precip$daily_data, aes(x = date, y = prcp,
-                                     color = prcp_reporting)) + 
-  geom_line() + 
-  theme_minimal() + 
+ggplot(andrew_precip$daily_data, aes(x = date, y = prcp, color = prcp_reporting)) + 
+  geom_line() + geom_point() + theme_minimal() + 
   xlab("Date in 1992") + ylab("Daily rainfall (mm)") + 
   scale_color_continuous(name = "# monitors\nreporting")
 ```
 
-From this plot, you can see both the extreme precipitation associated with Hurricane Andrew and that the storm knocked out quite a few of the weather monitors normally available.
+From this plot, you can see both the extreme precipitation associated with Hurricane Andrew (Aug. 24) and that the storm knocked out quite a few of the weather monitors normally available.
 
-To see a map of the monitors used for the county average, run:
+A map is also included in the output of `daily_fips` with the monitors used for the county average, as the `station_map` element:
 
 ```{r warning = FALSE}
 andrew_precip$station_map
 ```
+
+This map uses functions from the `choroplethr` package to overlay weather monitor locations on a shaded map showing the county's boundaries. 
 
 ### Pulling hourly data
 
