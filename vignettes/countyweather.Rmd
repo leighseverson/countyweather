@@ -200,14 +200,20 @@ library(knitr)
 kable(qual, format = "markdown")
 ```
 
-
+Because it makes no sense to average these codes across monitors, the codes should only be pulled when using the option to pull monitor-specific values (average_data = FALSE).
 
 ```{r}
 ex <- hourly_fips("12086", 1992, var = c("wind_speed", "wind_speed_quality"), 
                   average_data = FALSE)
 ex_data <- ex$hourly_data
+head(ex_data)
+```
 
+We can replace all wind speed observations with quality codes of 2, 3, 6, or 7 with `NA`s. 
 
+```{r}
+ex_data$wind_speed_quality <- as.numeric(ex_data$wind_speed_quality)
+ex_data$wind_speed[ex_data$wind_speed_quality == 2|3|6|7] <- NA
 ```
 
 ## More on the weather data
