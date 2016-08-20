@@ -14,18 +14,29 @@ the function \code{fips_stations}.}
 \item{coverage}{A numeric value in the range of 0 to 1 that specifies
 the desired percentage coverage for the weather variable (i.e., what
 percent of each weather variable must be non-missing to include data from
-a monitor when calculating daily values averaged across monitors.
-(Optional.)}
+a monitor when calculating daily values averaged across monitors. The
+default is to include all monitors with any available data (i.e.,
+\code{coverage = 0}).}
 
 \item{var}{A character vector specifying desired weather variables. For
-example, var = c("TMIN", "TMAX", "PRCP").}
+example, var = c("TMIN", "TMAX", "PRCP"). The default is \code{"all"},
+which includes all available weather variables. For a full list of all
+possible variable names, see NOAA's README file for the Daily Global
+Historical Climatology Network (GHCN-Daily) at
+\url{http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt}. Many of
+the weather variables are available for some, but not all, monitors, so
+your output from this function may not include all the variables
+specified using this argument; if you specify a variable here but it is
+not included in the output dataset, it means that it was not available in
+the time range for any monitor in the county.}
 
-\item{date_min}{A character string giving the earliest date you want
-   in your dataset in "yyyy-mm-dd" format.
-\code{date_min}.}
+\item{date_min}{A string with the desired starting date in character, ISO
+format ("yyyy-mm-dd"). The dataframe returned will include only stations
+that have data for dates including and after the specified date.}
 
-\item{date_max}{A character string giving the latest date you want
-in your dataset in "yyyy-mm-dd" format.}
+\item{date_max}{A string with the desired ending date in character, ISO
+format ("yyyy-mm-dd"). The dataframe returned will include only stations
+that have data for dates up to and including the specified date.}
 
 \item{average_data}{TRUE / FALSE to indicate if you want the function to
 average daily weather data across multiple monitors.}
@@ -51,16 +62,16 @@ longitude, id, and name.
 This function serves as a wrapper to several functions from the \code{rnoaa}
 package, which provides weather data from all relevant stations in a county.
 This function filters and averages across stations based on user-specified
-coverage specifications.
+coverage specifications for weather monitors.
 }
 \note{
 Because this function uses the NOAA API to identify the weather
    monitors within a US county, you will need to get an access token from
    NOAA to use this function. Visit NOAA's token request page
    (\url{http://www.ncdc.noaa.gov/cdo-web/token}) to request a token by
-   email, and then use the code
-   \code{options("noaakey" = "<key NOAA emails you>")} to set up your
-   API access.
+   email. You then need to set that API code in your R session (e.g., using
+   \code{options(noaakey = "your key")}, replacing "your key" with the API
+   key you've requested from NOAA). See the package vignette for more details.
 }
 \examples{
 \dontrun{

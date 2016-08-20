@@ -4,18 +4,22 @@
 #' a single U.S. county. This function has options to filter stations based on
 #' start and end date of available data, as well as percent of data coverage.
 #'
-#' A NOAA Token is required to use this function, which interacts with the NCDC
-#' API. Request a Token from here: \url{http://www.ncdc.noaa.gov/cdo-web/token}.
-#' Then run the code \code{options(noaakey = "your key")} before using this
-#' function.
+#' @note Because this function uses the NOAA API to identify the weather
+#'    monitors within a US county, you will need to get an access token from
+#'    NOAA to use this function. Visit NOAA's token request page
+#'    (\url{http://www.ncdc.noaa.gov/cdo-web/token}) to request a token by
+#'    email. You then need to set that API code in your R session (e.g., using
+#'    \code{options(noaakey = "your key")}, replacing "your key" with the API
+#'    key you've requested from NOAA). See the package vignette for more details.
 #'
-#' @param fips A five-digit U.S. FIPS code in numeric or factor format.
-#' @param date_min Accepts date in character, ISO format ("yyyy-mm-dd"). The
-#'    dataframe returned will include only stations that have data for dates
-#'    including and after the specified date.
-#' @param date_max Accepts date in character, ISO format ("yyyy-mm-dd"). The
-#'    dataframe returned will include only stations that have data for dates
-#'    including and before the specified date.
+#' @param fips A string with the five-digit U.S. FIPS code of a county
+#'    in numeric, character, or factor format.
+#' @param date_min A string with the desired starting date in character, ISO
+#'    format ("yyyy-mm-dd"). The dataframe returned will include only stations
+#'    that have data for dates including and after the specified date.
+#' @param date_max A string with the desired ending date in character, ISO
+#'    format ("yyyy-mm-dd"). The dataframe returned will include only stations
+#'    that have data for dates up to and including the specified date.
 #'
 #' @examples
 #' \dontrun{
