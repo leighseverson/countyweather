@@ -128,15 +128,12 @@ hourly_df <- function(fips, year,
 #' number of weather stations contributing to the average for each day within the
 #' specified date range.
 #'
-#' @return Writes out a directory with daily weather files for each FIPS code
-#' specified.
+#' @return Writes out a directory with daily weather RDS files for each FIPS
+#' code specified.
 #'
 #' @inheritParams hourly_df
 #' @param out_directory The absolute or relative pathname for the directory
 #' where you would like the timeseries files to be saved.
-#' @param out_type A character string indicating that you would like either .rds
-#' files (out_type = "rds") or .csv files (out_type = ".csv"). This option
-#' defaults to .rds files.
 #'
 #' @note If the function is unable to pull weather data for a particular county
 #' given the specified percent coverage, date range, and/or weather variables,
@@ -152,7 +149,7 @@ hourly_df <- function(fips, year,
 hourly_timeseries <- function(fips, coverage = NULL, year,
                               var = "all", radius = 50,
                               average_data = TRUE,
-                              out_directory, out_type = "rds"){
+                              out_directory){
   if(!dir.exists(out_directory)){
     dir.create(out_directory)
   }
@@ -162,11 +159,7 @@ hourly_timeseries <- function(fips, coverage = NULL, year,
                                coverage = coverage,
                                average_data = average_data)$hourly_data
       out_file <- paste0(out_directory, "/", fips[i], ".", out_type)
-      if(out_type == "rds"){
         saveRDS(out_df, file = out_file)
-      } else if (out_type == "csv"){
-        utils::write.csv(out_df, file = out_file, row.names = FALSE)
-      }
     }
     ,
     error = function(e) {
@@ -196,9 +189,6 @@ hourly_timeseries <- function(fips, coverage = NULL, year,
 #' @param file_directory The absolute or relative pathname for the directory
 #' where your daily timeseries dataframes (produced by \code{county_timeseries})
 #' are saved.
-#' @param file_type A character string indicating the type of timeseries files
-#' you would like to produce plots for (either "rds" or "csv"). This option
-#' defaults to .rds files.
 #' @param plot_directory The absolute or relative pathname for the directory
 #' where you would like the plots to be saved.
 #' @param year A year or vecotr of years giving the year(s) present in the
@@ -210,7 +200,7 @@ hourly_timeseries <- function(fips, coverage = NULL, year,
 #'                plot_directory = "~/timeseries_plots")
 #'}
 #' @export
-plot_hourly_timeseries <- function(var, year, file_directory, file_type = "rds",
+plot_hourly_timeseries <- function(var, year, file_directory,
                                   plot_directory){
   files <- list.files(file_directory)
 
@@ -221,11 +211,7 @@ plot_hourly_timeseries <- function(var, year, file_directory, file_type = "rds",
     dir.create(plot_directory)
   }
 
-  if(file_type == "rds"){
     file_names <- gsub(".rds", "", files)
-  } else if (file_type == "csv"){
-    file_names <- gsub(".csv", "", files)
-  }
 
   for(i in 1:length(files)){
 
