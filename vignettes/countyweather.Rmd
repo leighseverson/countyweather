@@ -185,7 +185,7 @@ daily_timeseries(fips = fl_counties, date_min = "1992-08-01",
 
 [Add a line-- what happens at this stage if you put in a county with no available data?]
 
-`daily_timeseries()` saves each county's timeseries as a separate .rds file in the directory specified in the `out_directory` option. The function `plot_daily_timeseries` creates and saves plots for each of these .rds files 
+`daily_timeseries()` saves each county's timeseries as a separate .rds file in the directory specified in the `out_directory` option. The function `plot_daily_timeseries` creates and saves plots for each of these .rds files. 
 
 ```{r eval = FALSE}
 plot_daily_timeseries("prcp", file_directory = "~/Documents/andrew_data", 
