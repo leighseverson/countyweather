@@ -16,11 +16,11 @@
 #'    as columns (\code{"var"_reporting}) for each weather variable showing the
 #'    number of stations contributing to the average for that variable on that
 #'    day. The second element (\code{station_metadata} is a dataframe of station
-#'    metadata for stations included in the \code{daily_data} dataframe.
-#'    The third element (\code{station_map}) is a plot showing points for all
-#'    weather stations for a particular county satisfying the conditions present
-#'    in \code{daily_fips}'s arguments (coverage, date_min, date_max,
-#'    and/or var).
+#'    metadata for stations included in the \code{daily_data} dataframe. Columns
+#'    include station id, latitude, longitude, and name. The third element
+#'    (\code{station_map}) is a plot showing points for all weather stations for
+#'    a particular county satisfying the conditions present in
+#'    \code{daily_fips}'s arguments (coverage, date_min, date_max, and/or var).
 #'
 #' @note Because this function uses the NOAA API to identify the weather
 #'    monitors within a US county, you will need to get an access token from
@@ -244,7 +244,8 @@ daily_df <- function(stations, coverage = NULL,
 #' }
 #'
 #' @export
-daily_timeseries <- function(fips, coverage = NULL, date_min, date_max, var,
+daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
+                             date_max = NULL, var = "all",
                               average_data = TRUE,
                               out_directory){
 
@@ -253,16 +254,12 @@ daily_timeseries <- function(fips, coverage = NULL, date_min, date_max, var,
   }
   for(i in 1:length(fips)) {
     possibleError <- tryCatch({
-      stations <- fips_stations(fips = fips[i], date_min = date_min,
-                                date_max = date_max)
-      out_df <- daily_df(stations = stations,
-                                coverage = coverage,
-                                var = var, date_min = date_min,
-                                date_max = date_max,
-                         average_data = average_data)$daily_data
 
-      out_file <- paste0(out_directory, "/", fips[i], ".", out_type)
-        saveRDS(out_df, file = out_file)
+      out_list <- daily_fips(fips = fips[i], date_min = date_min,
+                             date_max = date_max, var = var)
+
+      out_file <- paste0(out_directory, "/", fips[i], ".rds")
+        saveRDS(out_list, file = out_file)
     }
     ,
     error = function(e) {
@@ -329,14 +326,15 @@ plot_daily_timeseries <- function(var, file_directory,
     file_names <- gsub(".rds", "", files)
 
   for(i in 1:length(files)){
-    data <- readRDS(paste0(file_directory, "/", files[i])) %>%
+    data <- readRDS(paste0(file_directory, "/", files[i]))
+    weather <- data$daily_data %>%
       dplyr::ungroup() %>%
       as.data.frame()
 
     file_name <- paste0(file_names[i], ".png")
     grDevices::png(filename = paste0(plot_directory, "/", file_name))
-    data$to_plot <- data[ , var]
-    graphics::plot(data$date, data$to_plot,
+    weather$to_plot <- weather[ , var]
+    graphics::plot(weather$date, weather$to_plot,
          type = "l", col = "red", main = file_names[i],
          xlab = "date", ylab = var,
          xlim = c(as.Date(date_min), as.Date(date_max)))
