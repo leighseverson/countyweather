@@ -12,11 +12,13 @@
 #'    weather station locations to include labels indicating station usaf id
 #'    numbers.
 #'
-#' @return A list with two elements. The first element (\code{hourly_data}) is a
+#' @return A list with three elements. The first element (\code{hourly_data}) is a
 #'    dataframe of daily weather data averaged across multiple stations, as well
 #'    as columns (\code{"var"_reporting}) for each weather variable showing the
 #'    number of stations contributing to the average for that variable for that
-#'    hour. The second element (\code{station_map}) is a plot showing points for all
+#'    hour. The second element (\code{station_metadata} is a dataframe of station
+#'    metadata for stations included in the \code{daily_data} dataframe.
+#'    The third element (\code{station_map}) is a plot showing points for all
 #'    weather stations for a particular county satisfying the conditions present
 #'    in \code{hourly_fips}'s arguments (year, coverage, and/or var).
 #'
@@ -35,8 +37,8 @@ hourly_fips <- function(fips, year, var = "all",
                                    station_label = FALSE)
 
   list <- list("hourly_data" = weather_data$hourly_data,
-               "station_map" = station_map,
-               "station_metadata" = weather_data$station_df)
+               "station_metadata" = weather_data$station_df,
+               "station_map" = station_map)
   return(list)
 
 }

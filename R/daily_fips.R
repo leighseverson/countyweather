@@ -11,11 +11,13 @@
 #' @param station_label TRUE / FALSE to indicate if you want your plot of
 #'    weather station locations to include labels indicating station ids.
 #'
-#' @return A list with two elements. The first element (\code{daily_data}) is a
+#' @return A list with three elements. The first element (\code{daily_data}) is a
 #'    dataframe of daily weather data averaged across multiple stations, as well
 #'    as columns (\code{"var"_reporting}) for each weather variable showing the
 #'    number of stations contributing to the average for that variable on that
-#'    day. The second element (\code{station_map}) is a plot showing points for all
+#'    day. The second element (\code{station_metadata} is a dataframe of station
+#'    metadata for stations included in the \code{daily_data} dataframe.
+#'    The third element (\code{station_map}) is a plot showing points for all
 #'    weather stations for a particular county satisfying the conditions present
 #'    in \code{daily_fips}'s arguments (coverage, date_min, date_max,
 #'    and/or var).
@@ -62,6 +64,7 @@ daily_fips <- function(fips, coverage = NULL,
                                  weather_data = weather_data,
                                  station_label = station_label)
   list <- list("daily_data" = weather_data$daily_data,
+               "station_metadata" = weather_data$station_df,
                "station_map" = station_map)
   return(list)
 }
