@@ -29,6 +29,7 @@ Imports:
 RoxygenNote: 5.0.1
 Depends:
     R (>= 3.2.3)
-Suggests: knitr,
+Suggests: countytimezones,
+    knitr,
     rmarkdown
 VignetteBuilder: knitr
