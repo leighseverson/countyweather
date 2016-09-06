@@ -326,8 +326,8 @@ plot_daily_timeseries <- function(var, file_directory,
     file_names <- gsub(".rds", "", files)
 
   for(i in 1:length(files)){
-    data <- readRDS(paste0(file_directory, "/", files[i]))
-    weather <- data$daily_data %>%
+    dat <- readRDS(paste0(file_directory, "/", files[i]))
+    weather <- dat$daily_data %>%
       dplyr::ungroup() %>%
       as.data.frame()
 
