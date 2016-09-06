@@ -103,16 +103,41 @@ hourly_df <- function(fips, year,
   hourly_list <- lapply(year, function(x) isd_monitors_data(fips = fips,
                                                             year = x,
                                                             var = var,
-                                                            radius = radius)$df)
-  data <- dplyr::bind_rows(hourly_list)
+                                                            radius = radius))
+
+  for(i in 1:length(year)){
+    list <- hourly_list[[i]]
+    if (i == 1){
+      data <- list$df
+    } else {
+      data <- dplyr::bind_rows(data, list$df)
+    }
+  }
+
+  # station meta data for one county (unfiltered)
+
+  for(i in 1:length(year)){
+    list <- hourly_list[[i]]
+    if (i == 1){
+      station_metadata <- list$ids
+    } else {
+      station_metadata <- dplyr::bind_rows(station_metadata, list$ids)
+    }
+  }
+
+  station_metadata <- unique(station_metadata) %>%
+    dplyr::mutate_(station = ~ paste(usaf, wban, sep = "-"))
 
   # if coverage is not null, filter stations
   if(!purrr::is_null(coverage)){
-    data <- filter_hourly(hourly_data = data, coverage = coverage, var = var)
-  }
+    filtered_list <- filter_hourly(hourly_data = data, coverage = coverage, var = var)
+    data <- filtered_list$df
 
-  # station meta data for one county
-  station_metadata <- isd_monitors_data$ids
+    filtered_stations <- filtered_list$stations
+
+    station_metadata <- dplyr::filter_(station_metadata, ~ station %in%
+                                         filtered_stations)
+    }
 
   # average hourly across multiple stations
   if(average_data == TRUE){
