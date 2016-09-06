@@ -101,9 +101,9 @@ hourly_df <- function(fips, year,
 
   # hourly data for multiple monitors
   hourly_list <- lapply(year, function(x) isd_monitors_data(fips = fips,
-                                                              year = x,
-                                                              var = var,
-                                                              radius = radius))
+                                                            year = x,
+                                                            var = var,
+                                                            radius = radius)$df)
   data <- dplyr::bind_rows(hourly_list)
 
   # if coverage is not null, filter stations
@@ -112,7 +112,7 @@ hourly_df <- function(fips, year,
   }
 
   # station meta data for one county
-  station_metadata <- isd_fips_stations(fips)
+  station_metadata <- isd_monitors_data$ids
 
   # average hourly across multiple stations
   if(average_data == TRUE){
