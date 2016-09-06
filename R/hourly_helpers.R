@@ -267,9 +267,10 @@ ave_hourly <- function(hourly_data){
 #'    "air_pressure")}. Alternatively, you can specify var = "all" to include
 #'    additional flag and quality codes.
 #'
-#' @return a \code{dataframe} with stations that meet the specified coverage
-#' requirements for weather variables included in the datafrome present in
-#' this function's arguments.
+#' @return A list with two elements: \code{stations} is a vector of station ids
+#'    (usaf and wban identification numbers pasted together, separated by "-")
+#'    that meet the specified coverage requirements. \code{df} is a dataframe
+#'    with weather data from stations that meet the coverage requirements.
 #'
 #' @importFrom dplyr %>%
 filter_hourly <- function(hourly_data, coverage,
@@ -301,6 +302,8 @@ filter_hourly <- function(hourly_data, coverage,
     dplyr::filter_(~ coverage > 0.80) %>%
     dplyr::group_by_(.dots = group_cols)
 
+  stations <- unique(filtered$station)
+
   df2 <- filtered %>%
     dplyr::summarize_(n_reporting = ~ sum(!is.na(value))) %>%
     dplyr::mutate_(key = ~ paste(key, "reporting", sep = "_")) %>%
@@ -312,7 +315,10 @@ filter_hourly <- function(hourly_data, coverage,
 
   out <- dplyr::full_join(df3, df2, by = "date_time")
 
-  return(out)
+  list <- list("df" = out,
+               "stations" = stations)
+
+  return(list)
 }
 
 #' Plot hourly weather stations for a particular county
