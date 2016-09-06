@@ -172,7 +172,7 @@ filter_coverage <- function(coverage_df, coverage = NULL){
 #'                           date_max = "1999-08-31")
 #' weather_data <- daily_df(stations = all_stations, coverage =
 #'                                 0.90, var = "PRCP", date_min = "1999-08-01",
-#'                                 date_max = "1999-08-31")$daily_data
+#'                                 date_max = "1999-08-31")
 #' stationmap_fips(fips = "12086", weather_data = weather_data)
 #' }
 #'
