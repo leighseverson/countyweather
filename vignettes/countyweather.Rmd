@@ -79,7 +79,7 @@ Here is an example of creating a dataset with daily precipitation for Miami-Dade
 
 ```{r warning = FALSE, message = FALSE}
 andrew_precip <- daily_fips(fips = "12086", date_min = "1992-08-01", 
-                            date_max = "1992-08-31", var = "PRCP")
+                            date_max = "1992-08-31", var = "prcp")
 ```
 
 This function performs some simple data cleaning and quality control on the weather data originally pulled from NOAA's web services; see the section later in this document on the weather data for more details, including the units for the weather observations collected by this function.
@@ -177,7 +177,7 @@ For example, if we wanted to compare daily weather in the month of August for th
 fl_counties <- c("12086", "12087", "12011")
 
 daily_timeseries(fips = fl_counties, date_min = "1992-08-01", 
-                 date_max = "1992-08-31", var = "PRCP", 
+                 date_max = "1992-08-31", var = "prcp", 
                  out_directory = "~/Documents/andrew_data")
 ```
 
@@ -219,7 +219,7 @@ In both `daily_fips()` and `hourly_fips()`, the default is to return a single da
 not_averaged <- daily_fips(fips = "12086", 
                             date_min = "1992-08-01", 
                             date_max = "1992-08-31",
-                            var = "PRCP", average_data = FALSE)
+                            var = "prcp", average_data = FALSE)
 not_averaged_data <- not_averaged$daily_data
 head(not_averaged_data)
 unique(not_averaged_data$id)
@@ -267,8 +267,6 @@ ex_data$wind_speed_quality <- as.numeric(ex_data$wind_speed_quality)
 ex_data$wind_speed[ex_data$wind_speed_quality == 2|3|6|7] <- NA
 ```
 
-[Maybe we want to show some code for replacing all observations with quality codes of 2, 3, 6, or 7 with `NA`s?]
-
 ## More on the weather data
 
 ### Daily weather data 
@@ -278,7 +276,7 @@ Functions in this package that pull daily weather values (`weather_fips()`, for 
 Users can specify which weather variables they would like to pull. The five core daily weather variables are precipitation (`PRCP`), snowfall (`SNOW`), snow depth (`SNWD`), maximum temperature (`TMAX`) and minimum temperature (`TMIN`). As an additional quality check, [add some here about what we're doing to filter out unrealistic values]. The daily weather data is filtered so that included weather variables fall within a range of possible values. These ranges were chosen to include national maximum recorded values.
 
 ```{r echo = FALSE, warning = FALSE, message = FALSE}
-daily_vars <- data.frame(variables = c("PRCP", "SNOW", "SNWD", "TMAX", "TMIN"), 
+daily_vars <- data.frame(variables = c("prcp", "snow", "snwd", "tmax", "tmin"), 
                          description = c("precipitation", "snowfall", "snow depth", "maximum temperature", "minumum temperature"), 
                          units = c("mm", "mm", "mm", "degrees Celsius", "degrees Celsius"), 
                          most_extreme_value = c("1100 mm", "1600 mm", "11500 mm", "57 degrees C", "-62 degrees C"))

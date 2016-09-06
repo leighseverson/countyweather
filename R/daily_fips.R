@@ -34,7 +34,7 @@
 #' \dontrun{
 #' ex <- daily_fips("08031", coverage = 0.90,
 #'                    date_min = "2010-01-01", date_max = "2010-02-01",
-#'                    var = "PRCP")
+#'                    var = "prcp")
 #'
 #' weather_data <- ex$daily_data
 #' station_map <- ex$station_map
@@ -42,7 +42,7 @@
 #' mobile_ex <- weather_fips("01097", percent_coverage = 0,
 #'                           date_min = "1997-07-13",
 #'                           date_max = "1997-07-25",
-#'                           var = "PRCP", average_data = FALSE)
+#'                           var = "prcp", average_data = FALSE)
 #' library(ggplot2)
 #' ggplot(mobile_ex$daily_weather, aes(x = date, y = prcp, color = id)) +
 #'        geom_line()
@@ -101,7 +101,7 @@ daily_fips <- function(fips, coverage = NULL,
 #'    default is to include all monitors with any available data (i.e.,
 #'    \code{coverage = 0}).
 #' @param var A character vector specifying desired weather variables. For
-#'    example, var = c("TMIN", "TMAX", "PRCP"). The default is \code{"all"},
+#'    example, var = c("tmin", "tmax", "prco"). The default is \code{"all"},
 #'    which includes all available weather variables. For a full list of all
 #'    possible variable names, see NOAA's README file for the Daily Global
 #'    Historical Climatology Network (GHCN-Daily) at
@@ -128,7 +128,7 @@ daily_fips <- function(fips, coverage = NULL,
 #' stations <- fips_stations(fips = "12086", date_min = "2010-01-01",
 #'                           date_max = "2010-02-01")
 #' list <- daily_df(stations = stations, coverage = 0.90,
-#'                       var = c("TMAX", "TMIN", "PRCP"),
+#'                       var = c("tmax", "tmin", "prcp"),
 #'                       date_min = "2010-01-01", date_max = "2010-02-01")
 #' averaged_data <- list$daily_data
 #' station_info <- list$stations
@@ -145,7 +145,7 @@ daily_df <- function(stations, coverage = NULL,
                                   keep_flags = FALSE,
                                   date_min = date_min,
                                   date_max = date_max,
-                                  var = var)$result
+                                  var = toupper(var))$result
 
   # calculate coverage for each weather variable
   # meteo_coverage() from meteo_utils.R in ropenscilabs/rnoaa
@@ -161,7 +161,7 @@ daily_df <- function(stations, coverage = NULL,
 
   # steps to filter out erroneous data from individual stations
   # precipitation
-  if("PRCP" %in% var){
+  if("prcp" %in% var){
     filtered_data$prcp <- filtered_data$prcp / 10
     if(max(filtered_data$prcp, na.rm = TRUE) > 1100){
       bad_prcp <- which(with(filtered_data, prcp > 1100))
@@ -170,7 +170,7 @@ daily_df <- function(stations, coverage = NULL,
   }
 
   # snowfall
-  if("SNOW" %in% var){
+  if("snow" %in% var){
     if(max(filtered_data$snow, na.rm = TRUE) > 1600){
       bad_snow <- which(with(filtered_data, snow > 1600))
       filtered_data <- filtered_data[-bad_snow,]
@@ -178,7 +178,7 @@ daily_df <- function(stations, coverage = NULL,
   }
 
   # snow depth
-  if("SNWD" %in% var){
+  if("snwd" %in% var){
     if(max(filtered_data$snwd, na.rm = TRUE) > 11500){
       bad_snwd <- which(with(filtered_data, snwd > 11500))
       filtered_data <- filtered_data[-bad_snwd,]
@@ -186,7 +186,7 @@ daily_df <- function(stations, coverage = NULL,
   }
 
   # tmax
-  if("TMAX" %in% var){
+  if("tmax" %in% var){
     filtered_data$tmax <- filtered_data$tmax / 10
     if(max(filtered_data$tmax, na.rm = TRUE) > 57){
       bad_tmax <- which(with(filtered_data, tmax > 57))
@@ -195,7 +195,7 @@ daily_df <- function(stations, coverage = NULL,
   }
 
   # tmin
-  if("TMIN" %in% var){
+  if("tmin" %in% var){
     filtered_data$tmin <- filtered_data$tmin / 10
     if(min(filtered_data$tmin, na.rm = TRUE) < -62){
       bad_tmin <- which(with(filtered_data, tmin < -62))
@@ -239,7 +239,7 @@ daily_df <- function(stations, coverage = NULL,
 #' \dontrun{
 #' daily_timeseries(fips = c("41005", "13089"), coverage = 0.90,
 #'            date_min = "2000-01-01", date_max = "2000-01-10",
-#'            var = c("TMAX", "TMIN", "PRCP"),
+#'            var = c("tmax", "tmin", "prcp"),
 #'            out_directory = "~/timeseries_data")
 #' }
 #'
