@@ -157,11 +157,11 @@ hourly_timeseries <- function(fips, coverage = NULL, year,
   }
   for(i in 1:length(fips)) {
     possibleError <- tryCatch({
-      out_df <- hourly_df(fips = fips[i], year = year, var = var,
+      out_list <- hourly_df(fips = fips[i], year = year, var = var,
                                coverage = coverage,
-                               average_data = average_data)$hourly_data
-      out_file <- paste0(out_directory, "/", fips[i], ".", out_type)
-        saveRDS(out_df, file = out_file)
+                               average_data = average_data)
+      out_file <- paste0(out_directory, "/", fips[i], ".rds")
+        saveRDS(out_list, file = out_file)
     }
     ,
     error = function(e) {
@@ -201,13 +201,17 @@ hourly_timeseries <- function(fips, coverage = NULL, year,
 #'                file_directory = "~/timeseries_hourly",
 #'                plot_directory = "~/timeseries_plots")
 #'}
+#' @importFrom dplyr %>%
 #' @export
 plot_hourly_timeseries <- function(var, year, file_directory,
                                   plot_directory){
   files <- list.files(file_directory)
 
-  date_min <- paste0(min(year), "-01-01 00:00:00")
-  date_max <- paste0(max(year), "-12-31 23:00:00")
+  date_min <- paste0(min(year), "-01-01 UTC")
+  date_min <- as.POSIXct(date_min, tz = "UTC")
+
+  date_max <- paste0(max(year), "-12-31 23:00:00 UTC")
+  date_max <- as.POSIXct(date_max, tz = "UTC")
 
   if(!dir.exists(plot_directory)){
     dir.create(plot_directory)
@@ -218,15 +222,20 @@ plot_hourly_timeseries <- function(var, year, file_directory,
   for(i in 1:length(files)){
 
     setwd(file_directory)
-    data <- readRDS(files[i])
+    dat <- readRDS(files[i])
+    dat <- dat$hourly_data
+
+    # convert tibble to vector (avoiding error "'x' and 'y' lengths differ")
+    y <- dat %>% collect %>% .[[var]]
 
     file_name <- paste0(file_names[i], ".png")
     setwd(plot_directory)
     grDevices::png(filename = file_name)
-    graphics::plot(data$date_time, data[,var],
+    graphics::plot(dat$date_time, y,
                    type = "l", col = "red", main = file_names[i],
                    xlab = "date", ylab = var,
-                   xlim = c(as.Date(date_min), as.Date(date_max)))
+                   xlim = c(date_min, date_max)
+                   )
     grDevices::dev.off()
   }
 }
