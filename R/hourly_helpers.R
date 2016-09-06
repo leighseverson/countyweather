@@ -234,6 +234,10 @@ ave_hourly <- function(hourly_data){
 
   averaged_data <- dplyr::left_join(averaged_data, n_reporting,
                                     by = "date_time")
+
+  averaged_data <- dplyr::ungroup(averaged_data, date_time)
+  averaged_data <- as.data.frame(averaged_data)
+
   return(averaged_data)
 }
 
