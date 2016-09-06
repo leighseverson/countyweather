@@ -196,7 +196,9 @@ isd_monitors_data <- function(fips, year, var = "all",
   # out = list: data and stations
   # want to be able to access station metadata later for mapping, etc.
 
-  return(st_out_df)
+  list <- list("df" = st_out_df,
+               "ids" = ids)
+  return(list)
 }
 
 #' Average hourly weather data across multiple stations.
