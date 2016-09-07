@@ -1,67 +1,83 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-Setting up to use the package
------------------------------
+While data from weather monitors is available at the specific location of the monitor, it is often useful to have estimates of daily or hourly weather aggregated at a larger spacial level. For US-based studies, it can be particularly userful to be able to pull time series of weather by county. For example, the health data used in environmental epidemiology studies is often aggregated at the county level for US studies, making it very useful for environmental epidemiology applications to be able to create weather datasets by county.
 
-Currently, this package exists in a development version on GitHub. To use the function, you need to install it directly from GitHub using the `install_github` function from `devtools`. Further, the package relies on some functions that are in a development version of `rnoaa`, so you need to install that version of the `rnoaa` package.
+This package builds on functions from the `rnoaa` package to identify weather monitors within a county based on its FIPS code and then pull weather data for a specified date range from those monitors. It then does some additional cleaning and aggregating to produce a single, county-level weather dataset. Further, it maps the monitors used for that county and date range and allows you to create and write datasets for many different counties using a single function call.
 
-You can use the following code for this set-up:
+Required set-up for this package
+--------------------------------
+
+Currently, this package exists in a development version on GitHub. To use the function, you need to install it directly from GitHub using the `install_github` function from `devtools`. You can use the following code to install the development version of `countyweather`:
 
 ``` r
 library(devtools)
-
-install_github("ropenscilabs/rnoaa")
-library(rnoaa)
 
 install_github("leighseverson/countyweather")
 library(countyweather)
 ```
 
-You will also need an API key from NOAA to be able to access the weather data. You can get one by requesting that NOAA email you an API key from here: <http://www.ncdc.noaa.gov/cdo-web/token>
+You will also need an API key from NOAA to be able to access the weather data. This API key is input with some of your data requests to NOAA within functions in this package. You can request an API key from NOAA here: <http://www.ncdc.noaa.gov/cdo-web/token>. You should keep this key private.
 
-Next, open a new text file (in RStudio, do this by navigating to *File* &gt; *New File* &gt; *Text File*). Type the following, and make sure to add a second blank line:
+Once you have an this NOAA API key, you'll need to pass it through to some of the functions in this package that pull data from NOAA. The most secure way to use this API key is to store it in your `.Renviron` configuration file, and then you can set it up as the value of an object in R code or R markdown documents without have to include the key itself in the script. To store the NOAA API key in your `.Renviron` configuration file, first check and see if you already have an `.Renviron` file in your home directory. You can check if you do by running the following from your R command line:
 
 ``` r
-noaakey=your_key
+any(grepl("^\\.Renviron", list.files("~", all.files = TRUE)))
 ```
 
-Save this text file as `.Renviron` in your home directory. (If prompted with a complaint, you DO want to use a filename that begins with a dot `.`. Once you restart R, you can pull your key using `Sys.getenv("noaakey")`. Before using functions that require the API key, run:
+If this call returns `TRUE`, then you already have an `.Renviron` file.
+
+If you already have it, open that file. If you do not yet have an `.Renviron` file, open a new text file (in RStudio, do this by navigating to *File* &gt; *New File* &gt; *Text File*) and save this text file as `.Renviron` in your home directory. (If prompted with a complaint, you DO want to use a filename that begins with a dot `.`)
+
+Once you have opened or created an `.Renviron` file, type the following into the file, replacing "your\_emailed\_key" with the actual string that NOAA emails you, and make sure to add a blank line as the last line of the file:
+
+``` r
+noaakey=your_emailed_key
+```
+
+(If you find you're having problems getting this to work, go back and confirm that you've included a blank line as the last line in your `.Renviron` file. This is the most common reason for this part not working.)
+
+Once you restart R, you can now get the value of this NOAA API key from `.Renviron` anytime by typing `Sys.getenv("noaakey")`. Before using functions that require the API key, set up the object `rnoaakey` to have your NOAA API key by running:
 
 ``` r
 options("noaakey" = Sys.getenv("noaakey"))
 ```
 
-This package draws mainly on functions from the `rnoaa` package to identify weather monitors within a county based on its FIPS code and then pull weather data for a specified date range from those monitors. It then does some additional cleaning and aggregating to produce a single, county-level weather dataset. Further, it maps the monitors used for that county and date range and allows you to create and write datasets for many different counties using a single function call.
+This will pull your NOAA API key from the `.Renviron` file and save it as the object `noaakey`, which functions in this package will use to pull weather data from NOAA's web services. You will want to put this line of code as one of the first lines of code in any R script or R markdown file you write that uses functions from this package.
 
 Basic examples of using the package
 -----------------------------------
 
-This package allows you to pull data based on a US county's corresponding Federal Information Processing Standard (FIPS) code. FIPS codes are 5-digit codes that uniquely identify every US county. The first two digits specify state and the last three specify the county within the state. The health data used in environmental epidemiology studies is often aggregated at the county level for US studies, making it very useful to be able to create weather datasets by county.
+Weather data is collected at monitors, and there are often multiple weather monitors within a county. The `countyweather` package allows you to pull weather data from all monitors in a specified county over a specified date range. The two main functions in the countyweather package are `daily_fips` and `hourly_fips`, which pull daily and hourly weather data, respectively. By default, these values will then be averaged across all monitors in the county to create an average time series of daily or hourly measurements for that county. (There is also an option that allows the user to opt out of the default aggregation across weather stations, and instead pull separate time series for each monitor in the county, which is explained in more detail later in this document.)
 
-Currently, this package can pull daily and hourly weather data for variables like temperature and precipitation. (For resources with complete lists of available weather variables, see the section titled 'More on the weather data'). The weather data is collected at monitors, and there are often multiple weather monitors within a county. This package allows you to specify a county and then will pull weather data from all monitors in that county over a specified date range, and average the daily or hourly values to generate an average time series for that county. There is an option (`average_data = TRUE / FALSE`) that allows the user to get the data before it has been averaged across weather stations.
+Throughout, functions in this package identify a county using the county's corresponding Federal Information Processing Standard (FIPS) code. FIPS codes are 5-digit codes that uniquely identify every US county. The first two digits of a county FIPS code specify state and the last three specify the county within the state. This package pulls data based on FIPS designations as of \[year of the FIPS that we're using-- we might need to check in NOAA documentation to figure this out. For hourly data, it will be based on the data we're using for county centers, which I think is FIPS as of the 2010 US census\].
 
-The two main functions in the countyweather package are `daily_fips` and `hourly_fips`. They pull daily and hourly weather data, respectively. For more about the sources of data for these two functions, see the section titled "More about the weather data."
+Currently, this package can pull daily and hourly weather data for variables like temperature and precipitation. For resources with complete lists of available weather variables and sources of weather data, see the section later in this document titled 'More on the weather data'.
 
 ### Pulling daily data
+
+The `daily_fips` function can be used to pull daily weather data for all monitors in a county. This daily weather data comes from NOAA's Global Historical Climatology Network. This function pulls data from all monitors within the geographic boundaries of the county. When pulling data for a county, the user can specify date ranges (`date_min`, `date_max`), variables to include in the output dataset (`var`), and restrictions on how much non-missing data a monitor must have over the time period to be included when generating daily county average values (`coverage`). This function will pull any available data for the county under the specified restrictions and output both a dataset of average daily observations and a map plotting the stations used in the county-wide average data.
 
 Here is an example of creating a dataset with daily precipitation for Miami-Dade county (FIPS code = 12086) for August 1992, when Hurricane Andrew stuck:
 
 ``` r
-andrew_precip <- daily_fips(fips = "12086", 
-                            date_min = "1992-08-01", 
-                            date_max = "1992-08-31",
-                            var = "PRCP")
+andrew_precip <- daily_fips(fips = "12086", date_min = "1992-08-01", 
+                            date_max = "1992-08-31", var = "prcp")
 ```
 
-The output from this function call includes both the weather dataset (`andrew_precip$daily_data`) and a map showing the locations of weather monitors included in the county-averaged dataset (`anderew_precip$station_map`).
+This function performs some simple data cleaning and quality control on the weather data originally pulled from NOAA's web services; see the section later in this document on the weather data for more details, including the units for the weather observations collected by this function and variable names for common weather variables.
 
-Here are the first few rows of the dataset:
+The output from running this function includes three elements; a daily time series of weather data for the county (`andrew_precip$daily_data`); a dataframe with meta-data about the weather stations used to create the time series data; and a map showing the locations of weather monitors included in the county-averaged dataset (`anderew_precip$station_map`).
+
+``` r
+names(andrew_precip)
+#> [1] "daily_data"       "station_metadata" "station_map"
+```
+
+The first element of the list, `daily_data`, is a daily time series of measurements for all of the requested weather variables that were available at one of more monitors with the community. The default is for this dataframe to give a single, averaged daily value across all relevant monitors in the county. Here are the first few rows of the time series dataset output by the function:
 
 ``` r
 head(andrew_precip$daily_data)
-#> Source: local data frame [6 x 3]
-#> Groups: date [6]
-#> 
+#> # A tibble: 6 x 3
 #>         date     prcp prcp_reporting
 #>       <date>    <dbl>          <int>
 #> 1 1992-08-01 1.016667              6
@@ -72,62 +88,90 @@ head(andrew_precip$daily_data)
 #> 6 1992-08-06 1.633333              6
 ```
 
-The dataset includes columns for date (`date`), precipitation (in mm, `prcp`), and also the number of stations used to calculated each precipitation observation (`prcp_reporting`).
+The dataset includes columns for date (`date`), precipitation (in mm, `prcp`), and also the number of stations used to calculate each daily average precipitation observation (`prcp_reporting`). If you use the `coverage` argument when you call `daily_fips`, this daily average will only include monitors with at least that percent coverage over the full date range.
 
-Here is a plot of this data:
+Here is a plot of this data, with colors used to show the number of monitors included in each daily observation:
 
 ``` r
 library(ggplot2)
-ggplot(andrew_precip$daily_data, aes(x = date, y = prcp,
-                                     color = prcp_reporting)) + 
-  geom_line() + 
-  theme_minimal() + 
+ggplot(andrew_precip$daily_data, aes(x = date, y = prcp, color = prcp_reporting)) + 
+  geom_line() + geom_point() + theme_minimal() + 
   xlab("Date in 1992") + ylab("Daily rainfall (mm)") + 
   scale_color_continuous(name = "# monitors\nreporting")
 ```
 
-![](README-unnamed-chunk-8-1.png)
+<img src="README-unnamed-chunk-10-1.png" style="display: block; margin: auto;" />
 
-From this plot, you can see both the extreme precipitation associated with Hurricane Andrew and that the storm knocked out quite a few of the weather monitors normally available.
+From this plot, you can see both the extreme precipitation associated with Hurricane Andrew (Aug. 24) and that the storm knocked out quite a few of the weather monitors normally available.
 
-To see a map of the monitors used for the county average, run:
+A map is also included in the output of `daily_fips` with the monitors used for the county average, as the `station_map` element:
 
 ``` r
 andrew_precip$station_map
 ```
 
-![](README-unnamed-chunk-9-1.png)
+<img src="README-unnamed-chunk-11-1.png" style="display: block; margin: auto;" />
+
+This map uses functions from the `choroplethr` package to overlay weather monitor locations on a shaded map showing the county's boundaries, with county boundaries based on the US Census 2010 Cartographic Boundary shapefiles, as implemented in the `choroplethrMaps` package.
 
 ### Pulling hourly data
 
-Here is an example of pulling hourly data for Miami-Dade, again for the period around Hurricane Andrew:
+You can also use functions in the `county_weather` package to pull hourly wind speed and temperature data by county from NOAA's Integrated Surface Data (ISD) weather dataset. In this case, NOAA's web services will not identify weather monitors by FIPS, so instead this function will pull all monitors within a certain radius \[what's the default radius?\] of the county's population mean center to represent weather within that county.
+
+Here is an example of pulling hourly data for Miami-Dade, for the year of Hurricane Andrew. While daily weather data can be pulled using a date range specified to the day, hourly data can only be pulled by year, and must be pulled for one year at a time \[is this right?\], using the `year` argument:
 
 ``` r
 andrew_hourly <- hourly_fips(fips = "12086", year = 1992,
-                           var = c("wind_speed", "temperature"), station_label = TRUE)
-#> [1] "Getting hourly weather monitors for Miami-Dade County, Florida"
+                           var = c("wind_speed", "temperature"))
 #> [1] "Getting hourly weather monitors for Miami-Dade County, Florida"
 ```
 
-The output from this call includes the date-time of the observation (given in UTC), values for the weather variables selected, and the number of monitors reporting for each observation of each weather variable:
+The output from this call is a list object that includes the dataset of hourly values (`hourly_data`). This dataset includes. the date-time of the observation (given in UTC), values for the weather variables selected, and the number of monitors reporting for each observation of each weather variable:
 
 ``` r
 head(andrew_hourly$hourly_data)
-#> Source: local data frame [6 x 5]
-#> Groups: date_time [6]
-#> 
 #>             date_time temperature wind_speed temperature_reporting
-#>                <time>       <dbl>      <dbl>                 <int>
 #> 1 1992-01-01 00:00:00    20.00000   2.166667                     4
 #> 2 1992-01-01 01:00:00    19.85000   1.633333                     4
 #> 3 1992-01-01 02:00:00    19.03333   2.380000                     3
 #> 4 1992-01-01 03:00:00    19.42500   1.960000                     4
 #> 5 1992-01-01 04:00:00    18.53333   1.466667                     3
 #> 6 1992-01-01 05:00:00    18.60000   2.060000                     4
-#> # ... with 1 more variables: wind_speed_reporting <int>
+#>   wind_speed_reporting
+#> 1                    6
+#> 2                    6
+#> 3                    5
+#> 4                    5
+#> 5                    6
+#> 6                    5
 ```
 
-Here are hourly values for the month of Hurricane Andrew:
+If you need to get the timestamp for each observation in local time, you can use the `add_local_time` function from the `countytimezones` package to do that:
+
+``` r
+andrew_hourly_data <- as.data.frame(andrew_hourly$hourly_data) 
+
+library(countytimezones)
+andrew_hourly_data <- add_local_time(df = andrew_hourly_data, fips = "12086",
+                                     datetime_colname = "date_time")
+head(andrew_hourly_data)
+#>             date_time temperature wind_speed temperature_reporting
+#> 1 1992-01-01 00:00:00    20.00000   2.166667                     4
+#> 2 1992-01-01 01:00:00    19.85000   1.633333                     4
+#> 3 1992-01-01 02:00:00    19.03333   2.380000                     3
+#> 4 1992-01-01 03:00:00    19.42500   1.960000                     4
+#> 5 1992-01-01 04:00:00    18.53333   1.466667                     3
+#> 6 1992-01-01 05:00:00    18.60000   2.060000                     4
+#>   wind_speed_reporting       local_time local_date         local_tz
+#> 1                    6 1991-12-31 19:00 1991-12-31 America/New_York
+#> 2                    6 1991-12-31 20:00 1991-12-31 America/New_York
+#> 3                    5 1991-12-31 21:00 1991-12-31 America/New_York
+#> 4                    5 1991-12-31 22:00 1991-12-31 America/New_York
+#> 5                    6 1991-12-31 23:00 1991-12-31 America/New_York
+#> 6                    5 1992-01-01 00:00 1992-01-01 America/New_York
+```
+
+Here is a plot of hourly wind speeds for Miami-Dade County, FL, for the month of Hurricane Andrew:
 
 ``` r
 library(dplyr)
@@ -142,7 +186,52 @@ ggplot(to_plot, aes(x = date_time, y = wind_speed,
   scale_color_continuous(name = "# monitors\nreporting")
 ```
 
-![](README-unnamed-chunk-12-1.png)
+<img src="README-unnamed-chunk-15-1.png" style="display: block; margin: auto;" />
+
+Again, the intensity of conditions during Hurricane Andrew is clear, as is the reduction in the number of reporting monitors during the storm.
+
+The list object returned by `hourly_fips` also includes a map of monitor locations (`station_map`):
+
+``` r
+andrew_hourly$station_map
+#> Warning: Removed 1 rows containing missing values (geom_rect).
+#> Warning: Removed 11 rows containing missing values (geom_point).
+```
+
+<img src="README-unnamed-chunk-16-1.png" style="display: block; margin: auto;" />
+
+\[For this station map, if we're pulling monitors by distance from the county center, then we'll have some outside the county boundaries. Does this map show monitors outside the county boundaries? If not, we may want to tweak the code to get a map that includes all of the monitors used for the county to calculate the hourly average, not just the ones that fall within the county boundaries.\]
+
+Writing out timeseries files
+----------------------------
+
+There are a few functions that allow the user to write out daily or hourly timeseries datasets as `.rds` files to a specified local directory, as well as plots of this data. For daily weather data, see the functions `daily_timeseries` and `plot_daily_timeseries`. For hourly, see `hourly_timeseries` and `hourly_plots`.
+
+For example, if we wanted to compare daily weather in the month of August for three counties in southern Florida, we could run:
+
+``` r
+fl_counties <- c("12086", "12087", "12011")
+
+daily_timeseries(fips = fl_counties, date_min = "1992-08-01", 
+                 date_max = "1992-08-31", var = "prcp", 
+                 out_directory = "~/Documents/andrew_data")
+```
+
+\[Describe the format of each of the files that is output. List? Dataframe with daily observations?\]
+
+\[Add a line-- what happens at this stage if you put in a county with no available data?\]
+
+`daily_timeseries()` saves each county's timeseries as a separate .rds file in the directory specified in the `out_directory` option. The function `plot_daily_timeseries` creates and saves plots for each of these .rds files.
+
+``` r
+plot_daily_timeseries("prcp", file_directory = "~/Documents/andrew_data", 
+                      plot_directory = "~/Documents/andrew_plots", 
+                      date_min = "1992-08-01", date_max = "1992-08-31")
+```
+
+Here's an example of what the timeseries plot for Miami-Dade County (fips = 12086) would look like \[Let's put in these figures for all three counties\]:
+
+<img src="README-unnamed-chunk-19-1.png" width="0.33" style="display: block; margin: auto;" />
 
 Futher options available in the package
 ---------------------------------------
@@ -151,40 +240,17 @@ Futher options available in the package
 
 For hourly and daily weather, the user can choose to filter out any monitors that report variables for less that a certain percent of time (`coverage`). For example, if you were to set `coverage` to 0.90, only monitors that reported non-missing values at least 90% of the time would be included in your data.
 
-### Writing out timeseries files
-
-There are a few functions that allow the user to write out daily or hourly timeseries datasets as RDS or CSV files to a specified local directory, as well as plots of this data. For daily weather data, see the functions and . For hourly, see and . If we wanted to compare daily weather in the month of August for several counties in southern Florida, we could run:
-
-``` r
-fl_counties <- c("12086", "12087", "12011", "12021", "12099", "12051", "12071")
-
-daily_timeseries(fips = fl_counties, date_min = "1992-08-01", 
-                 date_max = "1992-08-31", var = "PRCP", 
-                 out_directory = "~/Documents/andrew_data")
-```
-
-`daily_timeseries()` saves each county's timeseries as a separate .rds file in the directory specified in the `out_directory` option. The function `plot_daily_timeseries` writes out plots for each of these .rds files.
-
-``` r
-plot_daily_timeseries("prcp", file_directory = "~/Documents/andrew_data", 
-                      plot_directory = "~/Documents/andrew_plots", 
-                      date_min = "1992-08-01", date_max = "1992-08-31")
-```
-
-Here's an example of what the timeseries plot for Miami-Dade County (fips = 12086) would look like:
-
-![](README-unnamed-chunk-15-1.png)
-
 ### `average_data`
 
-In both `daily_fips()` and `hourly_fips()`, there is an option called `average_data` which allows the user to specify whether they would like the weather data returned before it has been averaged across monitors. The default is `average_data = TRUE`. For our Hurricane Andrew example, if we specify `average_data = FALSE`:
+In both `daily_fips()` and `hourly_fips()`, the default is to return a single daily average for the county for each day in the time series, giving the value averaged across all available monitors on that day. However, there is also an option called `average_data` which allows the user to specify whether they would like the weather data returned before it has been averaged across monitors. If this argument is set to `FALSE`, the functions will return separate daily data for each monitor in the county. For our Hurricane Andrew example, if we specify `average_data = FALSE`:
 
 ``` r
 not_averaged <- daily_fips(fips = "12086", 
                             date_min = "1992-08-01", 
                             date_max = "1992-08-31",
-                            var = "PRCP", average_data = FALSE)$daily_data
-head(not_averaged)
+                            var = "prcp", average_data = FALSE)
+not_averaged_data <- not_averaged$daily_data
+head(not_averaged_data)
 #> # A tibble: 6 x 3
 #>            id       date  prcp
 #>         <chr>     <date> <dbl>
@@ -194,31 +260,112 @@ head(not_averaged)
 #> 4 USC00083909 1992-08-04   0.0
 #> 5 USC00083909 1992-08-05   7.6
 #> 6 USC00083909 1992-08-06   1.0
-unique(not_averaged$id)
+unique(not_averaged_data$id)
 #> [1] "USC00083909" "USC00087020" "USC00088780" "USW00012839" "USW00012859"
 #> [6] "USW00092811"
 ```
 
-In this example, there are six monitors contributing weather data to the timeseries. We can plot the data by station to get a sense for how values from each monitor compare, and which monitors were presumably knocked out by the storm:
+In this example, there are six monitors contributing weather data to the timeseries. We can plot the data by station to get a sense for how values from each monitor compare, and which monitors were presumably knocked out by the storm, with different colors used to show values for different monitors:
 
 ``` r
 library(ggplot2)
-ggplot(not_averaged, aes(x = date, y = prcp, 
+ggplot(not_averaged_data, aes(x = date, y = prcp, 
                          colour = id)) + 
   geom_line() + 
   theme_minimal() 
 ```
 
-![](README-unnamed-chunk-17-1.png)
+<img src="README-unnamed-chunk-21-1.png" style="display: block; margin: auto;" />
 
 It might be interesting here to compare this plot with the station map, this time with station labels included:
 
 ``` r
-daily_fips(fips = "12086", date_min = "1992-08-01", date_max = "1992-08-31",
-           var = "PRCP", station_label = TRUE)$station_map
+not_averaged$station_map
 ```
 
-![](README-unnamed-chunk-18-1.png)
+<img src="README-unnamed-chunk-22-1.png" style="display: block; margin: auto;" />
+
+### Quality Flags
+
+The hourly Integrated Surface Data includes quality codes for each of the main weather variables. For more information about the hourly weather variables, see the "More on the weather data" section below. We can use these codes to remove suspect or erroneous values from our data. The values in `wind_speed_quality` take on the following values:
+
+<table>
+<colgroup>
+<col width="7%" />
+<col width="92%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">code</th>
+<th align="left">definition</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">0</td>
+<td align="left">Passed gross limits check</td>
+</tr>
+<tr class="even">
+<td align="right">1</td>
+<td align="left">Passed all quality control checks</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="left">Suspect</td>
+</tr>
+<tr class="even">
+<td align="right">3</td>
+<td align="left">Erroneous</td>
+</tr>
+<tr class="odd">
+<td align="right">4</td>
+<td align="left">Passed gross limits check , data originate from an NCEI data source</td>
+</tr>
+<tr class="even">
+<td align="right">5</td>
+<td align="left">Passed all quality control checks, data originate from an NCEI data source</td>
+</tr>
+<tr class="odd">
+<td align="right">6</td>
+<td align="left">Suspect, data originate from an NCEI data source</td>
+</tr>
+<tr class="even">
+<td align="right">7</td>
+<td align="left">Erroneous, data originate from an NCEI data source</td>
+</tr>
+<tr class="odd">
+<td align="right">9</td>
+<td align="left">Passed gross limits check if element is present</td>
+</tr>
+</tbody>
+</table>
+
+Because it makes no sense to average these codes across monitors, the codes should only be pulled when using the option to pull monitor-specific values (`average_data = FALSE`).
+
+``` r
+ex <- hourly_fips("12086", 1992, var = c("wind_speed", "wind_speed_quality"), 
+                  average_data = FALSE)
+#> [1] "Getting hourly weather monitors for Miami-Dade County, Florida"
+ex_data <- ex$hourly_data
+head(ex_data)
+#> # A tibble: 6 x 7
+#>   usaf_station wban_station           date_time latitude longitude
+#>          <dbl>        <dbl>              <time>    <dbl>     <dbl>
+#> 1       722020        12839 1992-01-01 00:00:00     25.8     -80.3
+#> 2       722020        12839 1992-01-01 01:00:00     25.8     -80.3
+#> 3       722020        12839 1992-01-01 02:00:00     25.8     -80.3
+#> 4       722020        12839 1992-01-01 03:00:00     25.8     -80.3
+#> 5       722020        12839 1992-01-01 04:00:00     25.8     -80.3
+#> 6       722020        12839 1992-01-01 05:00:00     25.8     -80.3
+#> # ... with 2 more variables: wind_speed <dbl>, wind_speed_quality <chr>
+```
+
+We can replace all wind speed observations with quality codes of 2, 3, 6, or 7 with `NA`s.
+
+``` r
+ex_data$wind_speed_quality <- as.numeric(ex_data$wind_speed_quality)
+ex_data$wind_speed[ex_data$wind_speed_quality == 2|3|6|7] <- NA
+```
 
 More on the weather data
 ------------------------
@@ -227,19 +374,21 @@ More on the weather data
 
 Functions in this package that pull daily weather values (`weather_fips()`, for example) are pulling data from the Daily Global Historical Climatology Network (GHCN-Daily) through NOAA's FTP server.
 
-Users can specify which weather variables they would like to pull. The five core daily weather variables are precipitation (`PRCP`), snowfall (`SNOW`), snow depth (`SNWD`), maximum temperature (`TMAX`) and minimum temperature (`TMIN`). The daily weather data is filtered so that included weather variables fall within a range of possible values. These ranges were chosen to include national maximum recorded values.
+Users can specify which weather variables they would like to pull. The five core daily weather variables are precipitation (`PRCP`), snowfall (`SNOW`), snow depth (`SNWD`), maximum temperature (`TMAX`) and minimum temperature (`TMIN`). As an additional quality check, \[add some here about what we're doing to filter out unrealistic values\]. The daily weather data is filtered so that included weather variables fall within a range of possible values. These ranges were chosen to include national maximum recorded values.
 
 | variables | description         | units           | most\_extreme\_value |
 |:----------|:--------------------|:----------------|:---------------------|
-| PRCP      | precipitation       | mm              | 1100 mm              |
-| SNOW      | snowfall            | mm              | 1600 mm              |
-| SNWD      | snow depth          | mm              | 11500 mm             |
-| TMAX      | maximum temperature | degrees Celsius | 57 degrees C         |
-| TMIN      | minumum temperature | degrees Celsius | -62 degrees C        |
+| prcp      | precipitation       | mm              | 1100 mm              |
+| snow      | snowfall            | mm              | 1600 mm              |
+| snwd      | snow depth          | mm              | 11500 mm             |
+| tmax      | maximum temperature | degrees Celsius | 57 degrees C         |
+| tmin      | minumum temperature | degrees Celsius | -62 degrees C        |
+
+\[We'll want to add a note that tmax, tmin, and prcp were originally in tenths of units, and are listed as such in NOAA documentation, but that we're converting those to regular units within this package.\]
 
 The daily weather function defaults to pull these five core weather variables. However, there are several additional, non-core variables available (for example, `ACMC` gives the "average cloudiness midnight to midnight from 30-second ceilometer data (percent))." The complete list of available weather variables can be found under 'element' from the GHCND's [readme file](http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt).
 
-While the datasets resulting from functions in this package return a cleaned and aggregated dataset, this journal article by Menne et al. (2012) gives more information aboout the raw data in the GHCND database:
+While the datasets resulting from functions in this package return a cleaned and aggregated dataset, this journal article by Menne et al. (2012) gives more information aboout the raw data in the GHCND database \[let's figure out how to use citations in the vignette and do a citation for this\]:
 
 Menne, M.J., I. Durre, R.S. Vose, B.E. Gleason, and T.G. Houston, 2012: An overview of the Global Historical Climatology Network-Daily Database. Journal of Atmospheric and Oceanic Technology, 29, 897-910, .
 
@@ -247,12 +396,9 @@ Menne, M.J., I. Durre, R.S. Vose, B.E. Gleason, and T.G. Houston, 2012: An overv
 
 Hourly weather data in this package is pulled from NOAA's Integrated Surface Data (ISD), which is archived at the National Climatic Data Center (NCDC). This data is also pulled through NOAA's FTP server.
 
-Available hourly weather variables include `wind_direction`, `wind_speed`, `ceiling_height`, `visibility_distance`, `temperature`, `temperature_dewpoint`, and `air_pressure`.
+The seven core hourly weather variables include `wind_direction`, `wind_speed`, `ceiling_height`, `visibility_distance`, `temperature`, `temperature_dewpoint`, and `air_pressure`.
 
-``` r
-library(knitr)
-kable(hourly_vars, format = "markdown")
-```
+\[Add something about where you got the values in this table.\]
 
 <table>
 <colgroup>
@@ -324,10 +470,43 @@ kable(hourly_vars, format = "markdown")
 </tbody>
 </table>
 
-There are other columns available in addition to these weather variables such as quality codes (for example, `wind_direction_quality`). For more information about the weather variables described in the above table and other available columns, see the [ISD documentation file](ftp://ftp.ncdc.noaa.gov/pub/data/noaa/ish-format-document.pdf). \#\# Error and warning messages you may get
+There are other columns available in addition to these weather variables such as quality codes (for example, `wind_direction_quality` - each of the main weather variables has a corresponding quality code that can be pulled by adding `_quality` to the end of the variable name).
+
+For more information about the weather variables described in the above table and other available columns, see the [ISD documentation file](ftp://ftp.ncdc.noaa.gov/pub/data/noaa/ish-format-document.pdf).
+
+Error and warning messages you may get
+--------------------------------------
 
 ### Not able to pull data from a monitor
 
-The following error message will come up if there isn't available data (for your specified date range, coverage, and weather variables) for a particular monitor or monitors:
+The following error message will come up after running functions pulling daily data (`daily_fips()`) if there isn't available data (for your specified date range, coverage, and weather variables) for a particular monitor or monitors:
 
-`In rnoaa::meteo_pull_monitors(monitors = stations, keep_flags = FALSE,  :   The following stations could not be pulled from the GHCN ftp:  USR0000FTEN   Any other monitors were successfully pulled from GHCN.`
+    In rnoaa::meteo_pull_monitors(monitors = stations, keep_flags = FALSE,  :
+      The following stations could not be pulled from the GHCN ftp:
+     USR0000FTEN 
+     Any other monitors were successfully pulled from GHCN.
+     ```
+     
+    This error message will come up after running functions pulling hourly data (`hourly_fips()`) if there isn't available data for any of the monitors in your specified county. Note: some weather variables tend to be missing more often than 
+
+Error in isd\_monitors\_data(fips = fips, year = x, var = var, radius = radius) : None of the stations had available data.
+
+
+    This error message will come up after running \code{daily_timeseries} or \code{hourly_timeseries} if the function is unable to pull data for a particular fips code in your `fips` vector: 
+
+Unable to pull weather data for FIPS code "12086" for the specified percent coverage, year(s), and/or weather variables.
+
+
+    ### Need an API key for NOAA data 
+
+    If you run functions that use NOAA API calls without first requesting an API key from NOAA and setting up the key in your R session, you will see the following error message: 
+
+Error in getOption("noaakey", stop("need an API key for NOAA data")) : need an API key for NOAA data \`\`\`
+
+If you get this error message, run the code:
+
+``` r
+options("noaakey" = Sys.getenv("noaakey"))
+```
+
+and then try again. If you still get an error, you may not have set up your NOAA API key correctly in your `.Renviron` file. See the "Required set-up" section of this document for more details on doing that correctly.
