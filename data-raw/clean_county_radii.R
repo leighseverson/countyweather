@@ -6,7 +6,7 @@ library(dplyr)
 
 # land area is in square meters
 
-setwd("~/Desktop")
+# setwd("~/Desktop")
 area <- read.csv("DEC_10_SF1_G001.csv", header = TRUE, skip = 1)
 
 # select state and county FIPS and land area columns
