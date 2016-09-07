@@ -10,14 +10,17 @@
 #' @param verbose TRUE / FALSE to indicate if you want the function to print
 #'    out the name of the county it's processing
 #'
-#' @return A dataframe of monitors within a calculated radius of the
+#' @return A list with two elements. The first element, \code{stations}, is a
+#'    dataframe of monitors within a calculated radius of the
 #'    population-weighted center of the county specified by the FIPS code.
 #'    This will have the same dataframe format as the output from the
-#'    \code{isd_stations_search} function in the \code{rnoaa} package.
+#'    \code{isd_stations_search} function in the \code{rnoaa} package. The
+#'    second element, \code{radius}, gives the radius (in km) within which
+#'    stations were pulled from the county's population-weighted center.
 #'
 #' @examples
 #' \dontrun{
-#' ids <- isd_fips_stations(fips = "12086")
+#' ids <- isd_fips_stations(fips = "12086")$stations
 #' }
 isd_fips_stations <- function(fips, verbose = TRUE){
   census_data <- countyweather::county_centers
@@ -39,7 +42,10 @@ isd_fips_stations <- function(fips, verbose = TRUE){
   stations <- quiet_station_search(lat = lat_fips, lon = lon_fips,
                                    radius = radius)$result
 
-  return(stations)
+  list <- list("stations" = stations,
+               "radius" = radius)
+
+  return(list)
 }
 
 #' Get hourly data for a single monitor
