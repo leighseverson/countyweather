@@ -145,10 +145,11 @@ int_surface_data <- function(usaf_code, wban_code, year,
 #'    "ceiling_height", "visibility_distance", "temperature",
 #'    "temperature_dewpoint", and "air_pressure."
 #'
-#' @return A list with two elements: \code{ids} is a dataframe of station
+#' @return A list with three elements: \code{ids} is a dataframe of station
 #'    metadata for all avaiable stations in the given fips code. \code{df} is a
 #'    data frame with hourly weather data for the given variable(s) and date
-#'    range.
+#'    range. \code{radius} is the calculated radius within which stations
+#'    were pulled from the county's population-weighted center.
 #'
 #' @examples
 #' \dontrun{
@@ -159,7 +160,10 @@ int_surface_data <- function(usaf_code, wban_code, year,
 #'    facet_wrap(~ usaf_station, ncol = 1)
 #' }
 isd_monitors_data <- function(fips, year, var = "all"){
-  ids <- isd_fips_stations(fips)$stations
+
+  list <- isd_fips_stations(fips)
+  ids <- list$stations
+  radius <- list$radius
 
   safe_int <- purrr::safely(int_surface_data)
   mult_stations <- mapply(safe_int, usaf_code = ids$usaf,
@@ -209,7 +213,8 @@ isd_monitors_data <- function(fips, year, var = "all"){
   # want to be able to access station metadata later for mapping, etc.
 
   list <- list("df" = st_out_df,
-               "ids" = ids)
+               "ids" = ids,
+               "radius" = radius)
   return(list)
 }
 

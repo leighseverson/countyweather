@@ -12,7 +12,7 @@
 #'    weather station locations to include labels indicating station usaf id
 #'    numbers.
 #'
-#' @return A list with three elements. The first element (\code{hourly_data}) is a
+#' @return A list with four elements. The first element (\code{hourly_data}) is a
 #'    dataframe of daily weather data averaged across multiple stations, as well
 #'    as columns (\code{"var"_reporting}) for each weather variable showing the
 #'    number of stations contributing to the average for that variable for that
@@ -21,6 +21,8 @@
 #'    The third element (\code{station_map}) is a plot showing points for all
 #'    weather stations for a particular county satisfying the conditions present
 #'    in \code{hourly_fips}'s arguments (year, coverage, and/or var).
+#'    \code{radius} is the calculated radius within which stations were pulled
+#'    from the county's population-weighted center.
 #'
 #' @note: Observation times are vased on Coordinated Universal Time Code (UTC).
 #'
@@ -38,7 +40,8 @@ hourly_fips <- function(fips, year, var = "all",
 
   list <- list("hourly_data" = weather_data$hourly_data,
                "station_metadata" = weather_data$station_df,
-               "station_map" = station_map)
+               "station_map" = station_map,
+               "radius" = weather_data$radius)
   return(list)
 
 }
@@ -75,10 +78,14 @@ hourly_fips <- function(fips, year, var = "all",
 #'    percent of each weather variable must be non-missing to include data from
 #'    a monitor when calculating daily values averaged across monitors.)
 #'
-#' @return A dataframe of hourly weather data averaged across multiple stations,
+#' @return A list with three elements. The first element, \code{hourly_data}, is
+#'    a dataframe of hourly weather data averaged across multiple stations,
 #'    as well as columns (\code{"var"_reporting}) for each weather variable
 #'    showing the number of stations contributing to the average for that
-#'    variable for each hour.
+#'    variable for each hour. \code{station_df} is a dataframe of station
+#'    metadata for each station contributing weather data. \code{radius} is the
+#'    calculated radius within which stations were pulled from the county's
+#'    population-weighted center.
 #'
 #' @note: Observation times are vased on Coordinated Universal Time Code (UTC).
 #'
@@ -92,6 +99,7 @@ hourly_fips <- function(fips, year, var = "all",
 #'                      "temperature"))
 #' data <- df$hourly_data
 #' station_info <- df$station_df
+#' radius <- df$radius
 #' }
 #'
 #' @export
@@ -144,19 +152,21 @@ hourly_df <- function(fips, year,
     data <- ave_hourly(data)
   }
 
-  out <- list("hourly_data" = data, "station_df" = station_metadata)
+  radius <- hourly_list$radius
+
+  out <- list("hourly_data" = data, "station_df" = station_metadata,
+              "radius" = radius)
   return(out)
 }
 
 #' Write hourly weather timeseries files for U.S. counties
 #'
-#' Given a vector of U.S. county FIPS codes, this function saves lists created
-#' from the function \code{hourly_fips}. Within this list, the element
-#' \code{hourly_data} gives a timeseries dataframe giving: 1. the values for
-#' specified weather variables, and 2. the number of weather stations
+#' Given a vector of U.S. county FIPS codes, this function saves lists of four
+#' elements created from the function \code{hourly_fips}. Within this list,
+#' the element \code{hourly_data} gives a timeseries dataframe giving: 1. the
+#' values for specified weather variables, and 2. the number of weather stations
 #' contributing to the average for each day within the specified date range.
 #' Other elements saved include \code{station_metadata} anmd \code{station_map}.
-#' In addition to these three elements, the list includes a fourth element,
 #' \code{radius}, which gives the radius (in km) within which weather stations
 #' were pulled from each county's population-weighted center.
 #'
@@ -195,12 +205,6 @@ hourly_timeseries <- function(fips, coverage = NULL, year,
       out_list <- hourly_df(fips = fips[i], year = year, var = var,
                                coverage = coverage,
                                average_data = average_data)
-
-      radius_data <- countyweather::county_radius
-      loc_rad <- which(radius_data == fips)
-      radius <- radius_data[loc_rad, "county_radius"]
-
-      out_list$radius <- radius
 
       out_file <- paste0(out_directory, "/", fips[i], ".rds")
         saveRDS(out_list, file = out_file)
