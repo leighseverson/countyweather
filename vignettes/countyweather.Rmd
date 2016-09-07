@@ -120,7 +120,7 @@ This map uses functions from the `choroplethr` package to overlay weather monito
 
 You can also use functions in the `county_weather` package to pull hourly wind speed and temperature data by county from NOAA's Integrated Surface Data (ISD) weather dataset. In this case, NOAA's web services will not identify weather monitors by FIPS, so instead this function will pull all monitors within a certain radius [what's the default radius?] of the county's population mean center to represent weather within that county [this is how we identify monitors for a county for the hourly data, right?]. 
 
-Here is an example of pulling hourly data for Miami-Dade, for the year of Hurricane Andrew. While daily weather data can be pulled using a date range specified to the day, hourly data can only be pulled by year, and must be pulled for one year at a time [is this right?], using the `year` argument:
+Here is an example of pulling hourly data for Miami-Dade, for the year of Hurricane Andrew. While daily weather data can be pulled using a date range specified to the day, hourly data can only be pulled by year, and can be pulled for one or multiple years, using the `year` argument:
 
 ```{r}
 andrew_hourly <- hourly_fips(fips = "12086", year = 1992,
