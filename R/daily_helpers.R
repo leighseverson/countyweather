@@ -90,7 +90,8 @@ ave_weather <- function(weather_data){
                                   gather_cols = g_cols) %>%
     dplyr::group_by_(.dots = c("date", "key")) %>%
     dplyr::summarize_(mean = ~ mean(value, na.rm = TRUE)) %>%
-    tidyr::spread_(key_col = "key", value_col = "mean")
+    tidyr::spread_(key_col = "key", value_col = "mean") %>%
+    dplyr::ungroup()
 
   n_reporting <- tidyr::gather_(weather_data, key_col = "key",
                                 value_col = "value",
