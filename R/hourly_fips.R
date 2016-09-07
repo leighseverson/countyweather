@@ -69,7 +69,7 @@ hourly_fips <- function(fips, year, var = "all",
 #'    average daily weather data across multiple monitors.
 #' @param radius A numeric value giving the radius, in kilometers from the
 #'    county's population-weighted center, within which to pull weather
-#'    monitors. \code{radius} defaults to 50.
+#'    monitors. \code{radius} is calculated from US Census Land Area data.
 #' @param coverage A numeric value in the range of 0 to 1 that specifies
 #'    the desired percentage coverage for the weather variable (i.e., what
 #'    percent of each weather variable must be non-missing to include data from
@@ -150,6 +150,16 @@ hourly_df <- function(fips, year,
 
 #' Write hourly weather timeseries files for U.S. counties
 #'
+#' Given a vector of U.S. county FIPS codes, this function saves lists created
+#' from the function \code{hourly_fips}. Within this list, the element
+#' \code{hourly_data} gives a timeseries dataframe giving: 1. the values for
+#' specified weather variables, and 2. the number of weather stations
+#' contributing to the average for each day within the specified date range.
+#' Other elements saved include \code{station_metadata} anmd \code{station_map}.
+#' In addition to these three elements, the list includes a fourth element,
+#' \code{radius}, which gives the radius (in km) within which weather stations
+#' were pulled from each county's population-weighted center.
+#'
 #' Given a vector of U.S. county FIPS codes, this function creates timeseries
 #' dataframes giving: 1. the values for specified weather variables, and 2. the
 #' number of weather stations contributing to the average for each day within the
@@ -185,6 +195,13 @@ hourly_timeseries <- function(fips, coverage = NULL, year,
       out_list <- hourly_df(fips = fips[i], year = year, var = var,
                                coverage = coverage,
                                average_data = average_data)
+
+      radius_data <- countyweather::county_radius
+      loc_rad <- which(radius_data == fips)
+      radius <- radius_data[loc_rad, "county_radius"]
+
+      out_list$radius <- radius
+
       out_file <- paste0(out_directory, "/", fips[i], ".rds")
         saveRDS(out_list, file = out_file)
     }
