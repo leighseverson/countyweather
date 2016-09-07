@@ -152,7 +152,8 @@ filter_coverage <- function(coverage_df, coverage = NULL){
 #'
 #' @param fips A character string giving the five-digit U.S. FIPS county code
 #'    of the county for which the user wants to pull weather data.
-#' @param weather_data A list returned from \code{daily_df}.
+#' @param weather_data A list returned from \code{daily_df} with two elements:
+#'    \code{daily_data} and \code{station_df}.
 #' @param point_color The specified \code{ggplot2} color for each point
 #'    representing the location of a station.
 #' @param point_size The specified \code{ggplot2} size for each point
@@ -206,7 +207,7 @@ stationmap_fips <- function(fips, weather_data, point_color = "firebrick",
       ggplot2::ggtitle(title)
   } else {
     map <- map + ggplot2::geom_point(data = weather_data$station_df,
-                                     ggplot2::aes_(~ longitude, ~ latitude),
+                                     ggplot2::aes_(quote(longitude), quote(latitude)),
                                      colour = point_color, size = point_size) +
       ggplot2::theme(legend.position = "none") +
       ggplot2::ggtitle(title)
