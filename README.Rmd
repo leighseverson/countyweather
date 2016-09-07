@@ -24,15 +24,10 @@ This package builds on functions from the `rnoaa` package to identify weather mo
 
 ## Required set-up for this package
 
-Currently, this package exists in a development version on GitHub. To use the function, you need to install it directly from GitHub using the `install_github` function from `devtools`. Further, the package relies on some functions that are in a development version of `rnoaa`, so you need to install that development version of the `rnoaa` package, which is available in the GitHub repository `geanders/rnoaa`. 
-
-You can use the following code to install the development versions of `rnoaa` and `countyweather`: 
+Currently, this package exists in a development version on GitHub. To use the function, you need to install it directly from GitHub using the `install_github` function from `devtools`. You can use the following code to install the development version of `countyweather`: 
 
 ```{r eval = FALSE}
 library(devtools)
-
-install_github("geanders/rnoaa")
-library(rnoaa)
 
 install_github("leighseverson/countyweather")
 library(countyweather)
