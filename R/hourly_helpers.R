@@ -3,15 +3,14 @@
 #' This function serves as a wrapper to the \code{isd_stations_search} function
 #' in the \code{rnoaa} package, allowing you to search by FIPS code rather than
 #' having to know the latitude and longitude of the center of each county.
+#' \code{isd_stations_search} requires a radius within which to search for
+#' stations - this radius is estimated from 2010 US Census Land Area data.
 #'
 #' @param fips A five-digit FIPS county code.
 #' @param verbose TRUE / FALSE to indicate if you want the function to print
 #'    out the name of the county it's processing
-#' @param radius A numeric value giving the radius, in kilometers from the
-#'    county's population-weighted center, within which to pull weather
-#'    monitors.
 #'
-#' @return A dataframe of monitors within the given radius of the
+#' @return A dataframe of monitors within a calculated radius of the
 #'    population-weighted center of the county specified by the FIPS code.
 #'    This will have the same dataframe format as the output from the
 #'    \code{isd_stations_search} function in the \code{rnoaa} package.
@@ -20,11 +19,16 @@
 #' \dontrun{
 #' ids <- isd_fips_stations(fips = "12086")
 #' }
-isd_fips_stations <- function(fips, verbose = TRUE, radius = 50){
+isd_fips_stations <- function(fips, verbose = TRUE){
   census_data <- countyweather::county_centers
   loc_fips <- which(census_data$fips == fips)
   lat_fips <- census_data[loc_fips, "latitude"]
   lon_fips <- census_data[loc_fips, "longitude"]
+
+  # radius data for specified county
+  radius_data <- countyweather::county_radius
+  loc_rad <- which(radius_data == fips)
+  radius <- radius_data[loc_rad, "county_radius"]
 
   if(verbose) {
     print(paste0("Getting hourly weather monitors for ",
@@ -42,9 +46,9 @@ isd_fips_stations <- function(fips, verbose = TRUE, radius = 50){
 #'
 #' This function wraps the \code{isd} function from the \code{rnoaa} package.
 #'
-#' @param usaf_code A character string with a six-digit [usaf?] code for the
+#' @param usaf_code A character string with a six-digit usaf code for the
 #'    monitor.
-#' @param wban_code A character string with a five-digiv [wban?] code for the
+#' @param wban_code A character string with a five-digit wban code for the
 #'    monitor.
 #' @param year A four-digit numeric giving the year for which to pull data.
 #' @param var A character vector listing the weather variables to pull. Choices
@@ -123,9 +127,10 @@ int_surface_data <- function(usaf_code, wban_code, year,
 
 #' Pull hourly data for multiple monitors
 #'
-#' Pull all available data for all weather monitors within a certain radius of
+#' Pull all available data for all weather monitors within a calculated radius of
 #' the population-weighted center of a US county, based on the county's FIPS
-#' code.
+#' code. The radius for each county is calculated using 2010 US Census Land Area
+#' data.
 #'
 #' @param fips A five-digit FIPS county code.
 #' @param year A four-digit numeric giving the year for which to pull data.
@@ -133,9 +138,6 @@ int_surface_data <- function(usaf_code, wban_code, year,
 #'    available weather variables include "wind_direction", "wind_speed",
 #'    "ceiling_height", "visibility_distance", "temperature",
 #'    "temperature_dewpoint", and "air_pressure."
-#' @param radius A numeric value giving the radius, in kilometers from the
-#'    county's population-weighted center, within which to pull weather
-#'    monitors.
 #'
 #' @return A list with two elements: \code{ids} is a dataframe of station
 #'    metadata for all avaiable stations in the given fips code. \code{df} is a
@@ -150,9 +152,8 @@ int_surface_data <- function(usaf_code, wban_code, year,
 #'    geom_point(alpha = 0.5, size = 0.2) +
 #'    facet_wrap(~ usaf_station, ncol = 1)
 #' }
-isd_monitors_data <- function(fips, year, var = "all",
-                              radius = 50){
-  ids <- isd_fips_stations(fips, radius = radius)
+isd_monitors_data <- function(fips, year, var = "all"){
+  ids <- isd_fips_stations(fips)
 
   safe_int <- purrr::safely(int_surface_data)
   mult_stations <- mapply(safe_int, usaf_code = ids$usaf,
