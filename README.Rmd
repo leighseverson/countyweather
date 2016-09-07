@@ -214,7 +214,7 @@ The daily weather function \code{weather_fips} defaults to pull these five core 
 
 While the datasets resulting from functions in this package return a cleaned and aggregated dataset, this journal article by Menne et al. (2012) gives more information aboout the raw data in the GHCND database: 
 
-Menne, M.J., I. Durre, R.S. Vose, B.E. Gleason, and T.G. Houston, 2012:  An overview of the Global Historical Climatology Network-Daily Database.  Journal of Atmospheric and Oceanic Technology, 29, 897-910, doi:10.1175/JTECH-D-11-00103.1. 
+Menne, M.J., I. Durre, R.S. Vose, B.E. Gleason, and T.G. Houston, 2012:  An overview of the Global Historical Climatology Network-Daily Database.  Journal of Atmospheric and Oceanic Technology, 29, 897-910, \doi{10.1175/JTECH-D-11-00103.1}. 
 
 ### Hourly weather data 
 

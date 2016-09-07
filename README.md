@@ -64,12 +64,12 @@ head(andrew_precip$daily_data)
 #> 
 #>         date     prcp prcp_reporting
 #>       <date>    <dbl>          <int>
-#> 1 1992-08-02 8.850000              6
-#> 2 1992-08-03 9.366667              6
-#> 3 1992-08-04 5.483333              6
-#> 4 1992-08-05 2.716667              6
-#> 5 1992-08-06 1.633333              6
-#> 6 1992-08-07 7.200000              6
+#> 1 1992-08-01 1.016667              6
+#> 2 1992-08-02 8.850000              6
+#> 3 1992-08-03 9.366667              6
+#> 4 1992-08-04 5.483333              6
+#> 5 1992-08-05 2.716667              6
+#> 6 1992-08-06 1.633333              6
 ```
 
 The dataset includes columns for date (`date`), precipitation (in mm, `prcp`), and also the number of stations used to calculated each precipitation observation (`prcp_reporting`).
@@ -188,12 +188,12 @@ head(not_averaged)
 #> # A tibble: 6 x 3
 #>            id       date  prcp
 #>         <chr>     <date> <dbl>
-#> 1 USC00083909 1992-08-02   4.8
-#> 2 USC00083909 1992-08-03   1.3
-#> 3 USC00083909 1992-08-04   0.0
-#> 4 USC00083909 1992-08-05   7.6
-#> 5 USC00083909 1992-08-06   1.0
-#> 6 USC00083909 1992-08-07   0.0
+#> 1 USC00083909 1992-08-01   1.3
+#> 2 USC00083909 1992-08-02   4.8
+#> 3 USC00083909 1992-08-03   1.3
+#> 4 USC00083909 1992-08-04   0.0
+#> 5 USC00083909 1992-08-05   7.6
+#> 6 USC00083909 1992-08-06   1.0
 unique(not_averaged$id)
 #> [1] "USC00083909" "USC00087020" "USC00088780" "USW00012839" "USW00012859"
 #> [6] "USW00092811"
@@ -241,7 +241,7 @@ The daily weather function defaults to pull these five core weather variables. H
 
 While the datasets resulting from functions in this package return a cleaned and aggregated dataset, this journal article by Menne et al. (2012) gives more information aboout the raw data in the GHCND database:
 
-Menne, M.J., I. Durre, R.S. Vose, B.E. Gleason, and T.G. Houston, 2012: An overview of the Global Historical Climatology Network-Daily Database. Journal of Atmospheric and Oceanic Technology, 29, 897-910, <doi:10.1175/JTECH-D-11-00103.1>.
+Menne, M.J., I. Durre, R.S. Vose, B.E. Gleason, and T.G. Houston, 2012: An overview of the Global Historical Climatology Network-Daily Database. Journal of Atmospheric and Oceanic Technology, 29, 897-910, .
 
 ### Hourly weather data
 
