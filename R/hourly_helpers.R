@@ -72,7 +72,7 @@ isd_fips_stations <- function(fips, verbose = TRUE){
 #'
 #' @examples
 #' \dontrun{
-#' ids <- isd_fips_stations(fips = "12086")
+#' ids <- isd_fips_stations(fips = "12086")$stations
 #' airport_station <- int_surface_data(usaf_code = ids$usaf[1],
 #'                                     wban_code = ids$wban[1],
 #'                                     year = 1992,
@@ -159,7 +159,7 @@ int_surface_data <- function(usaf_code, wban_code, year,
 #'    facet_wrap(~ usaf_station, ncol = 1)
 #' }
 isd_monitors_data <- function(fips, year, var = "all"){
-  ids <- isd_fips_stations(fips)
+  ids <- isd_fips_stations(fips)$stations
 
   safe_int <- purrr::safely(int_surface_data)
   mult_stations <- mapply(safe_int, usaf_code = ids$usaf,
