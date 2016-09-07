@@ -264,7 +264,7 @@ daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
     ,
     error = function(e) {
       e
-      print(paste0("Unable to pull weather data for FIPS code ", fips[i],
+      warning(paste0("Unable to pull weather data for FIPS code ", fips[i],
                    " for the specified percent coverage, date range, and/or weather variables."))
     }
     )
