@@ -95,7 +95,7 @@ The dataset includes columns for date (`date`), precipitation (in mm, `prcp`), a
 
 Here is a plot of this data, with colors used to show the number of monitors included in each daily observation:
 
-```{r fig.width = 7, fig.height = 3}
+```{r fig.width = 7, fig.height = 3, fig.align = "center"}
 library(ggplot2)
 ggplot(andrew_precip$daily_data, aes(x = date, y = prcp, color = prcp_reporting)) + 
   geom_line() + geom_point() + theme_minimal() + 
@@ -107,7 +107,7 @@ From this plot, you can see both the extreme precipitation associated with Hurri
 
 A map is also included in the output of `daily_fips` with the monitors used for the county average, as the `station_map` element:
 
-```{r warning = FALSE}
+```{r warning = FALSE, fig.align = "center"}
 andrew_precip$station_map
 ```
 
@@ -143,7 +143,7 @@ head(andrew_hourly_data)
 
 Here is a plot of hourly wind speeds for Miami-Dade County, FL, for the month of Hurricane Andrew:
 
-```{r fig.width = 7, fig.height = 3, message = FALSE, warning = FALSE}
+```{r fig.width = 7, fig.height = 3, message = FALSE, warning = FALSE, fig.align = "center"}
 library(dplyr)
 library(lubridate)
 to_plot <- andrew_hourly$hourly_data %>%
@@ -160,7 +160,7 @@ Again, the intensity of conditions during Hurricane Andrew is clear, as is the r
 
 The list object returned by `hourly_fips` also includes a map of monitor locations (`station_map`): 
 
-```{r}
+```{r fig.align = "center"}
 andrew_hourly$station_map
 ```
 
@@ -194,7 +194,7 @@ plot_daily_timeseries("prcp", file_directory = "~/Documents/andrew_data",
 
 Here's an example of what the timeseries plot for Miami-Dade County (fips = 12086) would look like [Let's put in these figures for all three counties]: 
 
-```{r echo = FALSE, out.width = 0.33}
+```{r echo = FALSE, out.width = 0.33, fig.align = "center"}
 df <- andrew_precip$daily_data
 plot(df$date, df$prcp, type = "l", col = "red", main = "12086", xlab = "date", 
      ylab = "prcp", xlim = c(as.Date("1992-08-01"), as.Date("1992-08-31")))
@@ -226,7 +226,7 @@ unique(not_averaged_data$id)
 
 In this example, there are six monitors contributing weather data to the timeseries. We can plot the data by station to get a sense for how values from each monitor compare, and which monitors were presumably knocked out by the storm, with different colors used to show values for different monitors:  
 
-```{r fig.width = 7, fig.height = 3, warning = FALSE, message = FALSE}
+```{r fig.width = 7, fig.height = 3, warning = FALSE, message = FALSE, fig.align = "center"}
 library(ggplot2)
 ggplot(not_averaged_data, aes(x = date, y = prcp, 
                          colour = id)) + 
@@ -236,7 +236,7 @@ ggplot(not_averaged_data, aes(x = date, y = prcp,
 
 It might be interesting here to compare this plot with the station map, this time with station labels included:  
 
-```{r warning = FALSE, message = FALSE}
+```{r warning = FALSE, message = FALSE, fig.align = "center"}
 not_averaged$station_map
 ```
 
