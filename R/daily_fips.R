@@ -11,14 +11,16 @@
 #' @param station_label TRUE / FALSE to indicate if you want your plot of
 #'    weather station locations to include labels indicating station ids.
 #'
-#' @return A list with two elements. The first element (\code{daily_data}) is a
+#' @return A list with three elements. The first element (\code{daily_data}) is a
 #'    dataframe of daily weather data averaged across multiple stations, as well
 #'    as columns (\code{"var"_reporting}) for each weather variable showing the
 #'    number of stations contributing to the average for that variable on that
-#'    day. The second element (\code{station_map}) is a plot showing points for all
-#'    weather stations for a particular county satisfying the conditions present
-#'    in \code{daily_fips}'s arguments (coverage, date_min, date_max,
-#'    and/or var).
+#'    day. The second element (\code{station_metadata} is a dataframe of station
+#'    metadata for stations included in the \code{daily_data} dataframe. Columns
+#'    include station id, latitude, longitude, and name. The third element
+#'    (\code{station_map}) is a plot showing points for all weather stations for
+#'    a particular county satisfying the conditions present in
+#'    \code{daily_fips}'s arguments (coverage, date_min, date_max, and/or var).
 #'
 #' @note Because this function uses the NOAA API to identify the weather
 #'    monitors within a US county, you will need to get an access token from
@@ -32,7 +34,7 @@
 #' \dontrun{
 #' ex <- daily_fips("08031", coverage = 0.90,
 #'                    date_min = "2010-01-01", date_max = "2010-02-01",
-#'                    var = "PRCP")
+#'                    var = "prcp")
 #'
 #' weather_data <- ex$daily_data
 #' station_map <- ex$station_map
@@ -40,7 +42,7 @@
 #' mobile_ex <- weather_fips("01097", percent_coverage = 0,
 #'                           date_min = "1997-07-13",
 #'                           date_max = "1997-07-25",
-#'                           var = "PRCP", average_data = FALSE)
+#'                           var = "prcp", average_data = FALSE)
 #' library(ggplot2)
 #' ggplot(mobile_ex$daily_weather, aes(x = date, y = prcp, color = id)) +
 #'        geom_line()
@@ -62,6 +64,7 @@ daily_fips <- function(fips, coverage = NULL,
                                  weather_data = weather_data,
                                  station_label = station_label)
   list <- list("daily_data" = weather_data$daily_data,
+               "station_metadata" = weather_data$station_df,
                "station_map" = station_map)
   return(list)
 }
@@ -98,7 +101,7 @@ daily_fips <- function(fips, coverage = NULL,
 #'    default is to include all monitors with any available data (i.e.,
 #'    \code{coverage = 0}).
 #' @param var A character vector specifying desired weather variables. For
-#'    example, var = c("TMIN", "TMAX", "PRCP"). The default is \code{"all"},
+#'    example, var = c("tmin", "tmax", "prco"). The default is \code{"all"},
 #'    which includes all available weather variables. For a full list of all
 #'    possible variable names, see NOAA's README file for the Daily Global
 #'    Historical Climatology Network (GHCN-Daily) at
@@ -125,7 +128,7 @@ daily_fips <- function(fips, coverage = NULL,
 #' stations <- fips_stations(fips = "12086", date_min = "2010-01-01",
 #'                           date_max = "2010-02-01")
 #' list <- daily_df(stations = stations, coverage = 0.90,
-#'                       var = c("TMAX", "TMIN", "PRCP"),
+#'                       var = c("tmax", "tmin", "prcp"),
 #'                       date_min = "2010-01-01", date_max = "2010-02-01")
 #' averaged_data <- list$daily_data
 #' station_info <- list$stations
@@ -142,7 +145,7 @@ daily_df <- function(stations, coverage = NULL,
                                   keep_flags = FALSE,
                                   date_min = date_min,
                                   date_max = date_max,
-                                  var = var)$result
+                                  var = toupper(var))$result
 
   # calculate coverage for each weather variable
   # meteo_coverage() from meteo_utils.R in ropenscilabs/rnoaa
@@ -158,7 +161,7 @@ daily_df <- function(stations, coverage = NULL,
 
   # steps to filter out erroneous data from individual stations
   # precipitation
-  if("PRCP" %in% var){
+  if("prcp" %in% var){
     filtered_data$prcp <- filtered_data$prcp / 10
     if(max(filtered_data$prcp, na.rm = TRUE) > 1100){
       bad_prcp <- which(with(filtered_data, prcp > 1100))
@@ -167,7 +170,7 @@ daily_df <- function(stations, coverage = NULL,
   }
 
   # snowfall
-  if("SNOW" %in% var){
+  if("snow" %in% var){
     if(max(filtered_data$snow, na.rm = TRUE) > 1600){
       bad_snow <- which(with(filtered_data, snow > 1600))
       filtered_data <- filtered_data[-bad_snow,]
@@ -175,7 +178,7 @@ daily_df <- function(stations, coverage = NULL,
   }
 
   # snow depth
-  if("SNWD" %in% var){
+  if("snwd" %in% var){
     if(max(filtered_data$snwd, na.rm = TRUE) > 11500){
       bad_snwd <- which(with(filtered_data, snwd > 11500))
       filtered_data <- filtered_data[-bad_snwd,]
@@ -183,7 +186,7 @@ daily_df <- function(stations, coverage = NULL,
   }
 
   # tmax
-  if("TMAX" %in% var){
+  if("tmax" %in% var){
     filtered_data$tmax <- filtered_data$tmax / 10
     if(max(filtered_data$tmax, na.rm = TRUE) > 57){
       bad_tmax <- which(with(filtered_data, tmax > 57))
@@ -192,7 +195,7 @@ daily_df <- function(stations, coverage = NULL,
   }
 
   # tmin
-  if("TMIN" %in% var){
+  if("tmin" %in% var){
     filtered_data$tmin <- filtered_data$tmin / 10
     if(min(filtered_data$tmin, na.rm = TRUE) < -62){
       bad_tmin <- which(with(filtered_data, tmin < -62))
@@ -220,16 +223,13 @@ daily_df <- function(stations, coverage = NULL,
 #' number of weather stations contributing to the average for each day within the
 #' specified date range.
 #'
-#' @return Writes out a directory with daily weather files for each FIPS code
-#' specified.
+#' @return Writes out a directory with daily weather RDS files for each FIPS
+#' code specified.
 #'
 #' @inheritParams daily_df
 #' @inheritParams fips_stations
 #' @param out_directory The absolute or relative pathname for the directory
 #' where you would like the timeseries files to be saved.
-#' @param out_type A character string indicating that you would like either .rds
-#' files (out_type = "rds") or .csv files (out_type = ".csv"). This option
-#' defaults to .rds files.
 #'
 #' @note If the function is unable to pull weather data for a particular county
 #' given the specified percent coverage, date range, and/or weather variables,
@@ -239,34 +239,27 @@ daily_df <- function(stations, coverage = NULL,
 #' \dontrun{
 #' daily_timeseries(fips = c("41005", "13089"), coverage = 0.90,
 #'            date_min = "2000-01-01", date_max = "2000-01-10",
-#'            var = c("TMAX", "TMIN", "PRCP"),
+#'            var = c("tmax", "tmin", "prcp"),
 #'            out_directory = "~/timeseries_data")
 #' }
 #'
 #' @export
-daily_timeseries <- function(fips, coverage = NULL, date_min, date_max, var,
+daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
+                             date_max = NULL, var = "all",
                               average_data = TRUE,
-                              out_directory, out_type = "rds"){
+                              out_directory){
 
   if(!dir.exists(out_directory)){
     dir.create(out_directory)
   }
   for(i in 1:length(fips)) {
     possibleError <- tryCatch({
-      stations <- fips_stations(fips = fips[i], date_min = date_min,
-                                date_max = date_max)
-      out_df <- daily_df(stations = stations,
-                                coverage = coverage,
-                                var = var, date_min = date_min,
-                                date_max = date_max,
-                         average_data = average_data)$daily_data
 
-      out_file <- paste0(out_directory, "/", fips[i], ".", out_type)
-      if(out_type == "rds"){
-        saveRDS(out_df, file = out_file)
-      } else if (out_type == "csv"){
-        utils::write.csv(out_df, file = out_file, row.names = FALSE)
-      }
+      out_list <- daily_fips(fips = fips[i], date_min = date_min,
+                             date_max = date_max, var = var)
+
+      out_file <- paste0(out_directory, "/", fips[i], ".rds")
+        saveRDS(out_list, file = out_file)
     }
     ,
     error = function(e) {
@@ -297,9 +290,6 @@ daily_timeseries <- function(fips, coverage = NULL, date_min, date_max, var,
 #' @param file_directory The absolute or relative pathname for the directory
 #' where your daily timeseries dataframes (produced by \code{daily_timeseries})
 #' are saved.
-#' @param file_type A character string indicating the type of timeseries files
-#' you would like to produce plots for (either "rds" or "csv"). This option
-#' defaults to .rds files.
 #' @param plot_directory The absolute or relative pathname for the directory
 #' where you would like the plots to be saved.
 #' @param date_min A character string giving the earliest date present in the
@@ -324,7 +314,7 @@ daily_timeseries <- function(fips, coverage = NULL, date_min, date_max, var,
 #' @importFrom dplyr %>%
 #'
 #' @export
-plot_daily_timeseries <- function(var, file_directory, file_type = "rds",
+plot_daily_timeseries <- function(var, file_directory,
                             plot_directory, date_min, date_max){
 
   files <- list.files(file_directory)
@@ -333,21 +323,18 @@ plot_daily_timeseries <- function(var, file_directory, file_type = "rds",
     dir.create(plot_directory)
   }
 
-  if(file_type == "rds"){
     file_names <- gsub(".rds", "", files)
-  } else if (file_type == "csv"){
-    file_names <- gsub(".csv", "", files)
-  }
 
   for(i in 1:length(files)){
-    data <- readRDS(paste0(file_directory, "/", files[i])) %>%
+    dat <- readRDS(paste0(file_directory, "/", files[i]))
+    weather <- dat$daily_data %>%
       dplyr::ungroup() %>%
       as.data.frame()
 
     file_name <- paste0(file_names[i], ".png")
     grDevices::png(filename = paste0(plot_directory, "/", file_name))
-    data$to_plot <- data[ , var]
-    graphics::plot(data$date, data$to_plot,
+    weather$to_plot <- weather[ , var]
+    graphics::plot(weather$date, weather$to_plot,
          type = "l", col = "red", main = file_names[i],
          xlab = "date", ylab = var,
          xlim = c(as.Date(date_min), as.Date(date_max)))

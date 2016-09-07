@@ -129,18 +129,23 @@ int_surface_data <- function(usaf_code, wban_code, year,
 #'
 #' @param fips A five-digit FIPS county code.
 #' @param year A four-digit numeric giving the year for which to pull data.
-#' @param var A character vector listing the weather variables to pull. Choices
-#'    include "wind_direction", "wind_speed", "ceiling_height",
-#'    "visibility_distance", "temperature", "temperature_dewpoint", and
-#'    "air_pressure."
+#' @param var A character vector listing the weather variables to pull. The main
+#'    available weather variables include "wind_direction", "wind_speed",
+#'    "ceiling_height", "visibility_distance", "temperature",
+#'    "temperature_dewpoint", and "air_pressure."
 #' @param radius A numeric value giving the radius, in kilometers from the
 #'    county's population-weighted center, within which to pull weather
 #'    monitors.
 #'
+#' @return A list with two elements: \code{ids} is a dataframe of station
+#'    metadata for all avaiable stations in the given fips code. \code{df} is a
+#'    data frame with hourly weather data for the given variable(s) and date
+#'    range.
+#'
 #' @examples
 #' \dontrun{
 #' stationdata <- isd_monitors_data(fips = "12086", year = 1992,
-#'                                  var = c("wind_speed", "temperature"))
+#'                                  var = c("wind_speed", "temperature"))$df
 #' ggplot(stationdata, aes(x = date_time, y = wind_speed)) +
 #'    geom_point(alpha = 0.5, size = 0.2) +
 #'    facet_wrap(~ usaf_station, ncol = 1)
@@ -196,7 +201,9 @@ isd_monitors_data <- function(fips, year, var = "all",
   # out = list: data and stations
   # want to be able to access station metadata later for mapping, etc.
 
-  return(st_out_df)
+  list <- list("df" = st_out_df,
+               "ids" = ids)
+  return(list)
 }
 
 #' Average hourly weather data across multiple stations.
@@ -206,7 +213,8 @@ isd_monitors_data <- function(fips, year, var = "all",
 #' average for each variable and each hour.
 #'
 #' @param hourly_data A dataframe with hourly weather observations. This
-#'    dataframe is returned from the function \code{isd_monitors_data}.
+#'    dataframe is returned from the "df" element of the function
+#'    \code{isd_monitors_data}.
 #'
 #' @importFrom dplyr %>%
 ave_hourly <- function(hourly_data){
@@ -234,6 +242,10 @@ ave_hourly <- function(hourly_data){
 
   averaged_data <- dplyr::left_join(averaged_data, n_reporting,
                                     by = "date_time")
+
+  averaged_data <- dplyr::ungroup(averaged_data, date_time)
+  averaged_data <- as.data.frame(averaged_data)
+
   return(averaged_data)
 }
 
@@ -242,7 +254,8 @@ ave_hourly <- function(hourly_data){
 #' \code{filter_hourly} filters available weather variables based on a specified
 #' minimum coverage (i.e., percent non-missing hourly observations).
 #'
-#' @param hourly_data A \code{isd_monitors_data} dataframe
+#' @param hourly_data A \code{isd_monitors_data} dataframe (The "df" element of
+#'    a \code{isd_monitors_data} list)
 #' @param coverage A numeric value in the range of 0 to 1 that specifies the
 #'    desired percentage coverage for each weather variable (i.e., what percent
 #'    of each weather variable must be non-missing to include the data from a
@@ -254,9 +267,10 @@ ave_hourly <- function(hourly_data){
 #'    "air_pressure")}. Alternatively, you can specify var = "all" to include
 #'    additional flag and quality codes.
 #'
-#' @return a \code{dataframe} with stations that meet the specified coverage
-#' requirements for weather variables included in the datafrome present in
-#' this function's arguments.
+#' @return A list with two elements: \code{stations} is a vector of station ids
+#'    (usaf and wban identification numbers pasted together, separated by "-")
+#'    that meet the specified coverage requirements. \code{df} is a dataframe
+#'    with weather data from stations that meet the coverage requirements.
 #'
 #' @importFrom dplyr %>%
 filter_hourly <- function(hourly_data, coverage,
@@ -288,6 +302,8 @@ filter_hourly <- function(hourly_data, coverage,
     dplyr::filter_(~ coverage > 0.80) %>%
     dplyr::group_by_(.dots = group_cols)
 
+  stations <- unique(filtered$station)
+
   df2 <- filtered %>%
     dplyr::summarize_(n_reporting = ~ sum(!is.na(value))) %>%
     dplyr::mutate_(key = ~ paste(key, "reporting", sep = "_")) %>%
@@ -299,14 +315,18 @@ filter_hourly <- function(hourly_data, coverage,
 
   out <- dplyr::full_join(df3, df2, by = "date_time")
 
-  return(out)
+  list <- list("df" = out,
+               "stations" = stations)
+
+  return(list)
 }
 
 #' Plot hourly weather stations for a particular county
 #'
 #' @param fips A five-digit FIPS county code.
-#' @param hourly_data hourly_data A dataframe with hourly weather observations. This
-#'    dataframe is returned from the function \code{isd_monitors_data}.
+#' @param hourly_data hourly_data A dataframe with hourly weather observations.
+#'    This dataframe is returned from the function \code{isd_monitors_data} (the
+#'    "df" element of a \code{isd_monitors_data} list).
 #' @param point_color point_color The specified \code{ggplot2} color for each point
 #'    representing the location of a station.
 #' @param point_size The specified \code{ggplot2} size for each point
