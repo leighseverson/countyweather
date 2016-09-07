@@ -72,7 +72,7 @@ Currently, this package can pull daily and hourly weather data for variables lik
 
 ### Pulling daily data
 
-The `daily_fips` function can be used to pull daily weather data for all monitors in a county. This daily weather data comes from NOAA's Global Historical Climatology Network. This function pulls data from all monitors within the geographic boundaries of the county [this is true, right?]. When pulling data for a county, the user can specify date ranges (`date_min`, `date_max`), variables to include in the output dataset (`var`), and restrictions on how much non-missing data a monitor must have over the time period to be included when generating daily county average values (`coverage`). This function will pull any available data for the county under the specified restrictions and output both a dataset of average daily observations and a map plotting the stations used in the county-wide average data.
+The `daily_fips` function can be used to pull daily weather data for all monitors in a county. This daily weather data comes from NOAA's Global Historical Climatology Network. This function pulls data from all monitors within the geographic boundaries of the county. When pulling data for a county, the user can specify date ranges (`date_min`, `date_max`), variables to include in the output dataset (`var`), and restrictions on how much non-missing data a monitor must have over the time period to be included when generating daily county average values (`coverage`). This function will pull any available data for the county under the specified restrictions and output both a dataset of average daily observations and a map plotting the stations used in the county-wide average data.
 
 Here is an example of creating a dataset with daily precipitation for Miami-Dade county (FIPS code = 12086) for August 1992, when Hurricane Andrew stuck: 
 
@@ -81,17 +81,21 @@ andrew_precip <- daily_fips(fips = "12086", date_min = "1992-08-01",
                             date_max = "1992-08-31", var = "prcp")
 ```
 
-This function performs some simple data cleaning and quality control on the weather data originally pulled from NOAA's web services; see the section later in this document on the weather data for more details, including the units for the weather observations collected by this function.
+This function performs some simple data cleaning and quality control on the weather data originally pulled from NOAA's web services; see the section later in this document on the weather data for more details, including the units for the weather observations collected by this function and variable names for common weather variables.
 
-The output from this function call includes both the weather dataset (`andrew_precip$daily_data`) and a map showing the locations of weather monitors included in the county-averaged dataset (`anderew_precip$station_map`). 
+The output from running this function includes three elements; a daily time series of weather data for the county (`andrew_precip$daily_data`); a dataframe with meta-data about the weather stations used to create the time series data; and a map showing the locations of weather monitors included in the county-averaged dataset (`anderew_precip$station_map`). 
 
-Here are the first few rows of the dataset: 
+```{r}
+names(andrew_precip)
+```
+
+The first element of the list, `daily_data`, is a daily time series of measurements for all of the requested weather variables that were available at one of more monitors with the community. The default is for this dataframe to give a single, averaged daily value across all relevant monitors in the county. Here are the first few rows of the time series dataset output by the function: 
 
 ```{r}
 head(andrew_precip$daily_data)
 ```
 
-The dataset includes columns for date (`date`), precipitation (in mm, `prcp`), and also the number of stations used to calculate each daily average precipitation observation (`prcp_reporting`).
+The dataset includes columns for date (`date`), precipitation (in mm, `prcp`), and also the number of stations used to calculate each daily average precipitation observation (`prcp_reporting`). If you use the `coverage` argument when you call `daily_fips`, this daily average will only include monitors with at least that percent coverage over the full date range. 
 
 Here is a plot of this data, with colors used to show the number of monitors included in each daily observation:
 
@@ -111,7 +115,7 @@ A map is also included in the output of `daily_fips` with the monitors used for 
 andrew_precip$station_map
 ```
 
-This map uses functions from the `choroplethr` package to overlay weather monitor locations on a shaded map showing the county's boundaries [can we figure out the dates that these county boundary shapefiles are relevant for? For example, are they based on US county boundaries as of this year? As of the last census in 2010?]. 
+This map uses functions from the `choroplethr` package to overlay weather monitor locations on a shaded map showing the county's boundaries, with county boundaries based on the US Census 2010 Cartographic Boundary shapefiles, as implemented in the `choroplethrMaps` package. 
 
 ### Pulling hourly data
 
