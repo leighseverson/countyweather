@@ -39,7 +39,7 @@
 #' weather_data <- ex$daily_data
 #' station_map <- ex$station_map
 #'
-#' mobile_ex <- weather_fips("01097", percent_coverage = 0,
+#' mobile_ex <- daily_fips("01097", coverage = 0,
 #'                           date_min = "1997-07-13",
 #'                           date_max = "1997-07-25",
 #'                           var = "prcp", average_data = FALSE)
