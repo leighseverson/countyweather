@@ -31,7 +31,7 @@ a monitor when calculating daily values averaged across monitors.)}
 
 \item{radius}{A numeric value giving the radius, in kilometers from the
 county's population-weighted center, within which to pull weather
-monitors. \code{radius} defaults to 50.}
+monitors. \code{radius} is calculated from US Census Land Area data.}
 
 \item{average_data}{TRUE / FALSE to indicate if you want the function to
 average daily weather data across multiple monitors.}
@@ -41,13 +41,17 @@ weather station locations to include labels indicating station usaf id
 numbers.}
 }
 \value{
-A list with two elements. The first element (\code{hourly_data}) is a
+A list with four elements. The first element (\code{hourly_data}) is a
    dataframe of daily weather data averaged across multiple stations, as well
    as columns (\code{"var"_reporting}) for each weather variable showing the
    number of stations contributing to the average for that variable for that
-   hour. The second element (\code{station_map}) is a plot showing points for all
+   hour. The second element (\code{station_metadata} is a dataframe of station
+   metadata for stations included in the \code{daily_data} dataframe.
+   The third element (\code{station_map}) is a plot showing points for all
    weather stations for a particular county satisfying the conditions present
    in \code{hourly_fips}'s arguments (year, coverage, and/or var).
+   \code{radius} is the calculated radius within which stations were pulled
+   from the county's population-weighted center.
 }
 \description{
 Given a particular county FIPS code, this function returns a list with two

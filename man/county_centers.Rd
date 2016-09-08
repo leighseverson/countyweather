@@ -26,7 +26,7 @@ county_centers
 }
 \description{
 A dataframe containing latitude, longitude, FIPS code, name, and region code
-for each US county. This dataset put together using a dataframe from the US
+for each US county. This dataset was put together using a dataframe from the US
 Census Bureau, which was pulled from the website listed in "Sources."
 }
 \keyword{datasets}

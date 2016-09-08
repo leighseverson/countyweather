@@ -11,7 +11,8 @@ stationmap_fips(fips, weather_data, point_color = "firebrick",
 \item{fips}{A character string giving the five-digit U.S. FIPS county code
 of the county for which the user wants to pull weather data.}
 
-\item{weather_data}{A list returned from \code{daily_df}.}
+\item{weather_data}{A list returned from \code{daily_df} with two elements:
+\code{daily_data} and \code{station_df}.}
 
 \item{point_color}{The specified \code{ggplot2} color for each point
 representing the location of a station.}
@@ -38,7 +39,7 @@ all_stations <- fips_stations(fips = "12086", date_min = "1999-08-01",
                           date_max = "1999-08-31")
 weather_data <- daily_df(stations = all_stations, coverage =
                                 0.90, var = "PRCP", date_min = "1999-08-01",
-                                date_max = "1999-08-31")$daily_data
+                                date_max = "1999-08-31")
 stationmap_fips(fips = "12086", weather_data = weather_data)
 }
 

@@ -7,7 +7,8 @@
 filter_hourly(hourly_data, coverage, var = "all")
 }
 \arguments{
-\item{hourly_data}{A \code{isd_monitors_data} dataframe}
+\item{hourly_data}{A \code{isd_monitors_data} dataframe (The "df" element of
+a \code{isd_monitors_data} list)}
 
 \item{coverage}{A numeric value in the range of 0 to 1 that specifies the
 desired percentage coverage for each weather variable (i.e., what percent
@@ -22,9 +23,10 @@ variables include \code{c("wind_direction", "wind_speed", "ceiling_height",
 additional flag and quality codes.}
 }
 \value{
-a \code{dataframe} with stations that meet the specified coverage
-requirements for weather variables included in the datafrome present in
-this function's arguments.
+A list with two elements: \code{stations} is a vector of station ids
+   (usaf and wban identification numbers pasted together, separated by "-")
+   that meet the specified coverage requirements. \code{df} is a dataframe
+   with weather data from stations that meet the coverage requirements.
 }
 \description{
 \code{filter_hourly} filters available weather variables based on a specified

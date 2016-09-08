@@ -19,7 +19,7 @@ default is to include all monitors with any available data (i.e.,
 \code{coverage = 0}).}
 
 \item{var}{A character vector specifying desired weather variables. For
-example, var = c("TMIN", "TMAX", "PRCP"). The default is \code{"all"},
+example, var = c("tmin", "tmax", "prco"). The default is \code{"all"},
 which includes all available weather variables. For a full list of all
 possible variable names, see NOAA's README file for the Daily Global
 Historical Climatology Network (GHCN-Daily) at
@@ -39,7 +39,11 @@ format ("yyyy-mm-dd"). The dataframe returned will include only stations
 that have data for dates up to and including the specified date.}
 
 \item{average_data}{TRUE / FALSE to indicate if you want the function to
-average daily weather data across multiple monitors.}
+average daily weather data across multiple monitors. If you choose
+FALSE, the function will return a dataframe with separate entries for
+each monitor, while TRUE (the default) outputs a single estimate
+for each day in the dataset, giving the average value of the weather
+metric across all available monitors in the county that day.}
 }
 \value{
 A list with two elements. \code{daily_data} is a dataframe of daily
@@ -78,7 +82,7 @@ Because this function uses the NOAA API to identify the weather
 stations <- fips_stations(fips = "12086", date_min = "2010-01-01",
                           date_max = "2010-02-01")
 list <- daily_df(stations = stations, coverage = 0.90,
-                      var = c("TMAX", "TMIN", "PRCP"),
+                      var = c("tmax", "tmin", "prcp"),
                       date_min = "2010-01-01", date_max = "2010-02-01")
 averaged_data <- list$daily_data
 station_info <- list$stations

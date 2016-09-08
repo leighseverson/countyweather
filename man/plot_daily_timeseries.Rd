@@ -4,8 +4,7 @@
 \alias{plot_daily_timeseries}
 \title{Write plot files for daily weather timeseries dataframes}
 \usage{
-plot_daily_timeseries(var, file_directory, file_type = "rds", plot_directory,
-  date_min, date_max)
+plot_daily_timeseries(var, file_directory, plot_directory, date_min, date_max)
 }
 \arguments{
 \item{var}{A character string (all lower-case) specifying which weather
@@ -15,10 +14,6 @@ plots for. For example, var = "prcp".}
 \item{file_directory}{The absolute or relative pathname for the directory
 where your daily timeseries dataframes (produced by \code{daily_timeseries})
 are saved.}
-
-\item{file_type}{A character string indicating the type of timeseries files
-you would like to produce plots for (either "rds" or "csv"). This option
-defaults to .rds files.}
 
 \item{plot_directory}{The absolute or relative pathname for the directory
 where you would like the plots to be saved.}

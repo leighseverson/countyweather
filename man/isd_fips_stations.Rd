@@ -4,32 +4,33 @@
 \alias{isd_fips_stations}
 \title{Get station list for a particular US county}
 \usage{
-isd_fips_stations(fips, verbose = TRUE, radius = 50)
+isd_fips_stations(fips, verbose = TRUE)
 }
 \arguments{
 \item{fips}{A five-digit FIPS county code.}
 
 \item{verbose}{TRUE / FALSE to indicate if you want the function to print
 out the name of the county it's processing}
-
-\item{radius}{A numeric value giving the radius, in kilometers from the
-county's population-weighted center, within which to pull weather
-monitors.}
 }
 \value{
-A dataframe of monitors within the given radius of the
+A list with two elements. The first element, \code{stations}, is a
+   dataframe of monitors within a calculated radius of the
    population-weighted center of the county specified by the FIPS code.
    This will have the same dataframe format as the output from the
-   \code{isd_stations_search} function in the \code{rnoaa} package.
+   \code{isd_stations_search} function in the \code{rnoaa} package. The
+   second element, \code{radius}, gives the radius (in km) within which
+   stations were pulled from the county's population-weighted center.
 }
 \description{
 This function serves as a wrapper to the \code{isd_stations_search} function
 in the \code{rnoaa} package, allowing you to search by FIPS code rather than
 having to know the latitude and longitude of the center of each county.
+\code{isd_stations_search} requires a radius within which to search for
+stations - this radius is estimated from 2010 US Census Land Area data.
 }
 \examples{
 \dontrun{
-ids <- isd_fips_stations(fips = "12086")
+ids <- isd_fips_stations(fips = "12086")$stations
 }
 }
 

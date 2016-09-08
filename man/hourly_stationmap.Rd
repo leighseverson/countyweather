@@ -10,8 +10,9 @@ hourly_stationmap(fips, hourly_data, point_color = "firebrick",
 \arguments{
 \item{fips}{A five-digit FIPS county code.}
 
-\item{hourly_data}{hourly_data A dataframe with hourly weather observations. This
-dataframe is returned from the function \code{isd_monitors_data}.}
+\item{hourly_data}{hourly_data A dataframe with hourly weather observations.
+This dataframe is returned from the function \code{isd_monitors_data} (the
+"df" element of a \code{isd_monitors_data} list).}
 
 \item{point_color}{point_color The specified \code{ggplot2} color for each point
 representing the location of a station.}

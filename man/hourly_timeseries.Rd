@@ -5,7 +5,7 @@
 \title{Write hourly weather timeseries files for U.S. counties}
 \usage{
 hourly_timeseries(fips, coverage = NULL, year, var = "all", radius = 50,
-  average_data = TRUE, out_directory, out_type = "rds")
+  average_data = TRUE, out_directory)
 }
 \arguments{
 \item{fips}{A character string or vector giving the five-digit U.S. FIPS
@@ -30,23 +30,29 @@ additional flag and quality codes.}
 
 \item{radius}{A numeric value giving the radius, in kilometers from the
 county's population-weighted center, within which to pull weather
-monitors. \code{radius} defaults to 50.}
+monitors. \code{radius} is calculated from US Census Land Area data.}
 
 \item{average_data}{TRUE / FALSE to indicate if you want the function to
 average daily weather data across multiple monitors.}
 
 \item{out_directory}{The absolute or relative pathname for the directory
 where you would like the timeseries files to be saved.}
-
-\item{out_type}{A character string indicating that you would like either .rds
-files (out_type = "rds") or .csv files (out_type = ".csv"). This option
-defaults to .rds files.}
 }
 \value{
-Writes out a directory with daily weather files for each FIPS code
-specified.
+Writes out a directory with daily weather RDS files for each FIPS
+code specified.
 }
 \description{
+Given a vector of U.S. county FIPS codes, this function saves lists of four
+elements created from the function \code{hourly_fips}. Within this list,
+the element \code{hourly_data} gives a timeseries dataframe giving: 1. the
+values for specified weather variables, and 2. the number of weather stations
+contributing to the average for each day within the specified date range.
+Other elements saved include \code{station_metadata} anmd \code{station_map}.
+\code{radius}, which gives the radius (in km) within which weather stations
+were pulled from each county's population-weighted center.
+}
+\details{
 Given a vector of U.S. county FIPS codes, this function creates timeseries
 dataframes giving: 1. the values for specified weather variables, and 2. the
 number of weather stations contributing to the average for each day within the
