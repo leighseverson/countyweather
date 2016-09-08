@@ -235,6 +235,9 @@ daily_df <- function(stations, coverage = NULL,
 #' @inheritParams fips_stations
 #' @param out_directory The absolute or relative pathname for the directory
 #' where you would like the timeseries files to be saved.
+#' @param keep_map TRUE / FALSE indicating if a map of the stations should
+#'    be included in each output file. The map can substantially increase the
+#'    size of the files.
 #'
 #' @note If the function is unable to pull weather data for a particular county
 #' given the specified percent coverage, date range, and/or weather variables,
@@ -252,7 +255,7 @@ daily_df <- function(stations, coverage = NULL,
 daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
                              date_max = NULL, var = "all",
                               average_data = TRUE,
-                              out_directory){
+                              out_directory, keep_map = TRUE){
 
   if(!dir.exists(out_directory)){
     dir.create(out_directory)
@@ -262,6 +265,10 @@ daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
 
       out_list <- daily_fips(fips = fips[i], date_min = date_min,
                              date_max = date_max, var = var)
+
+      if(!map){
+        out_list <- out_list[-3] # Remove map if user does not want it
+      }
 
       out_file <- paste0(out_directory, "/", fips[i], ".rds")
         saveRDS(out_list, file = out_file)
