@@ -24,15 +24,10 @@ This package builds on functions from the `rnoaa` package to identify weather mo
 
 ## Required set-up for this package
 
-Currently, this package exists in a development version on GitHub. To use the function, you need to install it directly from GitHub using the `install_github` function from `devtools`. Further, the package relies on some functions that are in a development version of `rnoaa`, so you need to install that development version of the `rnoaa` package, which is available in the GitHub repository `geanders/rnoaa`. 
-
-You can use the following code to install the development versions of `rnoaa` and `countyweather`: 
+Currently, this package exists in a development version on GitHub. To use the function, you need to install it directly from GitHub using the `install_github` function from `devtools`. You can use the following code to install the development version of `countyweather`: 
 
 ```{r eval = FALSE}
 library(devtools)
-
-install_github("geanders/rnoaa")
-library(rnoaa)
 
 install_github("leighseverson/countyweather")
 library(countyweather)
@@ -77,7 +72,7 @@ Currently, this package can pull daily and hourly weather data for variables lik
 
 ### Pulling daily data
 
-The `daily_fips` function can be used to pull daily weather data for all monitors in a county. This daily weather data comes from NOAA's Global Historical Climatology Network. This function pulls data from all monitors within the geographic boundaries of the county [this is true, right?]. When pulling data for a county, the user can specify date ranges (`date_min`, `date_max`), variables to include in the output dataset (`var`), and restrictions on how much non-missing data a monitor must have over the time period to be included when generating daily county average values (`coverage`). This function will pull any available data for the county under the specified restrictions and output both a dataset of average daily observations and a map plotting the stations used in the county-wide average data.
+The `daily_fips` function can be used to pull daily weather data for all monitors in a county. This daily weather data comes from NOAA's Global Historical Climatology Network. This function pulls data from all monitors within the geographic boundaries of the county. When pulling data for a county, the user can specify date ranges (`date_min`, `date_max`), variables to include in the output dataset (`var`), and restrictions on how much non-missing data a monitor must have over the time period to be included when generating daily county average values (`coverage`). This function will pull any available data for the county under the specified restrictions and output both a dataset of average daily observations and a map plotting the stations used in the county-wide average data.
 
 Here is an example of creating a dataset with daily precipitation for Miami-Dade county (FIPS code = 12086) for August 1992, when Hurricane Andrew stuck: 
 
@@ -86,21 +81,25 @@ andrew_precip <- daily_fips(fips = "12086", date_min = "1992-08-01",
                             date_max = "1992-08-31", var = "prcp")
 ```
 
-This function performs some simple data cleaning and quality control on the weather data originally pulled from NOAA's web services; see the section later in this document on the weather data for more details, including the units for the weather observations collected by this function.
+This function performs some simple data cleaning and quality control on the weather data originally pulled from NOAA's web services; see the section later in this document on the weather data for more details, including the units for the weather observations collected by this function and variable names for common weather variables.
 
-The output from this function call includes both the weather dataset (`andrew_precip$daily_data`) and a map showing the locations of weather monitors included in the county-averaged dataset (`anderew_precip$station_map`). 
+The output from running this function includes three elements; a daily time series of weather data for the county (`andrew_precip$daily_data`); a dataframe with meta-data about the weather stations used to create the time series data; and a map showing the locations of weather monitors included in the county-averaged dataset (`anderew_precip$station_map`). 
 
-Here are the first few rows of the dataset: 
+```{r}
+names(andrew_precip)
+```
+
+The first element of the list, `daily_data`, is a daily time series of measurements for all of the requested weather variables that were available at one of more monitors with the community. The default is for this dataframe to give a single, averaged daily value across all relevant monitors in the county. Here are the first few rows of the time series dataset output by the function: 
 
 ```{r}
 head(andrew_precip$daily_data)
 ```
 
-The dataset includes columns for date (`date`), precipitation (in mm, `prcp`), and also the number of stations used to calculate each daily average precipitation observation (`prcp_reporting`).
+The dataset includes columns for date (`date`), precipitation (in mm, `prcp`), and also the number of stations used to calculate each daily average precipitation observation (`prcp_reporting`). If you use the `coverage` argument when you call `daily_fips`, this daily average will only include monitors with at least that percent coverage over the full date range. 
 
 Here is a plot of this data, with colors used to show the number of monitors included in each daily observation:
 
-```{r fig.width = 7, fig.height = 3}
+```{r fig.width = 7, fig.height = 3, fig.align = "center"}
 library(ggplot2)
 ggplot(andrew_precip$daily_data, aes(x = date, y = prcp, color = prcp_reporting)) + 
   geom_line() + geom_point() + theme_minimal() + 
@@ -112,15 +111,15 @@ From this plot, you can see both the extreme precipitation associated with Hurri
 
 A map is also included in the output of `daily_fips` with the monitors used for the county average, as the `station_map` element:
 
-```{r warning = FALSE}
+```{r warning = FALSE, fig.align = "center"}
 andrew_precip$station_map
 ```
 
-This map uses functions from the `choroplethr` package to overlay weather monitor locations on a shaded map showing the county's boundaries [can we figure out the dates that these county boundary shapefiles are relevant for? For example, are they based on US county boundaries as of this year? As of the last census in 2010?]. 
+This map uses functions from the `choroplethr` package to overlay weather monitor locations on a shaded map showing the county's boundaries, with county boundaries based on the US Census 2010 Cartographic Boundary shapefiles, as implemented in the `choroplethrMaps` package. 
 
 ### Pulling hourly data
 
-You can also use functions in the `county_weather` package to pull hourly wind speed and temperature data by county from NOAA's Integrated Surface Data (ISD) weather dataset. In this case, NOAA's web services will not identify weather monitors by FIPS, so instead this function will pull all monitors within a certain radius [what's the default radius?] of the county's population mean center to represent weather within that county [this is how we identify monitors for a county for the hourly data, right?]. 
+You can also use functions in the `county_weather` package to pull hourly wind speed and temperature data by county from NOAA's Integrated Surface Data (ISD) weather dataset. In this case, NOAA's web services will not identify weather monitors by FIPS, so instead this function will pull all monitors within a certain radius [what's the default radius?] of the county's population mean center to represent weather within that county. 
 
 Here is an example of pulling hourly data for Miami-Dade, for the year of Hurricane Andrew. While daily weather data can be pulled using a date range specified to the day, hourly data can only be pulled by year, and must be pulled for one year at a time [is this right?], using the `year` argument:
 
@@ -148,7 +147,7 @@ head(andrew_hourly_data)
 
 Here is a plot of hourly wind speeds for Miami-Dade County, FL, for the month of Hurricane Andrew:
 
-```{r fig.width = 7, fig.height = 3, message = FALSE, warning = FALSE}
+```{r fig.width = 7, fig.height = 3, message = FALSE, warning = FALSE, fig.align = "center"}
 library(dplyr)
 library(lubridate)
 to_plot <- andrew_hourly$hourly_data %>%
@@ -165,7 +164,7 @@ Again, the intensity of conditions during Hurricane Andrew is clear, as is the r
 
 The list object returned by `hourly_fips` also includes a map of monitor locations (`station_map`): 
 
-```{r}
+```{r fig.align = "center"}
 andrew_hourly$station_map
 ```
 
@@ -199,7 +198,7 @@ plot_daily_timeseries("prcp", file_directory = "~/Documents/andrew_data",
 
 Here's an example of what the timeseries plot for Miami-Dade County (fips = 12086) would look like [Let's put in these figures for all three counties]: 
 
-```{r echo = FALSE, out.width = 0.33}
+```{r echo = FALSE, out.width = 0.33, fig.align = "center"}
 df <- andrew_precip$daily_data
 plot(df$date, df$prcp, type = "l", col = "red", main = "12086", xlab = "date", 
      ylab = "prcp", xlim = c(as.Date("1992-08-01"), as.Date("1992-08-31")))
@@ -231,7 +230,7 @@ unique(not_averaged_data$id)
 
 In this example, there are six monitors contributing weather data to the timeseries. We can plot the data by station to get a sense for how values from each monitor compare, and which monitors were presumably knocked out by the storm, with different colors used to show values for different monitors:  
 
-```{r fig.width = 7, fig.height = 3, warning = FALSE, message = FALSE}
+```{r fig.width = 7, fig.height = 3, warning = FALSE, message = FALSE, fig.align = "center"}
 library(ggplot2)
 ggplot(not_averaged_data, aes(x = date, y = prcp, 
                          colour = id)) + 
@@ -241,7 +240,7 @@ ggplot(not_averaged_data, aes(x = date, y = prcp,
 
 It might be interesting here to compare this plot with the station map, this time with station labels included:  
 
-```{r warning = FALSE, message = FALSE}
+```{r warning = FALSE, message = FALSE, fig.align = "center"}
 not_averaged$station_map
 ```
 

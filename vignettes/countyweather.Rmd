@@ -77,10 +77,12 @@ The `daily_fips` function can be used to pull daily weather data for all monitor
 
 Here is an example of creating a dataset with daily precipitation for Miami-Dade county (FIPS code = 12086) for August 1992, when Hurricane Andrew stuck: 
 
-```{r warning = FALSE, message = FALSE}
+```{r warning = FALSE, message = FALSE, echo = 1, eval = FALSE}
 andrew_precip <- daily_fips(fips = "12086", date_min = "1992-08-01", 
-                            date_max = "1992-08-31", var = "prcp")
+                            date_max = "1992-08-31", var = "PRCP")
+save(andrew_precip, file = "data/andrew_precip.RData")
 ```
+
 
 This function performs some simple data cleaning and quality control on the weather data originally pulled from NOAA's web services; see the section later in this document on the weather data for more details, including the units for the weather observations collected by this function.
 

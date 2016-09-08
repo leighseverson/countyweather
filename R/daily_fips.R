@@ -1,9 +1,8 @@
 #' Pull average daily weather data by US county
 #'
-#' Given a particular county FIPS code, this function returns a list with two
-#' elements: \code{daily_data}, a dataframe of daily average weather values, and
-#' \code{station_map}, a map showing the location of weather stations
-#' contributing to the average weather data in the \code{daily_data} dataframe.
+#' Given a particular county FIPS code, this function returns data and meta-data
+#' for weather data, either for all available dates or for dates within a
+#' requested time interval.
 #'
 #' @inheritParams daily_df
 #' @inheritParams fips_stations
@@ -20,7 +19,8 @@
 #'    include station id, latitude, longitude, and name. The third element
 #'    (\code{station_map}) is a plot showing points for all weather stations for
 #'    a particular county satisfying the conditions present in
-#'    \code{daily_fips}'s arguments (coverage, date_min, date_max, and/or var).
+#'    \code{daily_fips}'s arguments (\code{coverage}, \code{date_min},
+#'    \code{date_max}, and/or \code{var}).
 #'
 #' @note Because this function uses the NOAA API to identify the weather
 #'    monitors within a US county, you will need to get an access token from
@@ -111,9 +111,12 @@ daily_fips <- function(fips, coverage = NULL,
 #'    specified using this argument; if you specify a variable here but it is
 #'    not included in the output dataset, it means that it was not available in
 #'    the time range for any monitor in the county.
-#'
 #' @param average_data TRUE / FALSE to indicate if you want the function to
-#'    average daily weather data across multiple monitors.
+#'    average daily weather data across multiple monitors. If you choose
+#'    FALSE, the function will return a dataframe with separate entries for
+#'    each monitor, while TRUE (the default) outputs a single estimate
+#'    for each day in the dataset, giving the average value of the weather
+#'    metric across all available monitors in the county that day.
 #' @inheritParams fips_stations
 #'
 #' @return A list with two elements. \code{daily_data} is a dataframe of daily
@@ -266,7 +269,7 @@ daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
     ,
     error = function(e) {
       e
-      print(paste0("Unable to pull weather data for FIPS code ", fips[i],
+      warning(paste0("Unable to pull weather data for FIPS code ", fips[i],
                    " for the specified percent coverage, date range, and/or weather variables."))
     }
     )
