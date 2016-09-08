@@ -266,7 +266,7 @@ daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
       out_list <- daily_fips(fips = fips[i], date_min = date_min,
                              date_max = date_max, var = var)
 
-      if(!map){
+      if(!keep_map){
         out_list <- out_list[-3] # Remove map if user does not want it
       }
 
