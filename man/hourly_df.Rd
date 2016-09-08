@@ -28,7 +28,7 @@ average daily weather data across multiple monitors.}
 
 \item{radius}{A numeric value giving the radius, in kilometers from the
 county's population-weighted center, within which to pull weather
-monitors. \code{radius} defaults to 50.}
+monitors. \code{radius} is calculated from US Census Land Area data.}
 
 \item{coverage}{A numeric value in the range of 0 to 1 that specifies
 the desired percentage coverage for the weather variable (i.e., what
@@ -36,10 +36,14 @@ percent of each weather variable must be non-missing to include data from
 a monitor when calculating daily values averaged across monitors.)}
 }
 \value{
-A dataframe of hourly weather data averaged across multiple stations,
+A list with three elements. The first element, \code{hourly_data}, is
+   a dataframe of hourly weather data averaged across multiple stations,
    as well as columns (\code{"var"_reporting}) for each weather variable
    showing the number of stations contributing to the average for that
-   variable for each hour.
+   variable for each hour. \code{station_df} is a dataframe of station
+   metadata for each station contributing weather data. \code{radius} is the
+   calculated radius within which stations were pulled from the county's
+   population-weighted center.
 }
 \description{
 \code{hourly_df} returns a dataframe of average daily weather values
@@ -60,6 +64,7 @@ df <- hourly_df(fips = "12086", year = 1992, var = c("wind_speed",
                      "temperature"))
 data <- df$hourly_data
 station_info <- df$station_df
+radius <- df$radius
 }
 
 }

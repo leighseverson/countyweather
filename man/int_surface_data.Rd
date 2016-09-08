@@ -7,10 +7,10 @@
 int_surface_data(usaf_code, wban_code, year, var = "all")
 }
 \arguments{
-\item{usaf_code}{A character string with a six-digit [usaf?] code for the
+\item{usaf_code}{A character string with a six-digit usaf code for the
 monitor.}
 
-\item{wban_code}{A character string with a five-digiv [wban?] code for the
+\item{wban_code}{A character string with a five-digit wban code for the
 monitor.}
 
 \item{year}{A four-digit numeric giving the year for which to pull data.}
@@ -30,7 +30,7 @@ This function wraps the \code{isd} function from the \code{rnoaa} package.
 }
 \examples{
 \dontrun{
-ids <- isd_fips_stations(fips = "12086")
+ids <- isd_fips_stations(fips = "12086")$stations
 airport_station <- int_surface_data(usaf_code = ids$usaf[1],
                                     wban_code = ids$wban[1],
                                     year = 1992,

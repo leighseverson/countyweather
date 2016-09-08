@@ -4,8 +4,8 @@
 \alias{daily_timeseries}
 \title{Write daily weather timeseries files for U.S. counties}
 \usage{
-daily_timeseries(fips, coverage = NULL, date_min, date_max, var,
-  average_data = TRUE, out_directory, out_type = "rds")
+daily_timeseries(fips, coverage = NULL, date_min = NULL, date_max = NULL,
+  var = "all", average_data = TRUE, out_directory, keep_map = TRUE)
 }
 \arguments{
 \item{fips}{A string with the five-digit U.S. FIPS code of a county
@@ -27,7 +27,7 @@ format ("yyyy-mm-dd"). The dataframe returned will include only stations
 that have data for dates up to and including the specified date.}
 
 \item{var}{A character vector specifying desired weather variables. For
-example, var = c("TMIN", "TMAX", "PRCP"). The default is \code{"all"},
+example, var = c("tmin", "tmax", "prco"). The default is \code{"all"},
 which includes all available weather variables. For a full list of all
 possible variable names, see NOAA's README file for the Daily Global
 Historical Climatology Network (GHCN-Daily) at
@@ -39,24 +39,30 @@ not included in the output dataset, it means that it was not available in
 the time range for any monitor in the county.}
 
 \item{average_data}{TRUE / FALSE to indicate if you want the function to
-average daily weather data across multiple monitors.}
+average daily weather data across multiple monitors. If you choose
+FALSE, the function will return a dataframe with separate entries for
+each monitor, while TRUE (the default) outputs a single estimate
+for each day in the dataset, giving the average value of the weather
+metric across all available monitors in the county that day.}
 
 \item{out_directory}{The absolute or relative pathname for the directory
 where you would like the timeseries files to be saved.}
 
-\item{out_type}{A character string indicating that you would like either .rds
-files (out_type = "rds") or .csv files (out_type = ".csv"). This option
-defaults to .rds files.}
+\item{keep_map}{TRUE / FALSE indicating if a map of the stations should
+be included in each output file. The map can substantially increase the
+size of the files.}
 }
 \value{
-Writes out a directory with daily weather files for each FIPS code
-specified.
+Writes out a directory with daily weather RDS files for each FIPS
+code specified.
 }
 \description{
-Given a vector of U.S. county FIPS codes, this function creates timeseries
-dataframes giving: 1. the values for specified weather variables, and 2. the
-number of weather stations contributing to the average for each day within the
-specified date range.
+Given a vector of U.S. county FIPS codes, this function saves lists created
+from the function \code{daily_fips}. Within this list, the element
+\code{daily_data} gives a timeseries dataframe giving: 1. the values for
+specified weather variables, and 2. the number of weather stations
+contributing to the average for each day within the specified date range.
+Other elements saved include \code{station_metadata} anmd \code{station_map}.
 }
 \note{
 If the function is unable to pull weather data for a particular county
@@ -67,7 +73,7 @@ given the specified percent coverage, date range, and/or weather variables,
 \dontrun{
 daily_timeseries(fips = c("41005", "13089"), coverage = 0.90,
            date_min = "2000-01-01", date_max = "2000-01-10",
-           var = c("TMAX", "TMIN", "PRCP"),
+           var = c("tmax", "tmin", "prcp"),
            out_directory = "~/timeseries_data")
 }
 

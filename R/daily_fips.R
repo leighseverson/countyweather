@@ -39,7 +39,7 @@
 #' weather_data <- ex$daily_data
 #' station_map <- ex$station_map
 #'
-#' mobile_ex <- weather_fips("01097", percent_coverage = 0,
+#' mobile_ex <- daily_fips("01097", coverage = 0,
 #'                           date_min = "1997-07-13",
 #'                           date_max = "1997-07-25",
 #'                           var = "prcp", average_data = FALSE)
@@ -266,7 +266,7 @@ daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
       out_list <- daily_fips(fips = fips[i], date_min = date_min,
                              date_max = date_max, var = var)
 
-      if(!map){
+      if(!keep_map){
         out_list <- out_list[-3] # Remove map if user does not want it
       }
 
