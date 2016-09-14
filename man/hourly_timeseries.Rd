@@ -4,7 +4,7 @@
 \alias{hourly_timeseries}
 \title{Write hourly weather timeseries files for U.S. counties}
 \usage{
-hourly_timeseries(fips, coverage = NULL, year, var = "all", radius = 50,
+hourly_timeseries(fips, coverage = NULL, year, var = "all",
   average_data = TRUE, out_directory)
 }
 \arguments{
@@ -27,10 +27,6 @@ available include \code{c("wind_direction", "wind_speed", "ceiling_height",
 "visibility_distance", "temperature", "temperature_dewpoint",
 "air_pressure")}. Alternatively, you can specify var = "all" to include
 additional flag and quality codes.}
-
-\item{radius}{A numeric value giving the radius, in kilometers from the
-county's population-weighted center, within which to pull weather
-monitors. \code{radius} is calculated from US Census Land Area data.}
 
 \item{average_data}{TRUE / FALSE to indicate if you want the function to
 average daily weather data across multiple monitors.}

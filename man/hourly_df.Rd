@@ -4,8 +4,7 @@
 \alias{hourly_df}
 \title{Return average hourly weather data for a particular county.}
 \usage{
-hourly_df(fips, year, var = "all", average_data = TRUE, radius = 50,
-  coverage = NULL)
+hourly_df(fips, year, var = "all", average_data = TRUE, coverage = NULL)
 }
 \arguments{
 \item{fips}{A character string or vector giving the five-digit U.S. FIPS
@@ -25,10 +24,6 @@ additional flag and quality codes.}
 
 \item{average_data}{TRUE / FALSE to indicate if you want the function to
 average daily weather data across multiple monitors.}
-
-\item{radius}{A numeric value giving the radius, in kilometers from the
-county's population-weighted center, within which to pull weather
-monitors. \code{radius} is calculated from US Census Land Area data.}
 
 \item{coverage}{A numeric value in the range of 0 to 1 that specifies
 the desired percentage coverage for the weather variable (i.e., what
