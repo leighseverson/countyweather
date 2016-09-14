@@ -11,4 +11,6 @@ mapdata@data <- mutate(mapdata@data, STATEFP = as.character(STATEFP))
 mapdata@data <- mutate(mapdata@data, COUNTYFP = as.character(COUNTYFP))
 mapdata@data$fips <- paste0(mapdata@data$STATEFP, mapdata@data$COUNTYFP)
 
-devtools::use_data(mapdata, overwrite = TRUE)
+county_outlines <- mapdata
+
+devtools::use_data(county_outlines, overwrite = TRUE)
