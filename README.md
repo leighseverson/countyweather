@@ -124,51 +124,28 @@ Here is an example of pulling hourly data for Miami-Dade, for the year of Hurric
 andrew_hourly <- hourly_fips(fips = "12086", year = 1992,
                            var = c("wind_speed", "temperature"))
 #> [1] "Getting hourly weather monitors for Miami-Dade County, Florida"
+#> Error in gzfile(file, mode): cannot open the connection
 ```
 
 The output from this call is a list object that includes the dataset of hourly values (`hourly_data`). This dataset includes. the date-time of the observation (given in UTC), values for the weather variables selected, and the number of monitors reporting for each observation of each weather variable:
 
 ``` r
 head(andrew_hourly$hourly_data)
-#>             date_time temperature wind_speed temperature_reporting
-#> 1 1992-01-01 00:00:00    20.00000   2.166667                     4
-#> 2 1992-01-01 01:00:00    19.85000   1.633333                     4
-#> 3 1992-01-01 02:00:00    19.03333   2.380000                     3
-#> 4 1992-01-01 03:00:00    19.42500   1.960000                     4
-#> 5 1992-01-01 04:00:00    18.53333   1.466667                     3
-#> 6 1992-01-01 05:00:00    18.60000   2.060000                     4
-#>   wind_speed_reporting
-#> 1                    6
-#> 2                    6
-#> 3                    5
-#> 4                    5
-#> 5                    6
-#> 6                    5
+#> Error in head(andrew_hourly$hourly_data): object 'andrew_hourly' not found
 ```
 
 If you need to get the timestamp for each observation in local time, you can use the `add_local_time` function from the `countytimezones` package to do that:
 
 ``` r
 andrew_hourly_data <- as.data.frame(andrew_hourly$hourly_data) 
+#> Error in as.data.frame(andrew_hourly$hourly_data): object 'andrew_hourly' not found
 
 library(countytimezones)
 andrew_hourly_data <- add_local_time(df = andrew_hourly_data, fips = "12086",
                                      datetime_colname = "date_time")
+#> Error in add_local_time(df = andrew_hourly_data, fips = "12086", datetime_colname = "date_time"): object 'andrew_hourly_data' not found
 head(andrew_hourly_data)
-#>             date_time temperature wind_speed temperature_reporting
-#> 1 1992-01-01 00:00:00    20.00000   2.166667                     4
-#> 2 1992-01-01 01:00:00    19.85000   1.633333                     4
-#> 3 1992-01-01 02:00:00    19.03333   2.380000                     3
-#> 4 1992-01-01 03:00:00    19.42500   1.960000                     4
-#> 5 1992-01-01 04:00:00    18.53333   1.466667                     3
-#> 6 1992-01-01 05:00:00    18.60000   2.060000                     4
-#>   wind_speed_reporting       local_time local_date         local_tz
-#> 1                    6 1991-12-31 19:00 1991-12-31 America/New_York
-#> 2                    6 1991-12-31 20:00 1991-12-31 America/New_York
-#> 3                    5 1991-12-31 21:00 1991-12-31 America/New_York
-#> 4                    5 1991-12-31 22:00 1991-12-31 America/New_York
-#> 5                    6 1991-12-31 23:00 1991-12-31 America/New_York
-#> 6                    5 1992-01-01 00:00 1992-01-01 America/New_York
+#> Error in head(andrew_hourly_data): object 'andrew_hourly_data' not found
 ```
 
 Here is a plot of hourly wind speeds for Miami-Dade County, FL, for the month of Hurricane Andrew:
@@ -178,15 +155,15 @@ library(dplyr)
 library(lubridate)
 to_plot <- andrew_hourly$hourly_data %>%
   filter(months(date_time) == "August")
+#> Error in eval(expr, envir, enclos): object 'andrew_hourly' not found
 ggplot(to_plot, aes(x = date_time, y = wind_speed,
                     color = wind_speed_reporting)) + 
   geom_line() + theme_minimal() + 
   xlab("Date in August 1992") + 
   ylab("Wind speed (m / s)") + 
   scale_color_continuous(name = "# monitors\nreporting")
+#> Error in ggplot(to_plot, aes(x = date_time, y = wind_speed, color = wind_speed_reporting)): object 'to_plot' not found
 ```
-
-<img src="README-unnamed-chunk-15-1.png" style="display: block; margin: auto;" />
 
 Again, the intensity of conditions during Hurricane Andrew is clear, as is the reduction in the number of reporting monitors during the storm.
 
@@ -194,11 +171,8 @@ The list object returned by `hourly_fips` also includes a map of monitor locatio
 
 ``` r
 andrew_hourly$station_map
-#> Warning: Removed 1 rows containing missing values (geom_rect).
-#> Warning: Removed 11 rows containing missing values (geom_point).
+#> Error in eval(expr, envir, enclos): object 'andrew_hourly' not found
 ```
-
-<img src="README-unnamed-chunk-16-1.png" style="display: block; margin: auto;" />
 
 \[For this station map, if we're pulling monitors by distance from the county center, then we'll have some outside the county boundaries. Does this map show monitors outside the county boundaries? If not, we may want to tweak the code to get a map that includes all of the monitors used for the county to calculate the hourly average, not just the ones that fall within the county boundaries.\]
 
@@ -346,25 +320,20 @@ Because it makes no sense to average these codes across monitors, the codes shou
 ex <- hourly_fips("12086", 1992, var = c("wind_speed", "wind_speed_quality"), 
                   average_data = FALSE)
 #> [1] "Getting hourly weather monitors for Miami-Dade County, Florida"
+#> Error in gzfile(file, mode): cannot open the connection
 ex_data <- ex$hourly_data
+#> Error in eval(expr, envir, enclos): object 'ex' not found
 head(ex_data)
-#> # A tibble: 6 x 7
-#>   usaf_station wban_station           date_time latitude longitude
-#>          <dbl>        <dbl>              <time>    <dbl>     <dbl>
-#> 1       722020        12839 1992-01-01 00:00:00     25.8     -80.3
-#> 2       722020        12839 1992-01-01 01:00:00     25.8     -80.3
-#> 3       722020        12839 1992-01-01 02:00:00     25.8     -80.3
-#> 4       722020        12839 1992-01-01 03:00:00     25.8     -80.3
-#> 5       722020        12839 1992-01-01 04:00:00     25.8     -80.3
-#> 6       722020        12839 1992-01-01 05:00:00     25.8     -80.3
-#> # ... with 2 more variables: wind_speed <dbl>, wind_speed_quality <chr>
+#> Error in head(ex_data): object 'ex_data' not found
 ```
 
 We can replace all wind speed observations with quality codes of 2, 3, 6, or 7 with `NA`s.
 
 ``` r
 ex_data$wind_speed_quality <- as.numeric(ex_data$wind_speed_quality)
+#> Error in eval(expr, envir, enclos): object 'ex_data' not found
 ex_data$wind_speed[ex_data$wind_speed_quality == 2|3|6|7] <- NA
+#> Error in ex_data$wind_speed[ex_data$wind_speed_quality == 2 | 3 | 6 | : object 'ex_data' not found
 ```
 
 More on the weather data
@@ -485,23 +454,22 @@ The following error message will come up after running functions pulling daily d
       The following stations could not be pulled from the GHCN ftp:
      USR0000FTEN 
      Any other monitors were successfully pulled from GHCN.
-     ```
-     
-    This error message will come up after running functions pulling hourly data (`hourly_fips()`) if there isn't available data for any of the monitors in your specified county. Note: some weather variables tend to be missing more often than 
 
-Error in isd\_monitors\_data(fips = fips, year = x, var = var, radius = radius) : None of the stations had available data.
+This error message will come up after running functions pulling hourly data (`hourly_fips()`) if there isn't available data for any of the monitors in your specified county. Note: some weather variables tend to be missing more often than
 
+    Error in isd_monitors_data(fips = fips, year = x, var = var, radius = radius) : 
+      None of the stations had available data.
 
-    This error message will come up after running \code{daily_timeseries} or \code{hourly_timeseries} if the function is unable to pull data for a particular fips code in your `fips` vector: 
+This error message will come up after running or if the function is unable to pull data for a particular fips code in your `fips` vector:
 
-Unable to pull weather data for FIPS code "12086" for the specified percent coverage, year(s), and/or weather variables.
+    Unable to pull weather data for FIPS code "12086" for the specified percent coverage, year(s), and/or weather variables.
 
+### Need an API key for NOAA data
 
-    ### Need an API key for NOAA data 
+If you run functions that use NOAA API calls without first requesting an API key from NOAA and setting up the key in your R session, you will see the following error message:
 
-    If you run functions that use NOAA API calls without first requesting an API key from NOAA and setting up the key in your R session, you will see the following error message: 
-
-Error in getOption("noaakey", stop("need an API key for NOAA data")) : need an API key for NOAA data \`\`\`
+    Error in getOption("noaakey", stop("need an API key for NOAA data")) : 
+      need an API key for NOAA data
 
 If you get this error message, run the code:
 
@@ -510,3 +478,15 @@ options("noaakey" = Sys.getenv("noaakey"))
 ```
 
 and then try again. If you still get an error, you may not have set up your NOAA API key correctly in your `.Renviron` file. See the "Required set-up" section of this document for more details on doing that correctly.
+
+### NOAA web services down
+
+Sometimes, some of NOAA's web services will be off-line. In this case, you may get an error message when you try to pull data like:
+
+`Error in gzfile(file, mode) : cannot open the connection`
+
+In this case, wait a few hours and then try again.
+
+### Other errors
+
+If you get other error messages or run into problems with this package, please submit a reproducible example on the repository's Issues page.

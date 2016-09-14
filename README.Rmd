@@ -8,7 +8,8 @@ output: github_document
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  fig.path = "README-"
+  fig.path = "README-",
+  error = TRUE
 )
 ```
 
@@ -343,7 +344,7 @@ In rnoaa::meteo_pull_monitors(monitors = stations, keep_flags = FALSE,  :
   The following stations could not be pulled from the GHCN ftp:
  USR0000FTEN 
  Any other monitors were successfully pulled from GHCN.
- ```
+```
  
 This error message will come up after running functions pulling hourly data (`hourly_fips()`) if there isn't available data for any of the monitors in your specified county. Note: some weather variables tend to be missing more often than 
 
@@ -374,3 +375,18 @@ options("noaakey" = Sys.getenv("noaakey"))
 ```
 
 and then try again. If you still get an error, you may not have set up your NOAA API key correctly in your `.Renviron` file. See the "Required set-up" section of this document for more details on doing that correctly.
+
+### NOAA web services down
+
+Sometimes, some of NOAA's web services will be off-line. In this case, you may get an error message when you try to pull data like: 
+
+```
+ Error in gzfile(file, mode) : cannot open the connection
+ ```
+
+In this case, wait a few hours and then try again. 
+
+### Other errors
+
+If you get other error messages or run into problems with this package, please submit a reproducible example on the repository's Issues page. 
+ 
