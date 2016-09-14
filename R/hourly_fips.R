@@ -271,7 +271,7 @@ plot_hourly_timeseries <- function(var, year, file_directory,
     dat <- dat$hourly_data
 
     # convert tibble to vector (avoiding error "'x' and 'y' lengths differ")
-    y <- dat %>% collect %>% .[[var]]
+    y <- dat %>% dplyr::collect %>% .[[var]]
 
     file_name <- paste0(file_names[i], ".png")
     setwd(plot_directory)

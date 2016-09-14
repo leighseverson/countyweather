@@ -13,6 +13,12 @@ vignette: >
 library(countyweather)
 options("noaakey" = Sys.getenv("noaakey"))
 ```
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  error = TRUE
+)
+```
 
 While data from weather monitors is available at the specific location of the monitor, it is often useful to have estimates of daily or hourly weather aggregated at a larger spacial level. For US-based studies, it can be particularly userful to be able to pull time series of weather by county. For example, the health data used in environmental epidemiology studies is often aggregated at the county level for US studies, making it very useful for environmental epidemiology applications to be able to create weather datasets by county.
 
@@ -82,6 +88,10 @@ andrew_precip <- daily_fips(fips = "12086", date_min = "1992-08-01",
                             date_max = "1992-08-31", var = "PRCP")
 save(andrew_precip, file = "data/andrew_precip.RData")
 ```
+```{r echo = FALSE}
+load("data/andrew_precip.RData")
+```
+
 
 
 This function performs some simple data cleaning and quality control on the weather data originally pulled from NOAA's web services; see the section later in this document on the weather data for more details, including the units for the weather observations collected by this function.
