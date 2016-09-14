@@ -151,7 +151,7 @@ hourly_df <- function(fips, year,
     data <- ave_hourly(data)
   }
 
-  radius <- hourly_list$radius
+  radius <- hourly_list[[1]]$radius
 
   out <- list("hourly_data" = data, "station_df" = station_metadata,
               "radius" = radius)
