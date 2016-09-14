@@ -5,8 +5,8 @@
 \title{Return average hourly weather data and a plot showing the location of weather
 stations for a particular county.}
 \usage{
-hourly_fips(fips, year, var = "all", coverage = NULL, radius = 50,
-  average_data = TRUE, station_label = FALSE)
+hourly_fips(fips, year, var = "all", coverage = NULL, average_data = TRUE,
+  station_label = FALSE)
 }
 \arguments{
 \item{fips}{A character string or vector giving the five-digit U.S. FIPS
@@ -28,10 +28,6 @@ additional flag and quality codes.}
 the desired percentage coverage for the weather variable (i.e., what
 percent of each weather variable must be non-missing to include data from
 a monitor when calculating daily values averaged across monitors.)}
-
-\item{radius}{A numeric value giving the radius, in kilometers from the
-county's population-weighted center, within which to pull weather
-monitors. \code{radius} is calculated from US Census Land Area data.}
 
 \item{average_data}{TRUE / FALSE to indicate if you want the function to
 average daily weather data across multiple monitors.}

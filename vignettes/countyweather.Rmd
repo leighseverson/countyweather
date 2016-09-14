@@ -13,6 +13,12 @@ vignette: >
 library(countyweather)
 options("noaakey" = Sys.getenv("noaakey"))
 ```
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  error = TRUE
+)
+```
 
 While data from weather monitors is available at the specific location of the monitor, it is often useful to have estimates of daily or hourly weather aggregated at a larger spacial level. For US-based studies, it can be particularly userful to be able to pull time series of weather by county. For example, the health data used in environmental epidemiology studies is often aggregated at the county level for US studies, making it very useful for environmental epidemiology applications to be able to create weather datasets by county.
 
@@ -44,49 +50,53 @@ any(grepl("^\\.Renviron", list.files("~", all.files = TRUE)))
 
 If this call returns `TRUE`, then you already have an `.Renviron` file. 
 
-If you already have it, open that file. If you do not yet have an `.Renviron` file, open a new text file (in RStudio, do this by navigating to *File* > *New File* > *Text File*) and save this text file as `.Renviron` in your home directory. (If prompted with a complaint, you DO want to use a filename that begins with a dot `.`) 
+If you already have it, open that file (for example, with `system("open ~/.Renviron")`). If you do not yet have an `.Renviron` file, open a new text file (in RStudio, do this by navigating to *File* > *New File* > *Text File*) and save this text file as `.Renviron` in your home directory. (If prompted with a complaint, you DO want to use a filename that begins with a dot `.`) 
 
-Once you have opened or created an `.Renviron` file, type the following into the file, replacing "your_emailed_key" with the actual string that NOAA emails you, and make sure to add a blank line as the last line of the file:
+Once you have opened or created an `.Renviron` file, type the following into the file, replacing "your_emailed_key" with the actual string that NOAA emails you:
 
 ```{r eval = FALSE}
 noaakey=your_emailed_key
 
 ```
 
-(If you find you're having problems getting this to work, go back and confirm that you've included a blank line as the last line in your `.Renviron` file. This is the most common reason for this part not working.)
+Do not put quotation marks or anything else around your key. Do make sure to add a blank line as the last line of the file. If you find you're having problems getting this to work, go back and confirm that you've included a blank line as the last line in your `.Renviron` file. This is the most common reason for this part not working.
 
-Once you restart R, you can now get the value of this NOAA API key from `.Renviron` anytime by typing `Sys.getenv("noaakey")`. Before using functions that require the API key, set up the object `rnoaakey` to have your NOAA API key by running: 
+Next, you'll need to restart R. Once you restart R, you can get the value of this NOAA API key from `.Renviron` anytime with the call `Sys.getenv("noaakey")`. Before using functions that require the API key, set up the object `rnoaakey` to have your NOAA API key by running: 
 
 ```{r}
 options("noaakey" = Sys.getenv("noaakey"))
 ```
 
-This will pull your NOAA API key from the `.Renviron` file and save it as the object `noaakey`, which functions in this package will use to pull weather data from NOAA's web services. You will want to put this line of code as one of the first lines of code in any R script or R markdown file you write that uses functions from this package.
+This will pull your NOAA API key from the `.Renviron` file and save it as the object `noaakey`, which functions in this package need to pull weather data from NOAA's web services. You will want to put this line of code as one of the first lines of code in any R script or R Markdown file you write that uses functions from this package.
 
 ## Basic examples of using the package
 
-Weather data is collected at monitors, and there are often multiple weather monitors within a county. The `countyweather` package allows you to pull weather data from all monitors in a specified county over a specified date range. The two main functions in the countyweather package are `daily_fips` and `hourly_fips`, which pull daily and hourly weather data, respectively. By default, these values will then be averaged across all monitors in the county to create an average time series of daily or hourly measurements for that county. (There is also an option that allows the user to opt out of the default aggregation across weather stations, and instead pull separate time series for each monitor in the county, which is explained in more detail later in this document.)
+Weather data is collected at monitors, and there are often multiple weather monitors within a county. The `countyweather` package allows you to pull weather data from all monitors in a specified county over a specified date range. The two main functions in the countyweather package are `daily_fips` and `hourly_fips`, which pull daily and hourly weather data, respectively. By default, these values pulled from all monitors in a county will then be averaged for each time point to create an average time series of daily or hourly measurements for that county. There is also an option that allows the user to opt out of the default aggregation across weather stations, and instead pull separate time series for each monitor in the county, which is explained in more detail later in this document. This option can be used if you would like to use a method other than a simple average to aggregate across monitors within a county.
 
-Throughout, functions in this package identify a county using the county's corresponding Federal Information Processing Standard (FIPS) code. FIPS codes are 5-digit codes that uniquely identify every US county. The first two digits of a county FIPS code specify state and the last three specify the county within the state. This package pulls data based on FIPS designations as of [year of the FIPS that we're using-- we might need to check in NOAA documentation to figure this out. For hourly data, it will be based on the data we're using for county centers, which I think is FIPS as of the 2010 US census].
+Throughout, functions in this package identify a county using the county's Federal Information Processing Standard (FIPS) code. FIPS codes are 5-digit codes that uniquely identify every US county. The first two digits of a county FIPS code specify state and the last three specify the county within the state. This package pulls data based on FIPS designations as of [year of the FIPS that we're using-- we might need to check in NOAA documentation to figure this out. For hourly data, it will be based on the data we're using for county centers, which I think is FIPS as of the 2010 US census].
 
-Currently, this package can pull daily and hourly weather data for variables like temperature and precipitation. For resources with complete lists of available weather variables and sources of weather data, see the section later in this document titled 'More on the weather data'.  
+Currently, this package can pull daily and hourly weather data for variables like temperature and precipitation. For resources with complete lists of weather variables available through this package, as well as sources of this weather data, see the section later in this document titled 'More on the weather data'.  
 
 ### Pulling daily data
 
-The `daily_fips` function can be used to pull daily weather data for all monitors in a county. This daily weather data comes from NOAA's Global Historical Climatology Network. This function pulls data from all monitors within the geographic boundaries of the county [this is true, right?]. When pulling data for a county, the user can specify date ranges (`date_min`, `date_max`), variables to include in the output dataset (`var`), and restrictions on how much non-missing data a monitor must have over the time period to be included when generating daily county average values (`coverage`). This function will pull any available data for the county under the specified restrictions and output both a dataset of average daily observations and a map plotting the stations used in the county-wide average data.
+The `daily_fips` function can be used to pull daily weather data for all monitors within the geographic boundaries of the county of a county. This daily weather data comes from NOAA's Global Historical Climatology Network. When pulling data for a county, the user can specify date ranges (`date_min`, `date_max`), which weather variables to include in the output dataset (`var`), and restrictions on how much non-missing data a monitor must have over the time period to be included when generating daily county average values (`coverage`). This function will pull any available data for monitors in the county under the specified restrictions and output both a dataset of average daily observations across all county monitors, as well as a map plotting the stations used in the county-wide averaged data.
 
 Here is an example of creating a dataset with daily precipitation for Miami-Dade county (FIPS code = 12086) for August 1992, when Hurricane Andrew stuck: 
 
-```{r warning = FALSE, message = FALSE, echo = 1, eval = FALSE}
+```{r warning = FALSE, message = FALSE, echo = 1:2, eval = FALSE}
 andrew_precip <- daily_fips(fips = "12086", date_min = "1992-08-01", 
                             date_max = "1992-08-31", var = "PRCP")
 save(andrew_precip, file = "data/andrew_precip.RData")
 ```
+```{r echo = FALSE}
+load("data/andrew_precip.RData")
+```
 
+```{r}
+names(andrew_precip)
+```
 
-This function performs some simple data cleaning and quality control on the weather data originally pulled from NOAA's web services; see the section later in this document on the weather data for more details, including the units for the weather observations collected by this function.
-
-The output from this function call includes both the weather dataset (`andrew_precip$daily_data`) and a map showing the locations of weather monitors included in the county-averaged dataset (`anderew_precip$station_map`). 
+The output from this function call is a list that includes three elements: a daily time series of weather data for the county (`andrew_precip$daily_data`); a dataframe with meta-data about the weather stations used to create the time series data; and a map showing the locations of weather monitors included in the county-averaged dataset (`anderew_precip$station_map`). 
 
 Here are the first few rows of the dataset: 
 
@@ -95,6 +105,8 @@ head(andrew_precip$daily_data)
 ```
 
 The dataset includes columns for date (`date`), precipitation (in mm, `prcp`), and also the number of stations used to calculate each daily average precipitation observation (`prcp_reporting`).
+
+This function performs some simple data cleaning and quality control on the weather data originally pulled from NOAA's web services; see the section later in this document on the weather data for more details, including the units for the weather observations collected by this function.
 
 Here is a plot of this data, with colors used to show the number of monitors included in each daily observation:
 
