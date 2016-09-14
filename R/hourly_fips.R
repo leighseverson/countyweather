@@ -28,11 +28,11 @@
 #'
 #' @export
 hourly_fips <- function(fips, year, var = "all",
-                        coverage = NULL, radius = 50, average_data = TRUE,
+                        coverage = NULL, average_data = TRUE,
                         station_label = FALSE){
 
   weather_data <- hourly_df(fips = fips, year = year, var = var,
-                                 coverage = coverage, radius = radius,
+                                 coverage = coverage,
                                  average_data = average_data)
 
   station_map <- hourly_stationmap(fips = fips, hourly_data = weather_data,
@@ -105,13 +105,12 @@ hourly_fips <- function(fips, year, var = "all",
 #' @export
 hourly_df <- function(fips, year,
                            var = "all",
-                           average_data = TRUE, radius = 50, coverage = NULL){
+                           average_data = TRUE, coverage = NULL){
 
   # hourly data for multiple monitors
   hourly_list <- lapply(year, function(x) isd_monitors_data(fips = fips,
                                                             year = x,
-                                                            var = var,
-                                                            radius = radius))
+                                                            var = var))
 
   for(i in 1:length(year)){
     list <- hourly_list[[i]]
@@ -194,7 +193,7 @@ hourly_df <- function(fips, year,
 #' }
 #' @export
 hourly_timeseries <- function(fips, coverage = NULL, year,
-                              var = "all", radius = 50,
+                              var = "all",
                               average_data = TRUE,
                               out_directory){
   if(!dir.exists(out_directory)){
