@@ -379,8 +379,14 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
 
   map <- suppressMessages(choroplethr::county_choropleth(to_map,
                                                          title = "", legend = "",
-                                                         num_colors = 1, state_zoom = NULL,
+                                                         num_colors = 1,
+                                                         state_zoom = NULL,
                                                          county_zoom = choro_fips, reference_map = TRUE))
+
+#  z <- map + gg_circle(r=hourly_data$radius, xc=hourly_data$lon_center,
+#                  yc=hourly_data$lat_center, color = "black", fill = "black", alpha = 0.5)
+#  z <- map + geom_point(aes(x=hourly_data$lon_center, y=hourly_data$lat_center), data=dat, size=50, shape=1, color="black")
+
 
   if(station_label == TRUE){
     map <- map + ggplot2::geom_point(data = hourly_data$station_df,
@@ -400,3 +406,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
   }
   return(map)
 }
+
+
+
+

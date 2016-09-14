@@ -241,7 +241,7 @@ It might be interesting here to compare this plot with the station map, this tim
 
 ```{r warning = FALSE, message = FALSE}
 not_averaged$station_map
-```
+``` 
 
 ### Quality Flags 
 
