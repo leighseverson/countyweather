@@ -221,8 +221,8 @@ isd_monitors_data <- function(fips, year, var = "all"){
   list <- list("df" = st_out_df,
                "ids" = ids,
                "radius" = radius,
-               "lat_center" = lat_fips,
-               "lon_center" = lon_fips)
+               "lat_center" = lat_center,
+               "lon_center" = lon_center)
   return(list)
 }
 

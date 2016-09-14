@@ -42,8 +42,8 @@ hourly_fips <- function(fips, year, var = "all",
                "station_metadata" = weather_data$station_df,
                "station_map" = station_map,
                "radius" = weather_data$radius,
-               "lat_center" = weather_data$lat_fips,
-               "lon_center" = weather_data$lon_fips)
+               "lat_center" = weather_data$lat_center,
+               "lon_center" = weather_data$lon_center)
   return(list)
 
 }
@@ -156,8 +156,8 @@ hourly_df <- function(fips, year,
 
   out <- list("hourly_data" = data, "station_df" = station_metadata,
               "radius" = radius,
-              "lat_center" = lat_fips,
-              "lon_center" = lon_fips)
+              "lat_center" = lat_center,
+              "lon_center" = lon_center)
   return(out)
 }
 
