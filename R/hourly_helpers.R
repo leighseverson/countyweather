@@ -336,9 +336,7 @@ filter_hourly <- function(hourly_data, coverage,
 #' Plot hourly weather stations for a particular county
 #'
 #' @param fips A five-digit FIPS county code.
-#' @param hourly_data hourly_data A dataframe with hourly weather observations.
-#'    This dataframe is returned from the function \code{isd_monitors_data} (the
-#'    "df" element of a \code{isd_monitors_data} list).
+#' @param hourly_data A list returned from the function \code{hourly_df}.
 #' @param point_color point_color The specified \code{ggplot2} color for each point
 #'    representing the location of a station.
 #' @param point_size The specified \code{ggplot2} size for each point
