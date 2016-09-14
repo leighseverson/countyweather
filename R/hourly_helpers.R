@@ -23,6 +23,8 @@
 #' ids <- isd_fips_stations(fips = "12086")$stations
 #' }
 isd_fips_stations <- function(fips, verbose = TRUE){
+
+  # population-weighted center for specified county
   census_data <- countyweather::county_centers
   loc_fips <- which(census_data$fips == fips)
   lat_fips <- census_data[loc_fips, "latitude"]
@@ -43,7 +45,9 @@ isd_fips_stations <- function(fips, verbose = TRUE){
                                    radius = radius)$result
 
   list <- list("stations" = stations,
-               "radius" = radius)
+               "radius" = radius,
+               "lat_center" = lat_fips,
+               "lon_center" = lon_fips)
 
   return(list)
 }
@@ -164,6 +168,8 @@ isd_monitors_data <- function(fips, year, var = "all"){
   list <- isd_fips_stations(fips)
   ids <- list$stations
   radius <- list$radius
+  lat_center <- list$lat_center
+  lon_center <- list$lon_center
 
   safe_int <- purrr::safely(int_surface_data)
   mult_stations <- mapply(safe_int, usaf_code = ids$usaf,
@@ -214,7 +220,9 @@ isd_monitors_data <- function(fips, year, var = "all"){
 
   list <- list("df" = st_out_df,
                "ids" = ids,
-               "radius" = radius)
+               "radius" = radius,
+               "lat_center" = lat_fips,
+               "lon_center" = lon_fips)
   return(list)
 }
 
