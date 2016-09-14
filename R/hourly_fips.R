@@ -70,9 +70,6 @@ hourly_fips <- function(fips, year, var = "all",
 #'    additional flag and quality codes.
 #' @param average_data TRUE / FALSE to indicate if you want the function to
 #'    average daily weather data across multiple monitors.
-#' @param radius A numeric value giving the radius, in kilometers from the
-#'    county's population-weighted center, within which to pull weather
-#'    monitors. \code{radius} is calculated from US Census Land Area data.
 #' @param coverage A numeric value in the range of 0 to 1 that specifies
 #'    the desired percentage coverage for the weather variable (i.e., what
 #'    percent of each weather variable must be non-missing to include data from

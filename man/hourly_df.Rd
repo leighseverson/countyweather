@@ -29,10 +29,6 @@ average daily weather data across multiple monitors.}
 the desired percentage coverage for the weather variable (i.e., what
 percent of each weather variable must be non-missing to include data from
 a monitor when calculating daily values averaged across monitors.)}
-
-\item{radius}{A numeric value giving the radius, in kilometers from the
-county's population-weighted center, within which to pull weather
-monitors. \code{radius} is calculated from US Census Land Area data.}
 }
 \value{
 A list with three elements. The first element, \code{hourly_data}, is
