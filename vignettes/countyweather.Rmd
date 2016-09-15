@@ -377,8 +377,8 @@ hourly_vars <- data.frame(variable = c("wind_direction", "wind_speed",
 ```
 
 ```{r echo = FALSE, warning = FALSE, message = FALSE}
-library(knitr)
-kable(hourly_vars, format = "markdown")
+library(pander)
+pander::pander(hourly_vars, split.cell = 75, split.table = Inf)
 ```
 
 There are other columns available in addition to these weather variables such as quality codes. For example, `wind_direction_quality` - each of the main weather variables has a corresponding quality code that can be pulled by adding `_quality` to the end of the variable name. 
