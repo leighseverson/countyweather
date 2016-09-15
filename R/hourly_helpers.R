@@ -10,13 +10,15 @@
 #' @param verbose TRUE / FALSE to indicate if you want the function to print
 #'    out the name of the county it's processing
 #'
-#' @return A list with two elements. The first element, \code{stations}, is a
+#' @return A list with four elements. The first element, \code{stations}, is a
 #'    dataframe of monitors within a calculated radius of the
 #'    population-weighted center of the county specified by the FIPS code.
 #'    This will have the same dataframe format as the output from the
 #'    \code{isd_stations_search} function in the \code{rnoaa} package. The
 #'    second element, \code{radius}, gives the radius (in km) within which
 #'    stations were pulled from the county's population-weighted center.
+#'    Elements \code{lat_center} and \code{lon_center} are the latitude and
+#'    longitude of the county's population-weighted center.
 #'
 #' @examples
 #' \dontrun{
@@ -149,11 +151,13 @@ int_surface_data <- function(usaf_code, wban_code, year,
 #'    "ceiling_height", "visibility_distance", "temperature",
 #'    "temperature_dewpoint", and "air_pressure."
 #'
-#' @return A list with three elements: \code{ids} is a dataframe of station
+#' @return A list with five elements: \code{ids} is a dataframe of station
 #'    metadata for all avaiable stations in the given fips code. \code{df} is a
 #'    data frame with hourly weather data for the given variable(s) and date
 #'    range. \code{radius} is the calculated radius within which stations
-#'    were pulled from the county's population-weighted center.
+#'    were pulled from the county's population-weighted center. Elements
+#'    \code{lat_center} and \code{lon_center} are the latitude and longitude
+#'    of the county's population-weighted center.
 #'
 #' @examples
 #' \dontrun{
