@@ -7,6 +7,7 @@ vignette: >
   %\VignetteIndexEntry{Vignette Title}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+bibliography: bibliography.bib 
 ---
 
 ```{r echo = FALSE}
@@ -333,9 +334,7 @@ kable(daily_vars, format = "markdown")
 
 The daily weather function \code{weather_fips} defaults to pull these five core weather variables. However, there are several additional, non-core variables available (for example, `acmc` gives the "average cloudiness midnight to midnight from 30-second ceilometer data (percent))." The complete list of available weather variables can be found under 'element' from the GHCND's [readme file](http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt). 
 
-While the datasets resulting from functions in this package return a cleaned and aggregated dataset, this journal article by Menne et al. (2012) gives more information aboout the raw data in the GHCND database [let's figure out how to use citations in the vignette and do a citation for this]: 
-
-Menne, M.J., I. Durre, R.S. Vose, B.E. Gleason, and T.G. Houston, 2012:  An overview of the Global Historical Climatology Network-Daily Database.  Journal of Atmospheric and Oceanic Technology, 29, 897-910, \doi{doi:10.1175/JTECH-D-11-00103.1}. 
+While the datasets resulting from functions in this package return a cleaned and aggregated dataset, the journal article by @menne2012overview gives more information aboout the raw data in the GHCND database.
 
 ### Hourly weather data 
 
@@ -429,3 +428,4 @@ In this case, wait a few hours and then try again.
 
 If you get other error messages or run into problems with this package, please submit a reproducible example on this repository's Issues page. 
  
+# References 
