@@ -91,13 +91,9 @@ The `daily_fips` function can be used to pull daily weather data for all monitor
 
 Here is an example of creating a dataset with daily precipitation for Miami-Dade county (FIPS code = 12086) for August 1992, when Hurricane Andrew stuck: 
 
-```{r warning = FALSE, message = FALSE, echo = 1:2, eval = FALSE}
+```{r warning = FALSE, message = FALSE}
 andrew_precip <- daily_fips(fips = "12086", date_min = "1992-08-01", 
                             date_max = "1992-08-31", var = "prcp")
-save(andrew_precip, file = "data/andrew_precip.RData")
-```
-```{r echo = FALSE}
-load("data/andrew_precip.RData")
 ```
 
 ```{r}
@@ -144,13 +140,9 @@ An estimated radius is calculated for each county using 2010 U.S. Census Land Ar
 
 Here is an example of pulling hourly data for Miami-Dade, for the year of Hurricane Andrew. While daily weather data can be pulled using a date range specified to the day, hourly data can only be pulled by year (for one or multiple years) using the `year` argument:
 
-```{r echo = 1:2, eval = FALSE}
+```{r}
 andrew_hourly <- hourly_fips(fips = "12086", year = 1992,
                            var = c("wind_speed", "temperature"))
-save(andrew_hourly, file = "data/andrew_hourly.RData")
-```
-```{r echo = FALSE}
-load("data/andrew_hourly.RData")
 ```
 
 The output from this call is a list object that includes the dataset of hourly values (`hourly_data`). This dataset includes the date-time of the observation (given in UTC), values for the weather variables selected, and the number of monitors reporting for each observation of each weather variable: 
@@ -166,15 +158,9 @@ andrew_hourly_data <- as.data.frame(andrew_hourly$hourly_data)
 
 library(countytimezones)
 ```
-```{r echo = 1:2, eval = FALSE}
+```{r}
 andrew_hourly_data <- add_local_time(df = andrew_hourly_data, fips = "12086",
                                      datetime_colname = "date_time")
-save(andrew_hourly_data, file = "data/andrew_hourly_data.RData")
-```
-```{r echo = FALSE}
-load("data/andrew_hourly_data.RData")
-```
-```{r}
 head(andrew_hourly_data)
 ```
 
@@ -233,7 +219,7 @@ two <- daily_fips(fips = "12087", date_min = "1992-08-01",
 save(two, file = "data/two.RData")
 ```
 ```{r echo = FALSE}
-load("data/two.RData")
+load("vignette/data/two.RData")
 ```
 
 ```{r warning = FALSE, message = FALSE, echo = FALSE, eval = FALSE}
@@ -242,7 +228,7 @@ three <- daily_fips(fips = "12011", date_min = "1992-08-01",
 save(three, file = "data/three.RData")
 ```
 ```{r echo = FALSE}
-load("data/three.RData")
+load("vignette/data/three.RData")
 ```
 
 ```{r echo = FALSE, out.width = 0.33}
@@ -269,18 +255,12 @@ For `hourly_fips()` and `daily_fips()`, and timeseries functions, the user can c
 
 In both `daily_fips()` and `hourly_fips()`, the default ise to return a single daily average for the county for each day in the timeseries, giving the value averaged across all available monitors on that day. However, there is also an option called `average_data` which allows the user to specify whether they would like the weather data returned before it has been averaged across monitors. If this argument is set to `FALSE`, the functions will return separate daily data for each monitor in the county. For our Hurricane Andrew example, if we specify `average_data = FALSE`: 
 
-```{r echo 1:5, eval = FALSE}
+```{r echo 1:5}
 not_averaged <- daily_fips(fips = "12086", 
                            date_min = "1992-08-01", 
                            date_max = "1992-08-31",
                            var = "prcp", average_data = FALSE, 
                            station_label = TRUE)
-save(not_averaged, file = "data/not_averaged.RData")
-```
-```{r echo = FALSE}
-load("data/not_averaged.RData")
-```
-```{r}
 not_averaged_data <- not_averaged$daily_data
 head(not_averaged_data)
 unique(not_averaged_data$id)
@@ -315,15 +295,9 @@ kable(qual, format = "markdown")
 
 Because it makes no sense to average these codes across monitors, the codes should only be pulled when using the option to pull monitor-specific values (`average_data = FALSE`).
 
-```{r echo = 1:2, eval = FALSE}
+```{r}
 ex <- hourly_fips("12086", 1992, var = c("wind_speed", "wind_speed_quality"), 
                   average_data = FALSE)
-save(ex, file = "data/ex.RData")
-```
-```{r echo = FALSE}
-load("data/ex.RData")
-```
-```{r}
 ex_data <- ex$hourly_data
 head(ex_data)
 ```
