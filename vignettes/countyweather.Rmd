@@ -231,9 +231,10 @@ In both `daily_fips()` and `hourly_fips()`, the default is to return a single da
 
 ```{r}
 not_averaged <- daily_fips(fips = "12086", 
-                            date_min = "1992-08-01", 
-                            date_max = "1992-08-31",
-                            var = "prcp", average_data = FALSE)
+                           date_min = "1992-08-01", 
+                           date_max = "1992-08-31",
+                           var = "prcp", average_data = FALSE, 
+                           station_label = TRUE)
 not_averaged_data <- not_averaged$daily_data
 head(not_averaged_data)
 unique(not_averaged_data$id)
