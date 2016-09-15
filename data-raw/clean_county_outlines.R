@@ -6,16 +6,13 @@ library(raster)
 # https://www.census.gov/geo/maps-data/data/cbf/cbf_counties.html
 # download gz_2010_us_050_00_20m.zip
 
-#setwd("~/Desktop/gz_2010_us_050_00_20m")
+setwd("~/Desktop/gz_2010_us_050_00_20m")
 
-#mapdata <- readOGR("gz_2010_us_050_00_20m.shp", layer = "gz_2010_us_050_00_20m")
+mapdata <- readOGR("gz_2010_us_050_00_20m.shp", layer = "gz_2010_us_050_00_20m")
 
-mapdata@data <- mutate(mapdata@data, STATE = as.character(STATE))
-mapdata@data <- mutate(mapdata@data, COUNTY = as.character(COUNTY))
+mapdata@data <- dplyr::mutate_(mapdata@data, STATE = ~ as.character(STATE))
+mapdata@data <- dplyr::mutate_(mapdata@data, COUNTY = ~ as.character(COUNTY))
 mapdata@data$fips <- paste0(mapdata@data$STATE, mapdata@data$COUNTY)
-
-codes <- countyweather::county_centers
-fips <- codes$fips
 
 extractCoords <- function(sp.df){
   results <- list()
@@ -28,7 +25,7 @@ extractCoords <- function(sp.df){
   results
 }
 
-fp <- fips[1:75]
+fips <- mapdata@data$fips
 
 fp <- fips
 
