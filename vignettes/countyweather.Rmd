@@ -97,7 +97,7 @@ load("data/andrew_precip.RData")
 names(andrew_precip)
 ```
 
-The output from this function call is a list that includes three elements: a daily timeseries of weather data for the county (`andrew_precip$daily_data`); a dataframe with meta-data about the weather stations used to create the timeseries data, and a map showing the locations of weather monitors included in the county-averaged dataset (`anderew_precip$station_map`). 
+The output from this function call is a list that includes three elements: a daily timeseries of weather data for the county (`andrew_precip$daily_data`); a dataframe with meta-data about the weather stations used to create the timeseries data, and a map showing the locations of weather monitors included in the county-averaged dataset (`andrew_precip$station_map`). 
 
 Here are the first few rows of the dataset: 
 
