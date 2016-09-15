@@ -7,7 +7,7 @@ vignette: >
   %\VignetteIndexEntry{Vignette Title}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-bibliography: bibliography.bib 
+bibliography: /Users/rachelseverson1/Desktop/LD/countyweather/vignettes/bibliography.bib 
 ---
 
 ```{r echo = FALSE}
