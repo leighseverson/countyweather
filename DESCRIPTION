@@ -10,12 +10,12 @@ Authors@R: c(person("Rachel", "Severson",
                   email = "brooke.anderson@colostate.edu",
                   role = c("aut")))
 Description: Interacts with NOAA data sources (including the NCDC API at
-  http://www.ncdc.noaa.gov/cdo-web/webservices/v2 and GHCND data), using the
-  rnoaa package, to obtain and compile precipitation and temperature time series
-  for U.S. counties. This work was supported in part by grants from
-    the National Institute of Environmental Health Sciences (R00ES022631), the
-    National Science Foundation (1331399), and the Colorado State University
-    Water Center.
+  http://www.ncdc.noaa.gov/cdo-web/webservices/v2 and GHCND data), using
+  functions from the rnoaa package, to obtain and compile weather time series,
+  including for precipitation and temperature, for U.S. counties. This work was
+  supported in part by grants from the National Institute of Environmental
+  Health Sciences (R00ES022631) and the Colorado State University Water
+  Center.
 License: GPL-2
 LazyData: TRUE
 Imports:

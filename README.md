@@ -80,7 +80,7 @@ Here are the first few rows of the dataset:
 
 ``` r
 head(andrew_precip$daily_data)
-#> # A tibble: 6 × 3
+#> # A tibble: 6 x 3
 #>         date     prcp prcp_reporting
 #>       <date>    <dbl>          <int>
 #> 1 1992-08-01 1.016667              6
@@ -264,7 +264,7 @@ save(not_averaged, file = "data/not_averaged.RData")
 ``` r
 not_averaged_data <- not_averaged$daily_data
 head(not_averaged_data)
-#> # A tibble: 6 × 3
+#> # A tibble: 6 x 3
 #>            id       date  prcp
 #>         <chr>     <date> <dbl>
 #> 1 USC00083909 1992-08-01   1.3
@@ -302,10 +302,10 @@ not_averaged$station_map
 
 The hourly Integrated Surface Data includes quality codes for each of the main weather variables. For more information about the hourly weather variables, see the 'More on the weather data' section below. We can use these codes to remove suspect or erroneous values from our data. The values in `wind_speed_quality` take on the following values:
 
-<table style="width:114%;">
+<table>
 <colgroup>
-<col width="8%" />
-<col width="105%" />
+<col width="7%" />
+<col width="92%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -363,9 +363,9 @@ ex <- hourly_fips("12086", 1992, var = c("wind_speed", "wind_speed_quality"),
 ``` r
 ex_data <- ex$hourly_data
 head(ex_data)
-#> # A tibble: 6 × 7
+#> # A tibble: 6 x 7
 #>   usaf_station wban_station           date_time latitude longitude
-#>          <dbl>        <dbl>              <dttm>    <dbl>     <dbl>
+#>          <dbl>        <dbl>              <time>    <dbl>     <dbl>
 #> 1       722020        12839 1992-01-01 00:00:00     25.8     -80.3
 #> 2       722020        12839 1992-01-01 01:00:00     25.8     -80.3
 #> 3       722020        12839 1992-01-01 02:00:00     25.8     -80.3
@@ -411,13 +411,13 @@ Hourly weather data in this package is pulled from NOAA's Integrated Surface Dat
 
 The seven core hourly weather variables include `wind_direction`, `wind_speed`, `ceiling_height`, `visibility_distance`, `temperature`, `temperature_dewpoint`, and `air_pressure`. Values in this table were pulled from the [ISD documentation file](ftp://ftp.ncdc.noaa.gov/pub/data/noaa/ish-format-document.pdf).
 
-<table style="width:425%;">
+<table>
 <colgroup>
-<col width="30%" />
-<col width="312%" />
-<col width="26%" />
-<col width="12%" />
-<col width="43%" />
+<col width="7%" />
+<col width="73%" />
+<col width="6%" />
+<col width="2%" />
+<col width="10%" />
 </colgroup>
 <thead>
 <tr class="header">
