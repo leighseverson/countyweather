@@ -1,4 +1,4 @@
-#' Pull average daily weather data by US county
+#' Pull average daily weather data by U.S. county.
 #'
 #' Given a particular county FIPS code, this function returns data and meta-data
 #' for weather data, either for all available dates or for dates within a
@@ -23,7 +23,7 @@
 #'    \code{date_max}, and/or \code{var}).
 #'
 #' @note Because this function uses the NOAA API to identify the weather
-#'    monitors within a US county, you will need to get an access token from
+#'    monitors within a U.S. county, you will need to get an access token from
 #'    NOAA to use this function. Visit NOAA's token request page
 #'    (\url{http://www.ncdc.noaa.gov/cdo-web/token}) to request a token by
 #'    email. You then need to set that API code in your R session (e.g., using
@@ -85,7 +85,7 @@ daily_fips <- function(fips, coverage = NULL,
 #' coverage specifications for weather monitors.
 #'
 #' @note Because this function uses the NOAA API to identify the weather
-#'    monitors within a US county, you will need to get an access token from
+#'    monitors within a U.S. county, you will need to get an access token from
 #'    NOAA to use this function. Visit NOAA's token request page
 #'    (\url{http://www.ncdc.noaa.gov/cdo-web/token}) to request a token by
 #'    email. You then need to set that API code in your R session (e.g., using
@@ -99,16 +99,16 @@ daily_fips <- function(fips, coverage = NULL,
 #'    percent of each weather variable must be non-missing to include data from
 #'    a monitor when calculating daily values averaged across monitors. The
 #'    default is to include all monitors with any available data (i.e.,
-#'    \code{coverage = 0}).
+#'    \code{coverage = 0}).)
 #' @param var A character vector specifying desired weather variables. For
-#'    example, var = c("tmin", "tmax", "prco"). The default is \code{"all"},
+#'    example, var = c("tmin", "tmax", "prcp"). The default is \code{"all"},
 #'    which includes all available weather variables. For a full list of all
 #'    possible variable names, see NOAA's README file for the Daily Global
 #'    Historical Climatology Network (GHCN-Daily) at
 #'    \url{http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt}. Many of
 #'    the weather variables are available for some, but not all, monitors, so
 #'    your output from this function may not include all the variables
-#'    specified using this argument; if you specify a variable here but it is
+#'    specified using this argument. If you specify a variable here but it is
 #'    not included in the output dataset, it means that it was not available in
 #'    the time range for any monitor in the county.
 #' @param average_data TRUE / FALSE to indicate if you want the function to
@@ -219,14 +219,14 @@ daily_df <- function(stations, coverage = NULL,
   return(out)
 }
 
-#' Write daily weather timeseries files for U.S. counties
+#' Write daily weather timeseries files for U.S. counties.
 #'
 #' Given a vector of U.S. county FIPS codes, this function saves lists created
 #' from the function \code{daily_fips}. Within this list, the element
 #' \code{daily_data} gives a timeseries dataframe giving: 1. the values for
 #' specified weather variables, and 2. the number of weather stations
 #' contributing to the average for each day within the specified date range.
-#' Other elements saved include \code{station_metadata} anmd \code{station_map}.
+#' Other elements saved include \code{station_metadata} and \code{station_map}.
 #'
 #' @return Writes out a directory with daily weather RDS files for each FIPS
 #' code specified.
@@ -286,7 +286,7 @@ daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
 
 }
 
-#' Write plot files for daily weather timeseries dataframes
+#' Write plot files for daily weather timeseries dataframes.
 #'
 #' This function writes out a directory with plots for every timeseries file
 #' present in the specified directory (produced by the \code{daily_timeseries}
