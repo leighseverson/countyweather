@@ -2,27 +2,49 @@ library(rgdal)
 library(dplyr)
 library(raster)
 
-# Download U.S. Census 2015 Cartographic Boundary Shapefiles - Counties from
+# Download U.S. Census 2010 Cartographic Boundary Shapefiles - Counties from
 # https://www.census.gov/geo/maps-data/data/cbf/cbf_counties.html
-# download cb_2015_us_county_20m.zip
+# download gz_2010_us_050_00_20m.zip
 
-mapdata <- shapefile("~/Desktop/cb_2015_us_county_20m/cb_2015_us_county_20m.shp")
+#setwd("~/Desktop/gz_2010_us_050_00_20m")
 
-mapdata@data <- dplyr::mutate_(mapdata@data, STATEFP = ~ as.character(STATEFP))
-mapdata@data <- dplyr::mutate_(mapdata@data, COUNTYFP = ~ as.character(COUNTYFP))
-mapdata@data$fips <- paste0(mapdata@data$STATEFP, mapdata@data$COUNTYFP)
+mapdata <- readOGR("gz_2010_us_050_00_20m.shp", layer = "gz_2010_us_050_00_20m")
 
+mapdata@data <- mutate(mapdata@data, STATE = as.character(STATE))
+mapdata@data <- mutate(mapdata@data, COUNTY = as.character(COUNTY))
+mapdata@data$fips <- paste0(mapdata@data$STATE, mapdata@data$COUNTY)
 
+codes <- countyweather::county_centers
+fips <- codes$fips
 
-miamidade <- mapdata[mapdata$fips == "12086",]
+extractCoords <- function(sp.df){
+  results <- list()
+  for(i in 1:length(sp.df@polygons[[1]]@Polygons))
+  {
+    results[[i]] <- sp.df@polygons[[1]]@Polygons[[i]]@coords
+  }
+  results <- Reduce(rbind, results)
+  results <- as.data.frame(results)
+  results
+}
 
-plot(miamidade)
+fp <- fips[1:75]
 
-miami_poly <- miamidade@polygons[[1]]@Polygons[[1]]@coords
-miami_poly <- as.data.frame(miami_poly)
+fp <- fips
 
+list <- vector("list", length(fp))
 
+for (i in 1:length(fp)){
+  coords <- extractCoords(mapdata[mapdata$fips == fp[i],])
+  coords$FIPS <- fp[i]
 
+  while(i < length(fp)){
+    list[[i]] <- coords
+    i <- i + 1
+  }
+}
+
+county_outlines <- do.call(rbind, list)
 
 devtools::use_data(county_outlines, overwrite = TRUE)
 
