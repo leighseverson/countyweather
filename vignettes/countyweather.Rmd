@@ -391,25 +391,17 @@ For more information about the weather variables described in the above table an
 
 The following error message will come up after running functions pulling daily data if there isn't available data (for your specified date range, coverage, and weather variables) for a particular monitor or monitors: 
 
-```{r eval = FALSE}
-In rnoaa::meteo_pull_monitors(monitors = stations, keep_flags = FALSE,  :
-  The following stations could not be pulled from the GHCN ftp:
- USR0000FTEN 
- Any other monitors were successfully pulled from GHCN.
-```
+`In rnoaa::meteo_pull_monitors(monitors = stations, keep_flags = FALSE,: The following stations could not be pulled from the GHCN ftp:`
+ `USR0000FTEN` 
+ `Any other monitors were successfully pulled from GHCN.`
  
 This error message will come up after running functions pulling hourly data (`hourly_fips()`) if there isn't available data for any of the monitors in your specified county. Note: some weather variables tend to be missing more often than others. 
 
-```{r eval = FALSE}
-Error in isd_monitors_data(fips = fips, year = x, var = var, radius = radius) : 
-  None of the stations had available data.
-```
+`Error in isd_monitors_data(fips = fips, year = x, var = var, radius = radius): None of the stations had available data.`
 
 This error message will come up after running \code{daily_timeseries} or \code{hourly_timeseries} if the function is unable to pull data for a particular fips code in your `fips` vector: 
 
-```{r eval = FALSE}
-Unable to pull weather data for FIPS code "12086" for the specified percent coverage, year(s), and/or weather variables.
-```
+`Unable to pull weather data for FIPS code "12086" for the specified percent coverage, year(s), and/or weather variables.`
 
 ### Need an API key for NOAA data 
 
@@ -432,9 +424,7 @@ and then try again. If you still get an error, you may not have set up your NOAA
 
 Sometimes, some of NOAA's web services will be off-line. In this case, you may get an error message when you try to pull data like: 
 
-```
- Error in gzfile(file, mode) : cannot open the connection
- ```
+`Error in gzfile(file, mode) : cannot open the connection`
 
 In this case, try again in a new R session. If you're still getting this error, wait a few hours and then try again. 
 
