@@ -2,9 +2,9 @@
 #' stations for a particular county.
 #'
 #' Given a particular county FIPS code, this function returns a list with two
-#' elements: "data", a dataframe of hourly average weather values, and "plot",
-#' a plot showing the location of weather stations contributing to the average
-#' weather in "data".
+#' elements: \code{data}, a dataframe of hourly average weather values, and
+#' \code{plot}, a plot showing the location of weather stations contributing to
+#' the average weather in \code{data}.
 #'
 #' @inheritParams hourly_df
 #'
@@ -12,7 +12,7 @@
 #'    weather station locations to include labels indicating station usaf id
 #'    numbers.
 #'
-#' @return A list with four elements. The first element (\code{hourly_data}) is a
+#' @return A list with six elements. The first element (\code{hourly_data}) is a
 #'    dataframe of daily weather data averaged across multiple stations, as well
 #'    as columns (\code{"var"_reporting}) for each weather variable showing the
 #'    number of stations contributing to the average for that variable for that
@@ -22,9 +22,11 @@
 #'    weather stations for a particular county satisfying the conditions present
 #'    in \code{hourly_fips}'s arguments (year, coverage, and/or var).
 #'    \code{radius} is the calculated radius within which stations were pulled
-#'    from the county's population-weighted center.
+#'    from the county's population-weighted center. Elements \code{lat_center}
+#'    and \code{lon_center} are the latitude and longitude of the county's
+#'    population-weighted center.
 #'
-#' @note: Observation times are vased on Coordinated Universal Time Code (UTC).
+#' @note Observation times are vased on Coordinated Universal Time Code (UTC).
 #'
 #' @export
 hourly_fips <- function(fips, year, var = "all",
@@ -41,7 +43,9 @@ hourly_fips <- function(fips, year, var = "all",
   list <- list("hourly_data" = weather_data$hourly_data,
                "station_metadata" = weather_data$station_df,
                "station_map" = station_map,
-               "radius" = weather_data$radius)
+               "radius" = weather_data$radius,
+               "lat_center" = weather_data$lat_center,
+               "lon_center" = weather_data$lon_center)
   return(list)
 
 }
@@ -75,13 +79,15 @@ hourly_fips <- function(fips, year, var = "all",
 #'    percent of each weather variable must be non-missing to include data from
 #'    a monitor when calculating daily values averaged across monitors.)
 #'
-#' @return A list with three elements. The first element, \code{hourly_data}, is
+#' @return A list with five elements. The first element, \code{hourly_data}, is
 #'    a dataframe of hourly weather data averaged across multiple stations,
 #'    as well as columns (\code{"var"_reporting}) for each weather variable
 #'    showing the number of stations contributing to the average for that
 #'    variable for each hour. \code{station_df} is a dataframe of station
 #'    metadata for each station contributing weather data. \code{radius} is the
 #'    calculated radius within which stations were pulled from the county's
+#'    population-weighted center. Elements \code{lat_center} and
+#'    \code{lon_center} are the latitude and longitude of the county's
 #'    population-weighted center.
 #'
 #' @note: Observation times are vased on Coordinated Universal Time Code (UTC).
@@ -149,22 +155,28 @@ hourly_df <- function(fips, year,
   }
 
   radius <- hourly_list[[1]]$radius
+  lat_center <- hourly_list[[1]]$lat_center
+  lon_center <- hourly_list[[1]]$lon_center
 
   out <- list("hourly_data" = data, "station_df" = station_metadata,
-              "radius" = radius)
+              "radius" = radius,
+              "lat_center" = lat_center,
+              "lon_center" = lon_center)
   return(out)
 }
 
-#' Write hourly weather timeseries files for U.S. counties
+#' Write hourly weather timeseries files for U.S. counties.
 #'
-#' Given a vector of U.S. county FIPS codes, this function saves lists of four
+#' Given a vector of U.S. county FIPS codes, this function saves lists of five
 #' elements created from the function \code{hourly_fips}. Within this list,
 #' the element \code{hourly_data} gives a timeseries dataframe giving: 1. the
 #' values for specified weather variables, and 2. the number of weather stations
 #' contributing to the average for each day within the specified date range.
-#' Other elements saved include \code{station_metadata} anmd \code{station_map}.
-#' \code{radius}, which gives the radius (in km) within which weather stations
-#' were pulled from each county's population-weighted center.
+#' Other elements saved include \code{station_metadata} and \code{station_map}.
+#' \code{radius} gives the radius (in km) within which weather stations
+#' were pulled from each county's population-weighted center, and
+#' \code{lat_center} and \code{lon_center} are the latitude and longitude of the
+#' county's population-weighted center.
 #'
 #' Given a vector of U.S. county FIPS codes, this function creates timeseries
 #' dataframes giving: 1. the values for specified weather variables, and 2. the
@@ -217,7 +229,7 @@ hourly_timeseries <- function(fips, coverage = NULL, year,
   }
 }
 
-#' Write plot files for hourly weather timeseries dataframes
+#' Write plot files for hourly weather timeseries dataframes.
 #'
 #' This function writes out a directory with plots for every timeseries file
 #' present in the specified directory (produced by the \code{hourly_timeseries}

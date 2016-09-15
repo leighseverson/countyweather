@@ -1,28 +1,32 @@
-#' Get station list for a particular US county
+#' Get station list for a particular U.S. county.
 #'
 #' This function serves as a wrapper to the \code{isd_stations_search} function
 #' in the \code{rnoaa} package, allowing you to search by FIPS code rather than
 #' having to know the latitude and longitude of the center of each county.
 #' \code{isd_stations_search} requires a radius within which to search for
-#' stations - this radius is estimated from 2010 US Census Land Area data.
+#' stations. This radius is estimated from 2010 U.S. Census Land Area data.
 #'
 #' @param fips A five-digit FIPS county code.
 #' @param verbose TRUE / FALSE to indicate if you want the function to print
 #'    out the name of the county it's processing
 #'
-#' @return A list with two elements. The first element, \code{stations}, is a
+#' @return A list with four elements. The first element, \code{stations}, is a
 #'    dataframe of monitors within a calculated radius of the
 #'    population-weighted center of the county specified by the FIPS code.
 #'    This will have the same dataframe format as the output from the
 #'    \code{isd_stations_search} function in the \code{rnoaa} package. The
 #'    second element, \code{radius}, gives the radius (in km) within which
 #'    stations were pulled from the county's population-weighted center.
+#'    Elements \code{lat_center} and \code{lon_center} are the latitude and
+#'    longitude of the county's population-weighted center.
 #'
 #' @examples
 #' \dontrun{
 #' ids <- isd_fips_stations(fips = "12086")$stations
 #' }
 isd_fips_stations <- function(fips, verbose = TRUE){
+
+  # population-weighted center for specified county
   census_data <- countyweather::county_centers
   loc_fips <- which(census_data$fips == fips)
   lat_fips <- census_data[loc_fips, "latitude"]
@@ -43,12 +47,14 @@ isd_fips_stations <- function(fips, verbose = TRUE){
                                    radius = radius)$result
 
   list <- list("stations" = stations,
-               "radius" = radius)
+               "radius" = radius,
+               "lat_center" = lat_fips,
+               "lon_center" = lon_fips)
 
   return(list)
 }
 
-#' Get hourly data for a single monitor
+#' Get hourly data for a single monitor.
 #'
 #' This function wraps the \code{isd} function from the \code{rnoaa} package.
 #'
@@ -88,19 +94,7 @@ int_surface_data <- function(usaf_code, wban_code, year,
   isd_df <- quiet_isd(usaf = usaf_code, wban = wban_code, year = year)
   isd_df <- isd_df$result$data
 
-  #  year <- c(1999, 2000)
-  #  good_st <- sapply(mult_stations, function(x) !is.null(dim(x)))
-  #  if(sum(good_st) > 0){
-  #    st_out_list <- lapply(which(good_st), function(x) mult_stations[[x]])
-  #    st_out_df <- dplyr::bind_rows(st_out_list)
-  #  } else(
-  #    stop("None of the stations had available data.")
-  #  )
-
-  # goal is to replace the last line of code (isd_df <- ) with code that binds
-  # multiple years together. Trying to avoid a loop but that might be the move.
-
-  # select variables if `var` isn't "all"
+    # select variables if `var` isn't "all"
   if(length(var) == 1 && var == "all"){
     w_vars <- colnames(isd_df)
     var <- w_vars[9:length(w_vars)]
@@ -131,25 +125,27 @@ int_surface_data <- function(usaf_code, wban_code, year,
   return(isd_df)
 }
 
-#' Pull hourly data for multiple monitors
+#' Pull hourly data for multiple monitors.
 #'
 #' Pull all available data for all weather monitors within a calculated radius of
-#' the population-weighted center of a US county, based on the county's FIPS
-#' code. The radius for each county is calculated using 2010 US Census Land Area
+#' the population-weighted center of a U.S. county, based on the county's FIPS
+#' code. The radius for each county is calculated using 2010 U.S. Census Land Area
 #' data.
 #'
 #' @param fips A five-digit FIPS county code.
 #' @param year A four-digit numeric giving the year for which to pull data.
 #' @param var A character vector listing the weather variables to pull. The main
-#'    available weather variables include "wind_direction", "wind_speed",
-#'    "ceiling_height", "visibility_distance", "temperature",
-#'    "temperature_dewpoint", and "air_pressure."
+#'    available weather variables include \code{wind_direction}, \code{wind_speed},
+#'    \code{ceiling_height}, \code{visibility_distance}, \code{temperature},
+#'    \code{temperature_dewpoint} and \code{air_pressure}.
 #'
-#' @return A list with three elements: \code{ids} is a dataframe of station
+#' @return A list with five elements: \code{ids} is a dataframe of station
 #'    metadata for all avaiable stations in the given fips code. \code{df} is a
 #'    data frame with hourly weather data for the given variable(s) and date
 #'    range. \code{radius} is the calculated radius within which stations
-#'    were pulled from the county's population-weighted center.
+#'    were pulled from the county's population-weighted center. Elements
+#'    \code{lat_center} and \code{lon_center} are the latitude and longitude
+#'    of the county's population-weighted center.
 #'
 #' @examples
 #' \dontrun{
@@ -164,6 +160,8 @@ isd_monitors_data <- function(fips, year, var = "all"){
   list <- isd_fips_stations(fips)
   ids <- list$stations
   radius <- list$radius
+  lat_center <- list$lat_center
+  lon_center <- list$lon_center
 
   safe_int <- purrr::safely(int_surface_data)
   mult_stations <- mapply(safe_int, usaf_code = ids$usaf,
@@ -214,7 +212,9 @@ isd_monitors_data <- function(fips, year, var = "all"){
 
   list <- list("df" = st_out_df,
                "ids" = ids,
-               "radius" = radius)
+               "radius" = radius,
+               "lat_center" = lat_center,
+               "lon_center" = lon_center)
   return(list)
 }
 
@@ -273,11 +273,11 @@ ave_hourly <- function(hourly_data){
 #'    of each weather variable must be non-missing to include the data from a
 #'    station when calculating hourly values averaged across stations).
 #' @param var A character vector specifying desired weather variables. For
-#'    example, var = c("wind_speed", "temperature"). The core avaialbe weather
-#'    variables include \code{c("wind_direction", "wind_speed", "ceiling_height",
-#'    "visibility_distance", "temperature", "temperature_dewpoint",
-#'    "air_pressure")}. Alternatively, you can specify var = "all" to include
-#'    additional flag and quality codes.
+#'    example, var = c("wind_speed", "temperature"). The core available weather
+#'    variables include \code{wind_direction}, \code{wind_speed},
+#'    \code{ceiling_height}, \code{visibility_distance}, \code{temperature},
+#'    \code{temperature_dewpoint} and \code{air_pressure}. Alternatively,
+#'    you can specify var = "all" to include additional flag and quality codes.
 #'
 #' @return A list with two elements: \code{stations} is a vector of station ids
 #'    (usaf and wban identification numbers pasted together, separated by "-")
@@ -333,12 +333,13 @@ filter_hourly <- function(hourly_data, coverage,
   return(list)
 }
 
-#' Plot hourly weather stations for a particular county
+#' Plot hourly weather stations for a particular county.
+#'
+#' This function produces a map with points indicating stations that contribute
+#' to the weather data in the argument \code{hourly_data}.
 #'
 #' @param fips A five-digit FIPS county code.
-#' @param hourly_data hourly_data A dataframe with hourly weather observations.
-#'    This dataframe is returned from the function \code{isd_monitors_data} (the
-#'    "df" element of a \code{isd_monitors_data} list).
+#' @param hourly_data A list returned from the function \code{hourly_df}.
 #' @param point_color point_color The specified \code{ggplot2} color for each point
 #'    representing the location of a station.
 #' @param point_size The specified \code{ggplot2} size for each point
@@ -373,8 +374,10 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
 
   map <- suppressMessages(choroplethr::county_choropleth(to_map,
                                                          title = "", legend = "",
-                                                         num_colors = 1, state_zoom = NULL,
+                                                         num_colors = 1,
+                                                         state_zoom = NULL,
                                                          county_zoom = choro_fips, reference_map = TRUE))
+
 
   if(station_label == TRUE){
     map <- map + ggplot2::geom_point(data = hourly_data$station_df,

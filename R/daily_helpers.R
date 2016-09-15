@@ -5,7 +5,7 @@
 #' start and end date of available data, as well as percent of data coverage.
 #'
 #' @note Because this function uses the NOAA API to identify the weather
-#'    monitors within a US county, you will need to get an access token from
+#'    monitors within a U.S. county, you will need to get an access token from
 #'    NOAA to use this function. Visit NOAA's token request page
 #'    (\url{http://www.ncdc.noaa.gov/cdo-web/token}) to request a token by
 #'    email. You then need to set that API code in your R session (e.g., using
@@ -74,7 +74,8 @@ fips_stations <- function(fips, date_min = NULL, date_max = NULL){
 #'    to the average for each variable and each day.
 #'
 #' @param weather_data A dataframe with daily weather observations. This
-#'    dataframe is returned from the function \code{meteo_pull_monitors}.
+#'    dataframe is returned from the \code{rnoaa} function
+#'    \code{meteo_pull_monitors}.
 #'
 #' @importFrom dplyr %>%
 #'
@@ -149,7 +150,7 @@ filter_coverage <- function(coverage_df, coverage = NULL){
   return(filtered)
 }
 
-#' Plot daily weather stations for a particular county
+#' Plot daily weather stations for a particular county.
 #'
 #' @param fips A character string giving the five-digit U.S. FIPS county code
 #'    of the county for which the user wants to pull weather data.

@@ -1,7 +1,7 @@
 library(dplyr)
 library(stringi)
 
-## Pull in data from the US Census on county population centers, names, and FIPS codes
+## Pull in data from the U.S. Census on county population centers, names, and FIPS codes
 census_csv <- paste0("http://www2.census.gov/geo/docs/reference/cenpop2010/",
                      "county/CenPop2010_Mean_CO.txt")
 census_data <- utils::read.csv(census_csv)
