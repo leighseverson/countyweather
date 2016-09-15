@@ -8,7 +8,7 @@ library(raster)
 
 #setwd("~/Desktop/gz_2010_us_050_00_20m")
 
-mapdata <- readOGR("gz_2010_us_050_00_20m.shp", layer = "gz_2010_us_050_00_20m")
+#mapdata <- readOGR("gz_2010_us_050_00_20m.shp", layer = "gz_2010_us_050_00_20m")
 
 mapdata@data <- mutate(mapdata@data, STATE = as.character(STATE))
 mapdata@data <- mutate(mapdata@data, COUNTY = as.character(COUNTY))
@@ -45,6 +45,8 @@ for (i in 1:length(fp)){
 }
 
 county_outlines <- do.call(rbind, list)
+
+colnames(county_outlines) <- c("lon", "lat", "fips")
 
 devtools::use_data(county_outlines, overwrite = TRUE)
 
