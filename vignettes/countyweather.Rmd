@@ -361,19 +361,12 @@ hourly_vars <- data.frame(variable = c("wind_direction", "wind_speed",
                                         "ceiling_height", "visibility_distance", 
                                         "temperature", "temperature_dewpoint", 
                                         "air_pressure"), 
-                          description = c("The angle, measured in a clockwise direction, 
-                                          between true north and the direction from which the wind is blowing", 
+                          description = c("The angle, measured in a clockwise direction, between true north and the direction from which the wind is blowing", 
                                           "The rate of horizontal travel of air past a fixed point", 
-                                          "The height above ground level of the lowest cloud or 
-                                          obscuring phenomena layer aloft with 5/8 or more summation 
-                                          total sky cover, which may be predominately opaque, or the 
-                                          vertical visibility into a surface-based obstruction", 
-                                          "The horizontal distance at which an object can be seen 
-                                          and identified", 
+                                          "The height above ground level of the lowest cloud or obscuring phenomena layer aloft with 5/8 or more summation total sky cover, which may be predominately opaque, or the vertical visibility into a surface-based obstruction", 
+                                          "The horizontal distance at which an object can be seen and identified", 
                                           "The temperature of the air", 
-                                          "The temperature to which a given parcel of air must be cooled 
-                                          at constant pressure and water vapor content in order 
-                                          for saturation to occur", 
+                                          "The temperature to which a given parcel of air must be cooled at constant pressure and water vapor content in order for saturation to occur", 
                                           "The air pressure relative to Mean Sea Level"), 
                           units = c("Angular Degrees", "Meters per Second",
                                     "Meters", "Meters", "Degrees Celsuis", 
