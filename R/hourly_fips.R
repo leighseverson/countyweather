@@ -63,21 +63,25 @@ hourly_fips <- function(fips, year, var = "all",
 #' @param fips A character string or vector giving the five-digit U.S. FIPS
 #'    county code of the county or counties for which the user wants to pull
 #'    weather data.
-#' @param year a four digit number or vector of numbers indicating the year or
+#' @param year A four digit number or vector of numbers indicating the year or
 #'    years for which you want to pull hourly data. Values for \code{year} can
 #'    be in the range from 1901 to the current year.
 #' @param var A character vector specifying desired weather variables. For
-#'    example, var = c("wind_speed", "temperature"). The core weather variables
-#'    available include \code{c("wind_direction", "wind_speed", "ceiling_height",
-#'    "visibility_distance", "temperature", "temperature_dewpoint",
-#'    "air_pressure")}. Alternatively, you can specify var = "all" to include
-#'    additional flag and quality codes.
+#'    example, \code{var = c("wind_speed", "temperature")} will pull data,
+#'    if available, for wind speed and temperature. The core weather variables
+#'    available include \code{"wind_direction"}, \code{"wind_speed"},
+#'    \code{"ceiling_height"}, \code{"visibility_distance"},
+#'    \code{"temperature"}, "\code{"temperature_dewpoint"}, and
+#'    \code{"air_pressure"}. Alternatively, you can specify \code{var = "all"}
+#'    (the default) to include additional flag and quality codes.
 #' @param average_data TRUE / FALSE to indicate if you want the function to
-#'    average daily weather data across multiple monitors.
+#'    average daily weather data across all available monitors in the county.
+#'    Otherwise, values from each monitor are returned separately.
 #' @param coverage A numeric value in the range of 0 to 1 that specifies
 #'    the desired percentage coverage for the weather variable (i.e., what
-#'    percent of each weather variable must be non-missing to include data from
-#'    a monitor when calculating daily values averaged across monitors.)
+#'    percent of each weather variable must be non-missing for a monitor
+#'    to include data from the monitor when calculating daily values averaged
+#'    across monitors.)
 #'
 #' @return A list with five elements. The first element, \code{hourly_data}, is
 #'    a dataframe of hourly weather data averaged across multiple stations,
