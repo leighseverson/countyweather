@@ -288,7 +288,7 @@ ex_data$wind_speed[ex_data$wind_speed_quality == 2|3|6|7] <- NA
 
 Functions in this package that pull daily weather values (`weather_fips()`, for example) are pulling data from the Daily Global Historical Climatology Network (GHCN-Daily) through NOAA's FTP server. 
 
-Users can specify which weather variables they would like to pull. The five core daily weather variables are precipitation (`PRCP`), snowfall (`SNOW`), snow depth (`SNWD`), maximum temperature (`TMAX`) and minimum temperature (`TMIN`). As an additional quality check, [add some here about what we're doing to filter out unrealistic values]. The daily weather data is filtered so that included weather variables fall within a range of possible values. These ranges were chosen to include national maximum recorded values.
+Users can specify which weather variables they would like to pull. The five core daily weather variables are precipitation (`prcp`), snowfall (`snow`), snow depth (`snwd`), maximum temperature (`tmax`) and minimum temperature (`tmin`). The daily weather data is filtered so that included weather variables fall within a range of possible values. These ranges were chosen to include national maximum recorded values.
 
 ```{r echo = FALSE, warning = FALSE, message = FALSE}
 daily_vars <- data.frame(variables = c("prcp", "snow", "snwd", "tmax", "tmin"), 
@@ -299,9 +299,9 @@ library(knitr)
 kable(daily_vars, format = "markdown")
 ```
 
-[We'll want to add a note that tmax, tmin, and prcp were originally in tenths of units, and are listed as such in NOAA documentation, but that we're converting those to regular units within this package.]
+`tmax`, `tmin`, and `prcp` were originally recorded in tenths of units, and are listed as such in NOAA documentation. These values are converted to standard units (degrees Celsius and mm, respectively) in the output of this package's functions. 
 
-The daily weather function \code{weather_fips} defaults to pull these five core weather variables. However, there are several additional, non-core variables available (for example, `ACMC` gives the "average cloudiness midnight to midnight from 30-second ceilometer data (percent))." The complete list of available weather variables can be found under 'element' from the GHCND's [readme file](http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt). 
+The daily weather function \code{weather_fips} defaults to pull these five core weather variables. However, there are several additional, non-core variables available (for example, `acmc` gives the "average cloudiness midnight to midnight from 30-second ceilometer data (percent))." The complete list of available weather variables can be found under 'element' from the GHCND's [readme file](http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt). 
 
 While the datasets resulting from functions in this package return a cleaned and aggregated dataset, this journal article by Menne et al. (2012) gives more information aboout the raw data in the GHCND database [let's figure out how to use citations in the vignette and do a citation for this]: 
 
@@ -311,9 +311,7 @@ Menne, M.J., I. Durre, R.S. Vose, B.E. Gleason, and T.G. Houston, 2012:  An over
 
 Hourly weather data in this package is pulled from NOAA's Integrated Surface Data (ISD), which is archived at the National Climatic Data Center (NCDC). This data is also pulled through NOAA's FTP server. 
 
-The seven core hourly weather variables include `wind_direction`, `wind_speed`, `ceiling_height`, `visibility_distance`, `temperature`, `temperature_dewpoint`, and `air_pressure`. 
-
-[Add something about where you got the values in this table.]
+The seven core hourly weather variables include `wind_direction`, `wind_speed`, `ceiling_height`, `visibility_distance`, `temperature`, `temperature_dewpoint`, and `air_pressure`. Values in this table were pulled from the [ISD documentation file](ftp://ftp.ncdc.noaa.gov/pub/data/noaa/ish-format-document.pdf).
 
 ```{r echo = FALSE}
 hourly_vars <- data.frame(variable = c("wind_direction", "wind_speed", 
@@ -340,7 +338,7 @@ library(knitr)
 kable(hourly_vars, format = "markdown")
 ```
 
-There are other columns available in addition to these weather variables such as quality codes (for example, `wind_direction_quality` - each of the main weather variables has a corresponding quality code that can be pulled by adding `_quality` to the end of the variable name). 
+There are other columns available in addition to these weather variables such as quality codes. For example, `wind_direction_quality` - each of the main weather variables has a corresponding quality code that can be pulled by adding `_quality` to the end of the variable name. 
 
 For more information about the weather variables described in the above table and other available columns, see the [ISD documentation file](ftp://ftp.ncdc.noaa.gov/pub/data/noaa/ish-format-document.pdf). 
 
@@ -357,7 +355,7 @@ In rnoaa::meteo_pull_monitors(monitors = stations, keep_flags = FALSE,  :
  Any other monitors were successfully pulled from GHCN.
  ```
  
-This error message will come up after running functions pulling hourly data (`hourly_fips()`) if there isn't available data for any of the monitors in your specified county. Note: some weather variables tend to be missing more often than 
+This error message will come up after running functions pulling hourly data (`hourly_fips()`) if there isn't available data for any of the monitors in your specified county. Note: some weather variables tend to be missing more often than others. 
 
 ```
 Error in isd_monitors_data(fips = fips, year = x, var = var, radius = radius) : 
