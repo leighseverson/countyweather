@@ -158,8 +158,16 @@ If you need to get the timestamp for each observation in local time, you can use
 andrew_hourly_data <- as.data.frame(andrew_hourly$hourly_data) 
 
 library(countytimezones)
+```
+```{r echo = 1:2, eval = FALSE}
 andrew_hourly_data <- add_local_time(df = andrew_hourly_data, fips = "12086",
                                      datetime_colname = "date_time")
+save(andrew_hourly_data, file = "data/andrew_hourly_data.RData")
+```
+```{r echo = FALSE}
+load("data/andrew_hourly_data.RData")
+```
+```{r}
 head(andrew_hourly_data)
 ```
 
@@ -300,9 +308,15 @@ kable(qual, format = "markdown")
 
 Because it makes no sense to average these codes across monitors, the codes should only be pulled when using the option to pull monitor-specific values (`average_data = FALSE`).
 
-```{r}
+```{r echo = 1:2, eval = FALSE}
 ex <- hourly_fips("12086", 1992, var = c("wind_speed", "wind_speed_quality"), 
                   average_data = FALSE)
+save(ex, file = "data/ex.RData")
+```
+```{r echo = FALSE}
+load("data/ex.RData")
+```
+```{r}
 ex_data <- ex$hourly_data
 head(ex_data)
 ```
