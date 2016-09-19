@@ -72,7 +72,7 @@ This will pull your NOAA API key from the `.Renviron` file and save it as the ob
 
 ## Basic examples of using the package
 
-Weather data is collected at monitors, and there are often multiple weather monitors within a county. The `countyweather` package allows you to pull weather data from all monitors in a specified county over a specified date range. The two main functions in the countyweather package are `daily_fips` and `hourly_fips`, which pull daily and hourly weather data, respectively. By default, these values pulled from all monitors in a county will then be averaged for each time point to create an average timeseries of daily or hourly measurements for that county. There is also an option that allows the user to opt out of the default aggregation across weather stations, and instead pull separate timeseries for each monitor in the county. This option is explained in more detail later in this document. Opting out of the default aggregation can be useful if you would like to use a method other than a simple average to aggregate across monitors within a county.
+Weather data is collected at monitor sites, and there are often multiple weather monitors within a county. The `countyweather` package allows you to pull weather data from all monitors in a specified county over a specified date range. The two main functions in the countyweather package are `daily_fips` and `hourly_fips`, which pull daily and hourly weather data, respectively. By default, these values pulled from all monitors in a county will then be averaged for each time point to create an average timeseries of daily or hourly measurements for that county. There is also an option that allows the user to opt out of the default aggregation across weather stations, and instead pull separate timeseries for each monitor in the county. This option is explained in more detail later in this document. Opting out of the default aggregation can be useful if you would like to use a method other than a simple average to aggregate across monitors within a county.
 
 Throughout, functions in this package identify a county using the county's Federal Information Processing Standard (FIPS) code. FIPS codes are 5-digit codes that uniquely identify every U.S. county. The first two digits of a county FIPS code specify state and the last three specify the county within the state. This package pulls data based on FIPS designations as of the 2010 Census. Users will not be able to pull data for the few FIPS codes that have undergone substantial changes since 2010 - for a list of those codes see the Census Bureau's [summary](https://www.census.gov/geo/reference/county-changes.html) of these counties for the 2010s. 
 
@@ -82,7 +82,7 @@ Currently, this package can pull daily and hourly weather data for variables lik
 
 The `daily_fips` function can be used to pull daily weather data for all monitors within the geographic boundaries of a county. This daily weather data comes from NOAA's Global Historical Climatology Network. When pulling data for a county, the user can specify date ranges (`date_min`, `date_max`), which weather variables to include in the output dataset (`var`), and restrictions on how much non-missing data a monitor must have over the time period to be included when generating daily county average values (`coverage`). This function will pull any available data for monitors in the county under the specified restrictions and output both a dataset of average daily observations across all county monitors, as well as a map plotting the stations used in the county-wide averaged data.
 
-Here is an example of creating a dataset with daily precipitation for Miami-Dade county (FIPS code = 12086) for August 1992, when Hurricane Andrew stuck: 
+Here is an example of creating a dataset with daily precipitation for Miami-Dade county (FIPS code = 12086) for August 1992, when Hurricane Andrew struck: 
 
 ```{r warning = FALSE, message = FALSE, echo = 1:2, eval = FALSE}
 andrew_precip <- daily_fips(fips = "12086", date_min = "1992-08-01", 
@@ -260,7 +260,7 @@ For `hourly_fips()` and `daily_fips()`, and timeseries functions, the user can c
 
 ### `average_data` 
 
-In both `daily_fips()` and `hourly_fips()`, the default ise to return a single daily average for the county for each day in the timeseries, giving the value averaged across all available monitors on that day. However, there is also an option called `average_data` which allows the user to specify whether they would like the weather data returned before it has been averaged across monitors. If this argument is set to `FALSE`, the functions will return separate daily data for each monitor in the county. For our Hurricane Andrew example, if we specify `average_data = FALSE`: 
+In both `daily_fips()` and `hourly_fips()`, the default is to return a single daily average for the county for each day in the timeseries, giving the value averaged across all available monitors on that day. However, there is also an option called `average_data` which allows the user to specify whether they would like the weather data returned before it has been averaged across monitors. If this argument is set to `FALSE`, the functions will return separate daily data for each monitor in the county. For our Hurricane Andrew example, if we specify `average_data = FALSE`: 
 
 ```{r echo 1:5, eval = FALSE}
 not_averaged <- daily_fips(fips = "12086", 
@@ -297,7 +297,7 @@ not_averaged$station_map
 
 ### Quality Flags 
 
-The hourly Integrated Surface Data includes quality codes for each of the main weather variables. For more information about the hourly weather variables, see the 'More on the weather data' section below. We can use these codes to remove suspect or erroneous values from our data. The values in `wind_speed_quality` take on the following values: 
+The hourly Integrated Surface Data includes quality codes for each of the main weather variables. For more information about the hourly weather variables, see the 'More on the weather data' section below. We can use these codes to remove suspect or erroneous values from our data. The values in `wind_speed_quality`, for example, take on the following values: (Values in this table were pulled from the [ISD documentation file](ftp://ftp.ncdc.noaa.gov/pub/data/noaa/ish-format-document.pdf).) 
 
 ```{r echo = FALSE}
 qual <- data.frame(code = c(0, 1, 2, 3, 4, 5, 6, 7, 9), definition = c(" Passed gross limits check", "Passed all quality control checks", "Suspect", "Erroneous", "Passed gross limits check , data originate from an NCEI data source", "Passed all quality control checks, data originate from an NCEI data source", "Suspect, data originate from an NCEI data source", "Erroneous, data originate from an NCEI data source", "Passed gross limits check if element is present"))
@@ -432,5 +432,27 @@ In this case, try again in a new R session. If you're still getting this error, 
 
 If you get other error messages or run into problems with this package, please submit a reproducible example on this repository's Issues page. 
  
+## Fun `countyweather` questions (if you have extra time) 
+
+1. How would you write a function call to pull a dataframe of daily maximum and minumum temperatures for your favorite county in Colorado, for your favorite three months of your favorite year in the 2000's? 
+
+2. How would you edit the above function call to only include monitors with at least 75% non-missing observations? 
+
+2. How would you find out many weather stations are contributing to that daily weather data? 
+
+3. How would you pull up a map of where these stations are located? 
+
+4. If you wanted to include station labels on this map, how would you do that? 
+
+5. How would you save .rds files (with daily weather data, station metadata, and station location plots) for three of your favorite Colorado counties to your local directory? 
+
+6. How could you repeat the above tasks for hourly temperature data? 
+
+7. How would you remove hourly observations with quality flags indicating "Suspect" and "Erroneous"?
  
+8. What's the difference between `daily_fips()` and `daily_timeseries()`? 
+
+9. Where could you go to find out more details about the weather data, for example, if you needed details to include in a Methods section of a study using this data? 
+
 ## References 
+
