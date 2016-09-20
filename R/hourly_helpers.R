@@ -292,8 +292,9 @@ filter_hourly <- function(hourly_data, coverage,
   not_vars <- c("usaf_station", "wban_station", "date_time", "latitude",
                 "longitude")
   g_cols <- all_cols[!all_cols %in% not_vars]
-
   group_cols <- c("station", "key")
+
+  # calc_coverage for each station (combination of usaf and wban ids)
 
   df <- hourly_data %>%
     tidyr::unite_(col = "station", from = c("usaf_station", "wban_station"),
@@ -301,7 +302,7 @@ filter_hourly <- function(hourly_data, coverage,
     dplyr::select_(quote(-date_time), quote(-latitude), quote(-longitude)) %>%
     tidyr::gather_(key_col = "key", value_col = "value", gather_cols = g_cols) %>%
     dplyr::group_by_(.dots = group_cols) %>%
-    dplyr::summarize_(coverage = ~ mean(!is.na(value)))
+    dplyr::summarize_(calc_coverage = ~ mean(!is.na(value)))
 
   group_cols <- c("date_time", "key")
 
@@ -311,7 +312,7 @@ filter_hourly <- function(hourly_data, coverage,
     dplyr::select_(quote(-latitude), quote(-longitude)) %>%
     tidyr::gather_(key_col = "key", value_col = "value", gather_cols = g_cols) %>%
     dplyr::left_join(df, by = c("station", "key")) %>%
-    dplyr::filter_(~ coverage > 0.80) %>%
+    dplyr::filter_(~ calc_coverage > coverage) %>%
     dplyr::group_by_(.dots = group_cols)
 
   stations <- unique(filtered$station)
