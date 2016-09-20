@@ -105,7 +105,7 @@ ggplot(andrew_precip$daily_data, aes(x = date, y = prcp, color = prcp_reporting)
   scale_color_continuous(name = "# monitors\nreporting")
 ```
 
-![](README-unnamed-chunk-13-1.png)
+![](README-unnamed-chunk-12-1.png)
 
 From this plot, you can see both the extreme precipitation associated with Hurricane Andrew (Aug. 24) and that the storm knocked out quite a few of the weather monitors normally available.
 
@@ -115,7 +115,7 @@ A map is also included in the output of `daily_fips` with the monitors used for 
 andrew_precip$station_map
 ```
 
-![](README-unnamed-chunk-14-1.png)
+![](README-unnamed-chunk-13-1.png)
 
 This map uses functions from the `choroplethr` package to overlay weather monitor locations on a shaded map showing the county's boundaries. According to the `choroplethrMaps` [reference manual](https://cran.r-project.org/web/packages/choroplethrMaps/choroplethrMaps.pdf), the `choroplethr` package took these county shapefiles from the U.S. Census 2010 [Cartographic Boundary shapefiles page](https://www.census.gov/geo/mapsdata/data/tiger-cart-boundary.html) in May 2014.
 
@@ -130,6 +130,7 @@ Here is an example of pulling hourly data for Miami-Dade, for the year of Hurric
 ``` r
 andrew_hourly <- hourly_fips(fips = "12086", year = 1992,
                            var = c("wind_speed", "temperature"))
+#> [1] "Getting hourly weather monitors for Miami-Dade County, Florida"
 ```
 
 The output from this call is a list object that includes the dataset of hourly values (`hourly_data`). This dataset includes the date-time of the observation (given in UTC), values for the weather variables selected, and the number of monitors reporting for each observation of each weather variable:
@@ -163,9 +164,6 @@ library(countytimezones)
 ``` r
 andrew_hourly_data <- add_local_time(df = andrew_hourly_data, fips = "12086",
                                      datetime_colname = "date_time")
-```
-
-``` r
 head(andrew_hourly_data)
 #>             date_time temperature wind_speed temperature_reporting
 #> 1 1992-01-01 00:00:00    20.00000      2.600                     4
@@ -198,7 +196,7 @@ ggplot(to_plot, aes(x = date_time, y = wind_speed,
   scale_color_continuous(name = "# monitors\nreporting")
 ```
 
-![](README-unnamed-chunk-22-1.png)
+![](README-unnamed-chunk-18-1.png)
 
 Again, the intensity of conditions during Hurricane Andrew is clear, as is the reduction in the number of reporting monitors during the storm.
 
@@ -210,7 +208,7 @@ andrew_hourly$station_map
 #> Warning: Removed 8 rows containing missing values (geom_point).
 ```
 
-![](README-unnamed-chunk-23-1.png)
+![](README-unnamed-chunk-19-1.png)
 
 Writing out timeseries files
 ----------------------------
@@ -239,7 +237,20 @@ plot_daily_timeseries("prcp", file_directory = "~/Documents/andrew_data",
 
 Here's an example of what the timeseries plots for the three Florida counties would look like:
 
-<img src="README-unnamed-chunk-30-1.png" width="0.33" /><img src="README-unnamed-chunk-30-2.png" width="0.33" /><img src="README-unnamed-chunk-30-3.png" width="0.33" />
+    #> Warning in readChar(con, 5L, useBytes = TRUE): cannot open compressed file
+    #> 'vignette/data/two.RData', probable reason 'No such file or directory'
+    #> Error in readChar(con, 5L, useBytes = TRUE): cannot open the connection
+
+    #> Warning in readChar(con, 5L, useBytes = TRUE): cannot open compressed file
+    #> 'vignette/data/three.RData', probable reason 'No such file or directory'
+    #> Error in readChar(con, 5L, useBytes = TRUE): cannot open the connection
+
+<img src="README-unnamed-chunk-26-1.png" width="0.33" />
+
+    #> Error in eval(expr, envir, enclos): object 'two' not found
+    #> Error in plot(df2$date, df2$prcp, type = "l", col = "red", main = "12087", : object 'df2' not found
+    #> Error in eval(expr, envir, enclos): object 'three' not found
+    #> Error in plot(df3$date, df3$prcp, type = "l", col = "red", main = "12011", : object 'df3' not found
 
 Futher options available in the package
 ---------------------------------------
@@ -258,10 +269,6 @@ not_averaged <- daily_fips(fips = "12086",
                            date_max = "1992-08-31",
                            var = "prcp", average_data = FALSE, 
                            station_label = TRUE)
-save(not_averaged, file = "data/not_averaged.RData")
-```
-
-``` r
 not_averaged_data <- not_averaged$daily_data
 head(not_averaged_data)
 #> # A tibble: 6 x 3
@@ -288,7 +295,7 @@ ggplot(not_averaged_data, aes(x = date, y = prcp,
   theme_minimal() 
 ```
 
-![](README-unnamed-chunk-33-1.png)
+![](README-unnamed-chunk-27-1.png)
 
 It might be interesting here to compare this plot with the station map, this time with station labels included:
 
@@ -296,7 +303,7 @@ It might be interesting here to compare this plot with the station map, this tim
 not_averaged$station_map
 ```
 
-![](README-unnamed-chunk-34-1.png)
+![](README-unnamed-chunk-28-1.png)
 
 ### Quality Flags
 
@@ -358,9 +365,7 @@ Because it makes no sense to average these codes across monitors, the codes shou
 ``` r
 ex <- hourly_fips("12086", 1992, var = c("wind_speed", "wind_speed_quality"), 
                   average_data = FALSE)
-```
-
-``` r
+#> [1] "Getting hourly weather monitors for Miami-Dade County, Florida"
 ex_data <- ex$hourly_data
 head(ex_data)
 #> # A tibble: 6 x 7
