@@ -28,6 +28,33 @@
 #'
 #' @note Observation times are vased on Coordinated Universal Time Code (UTC).
 #'
+#'@examples
+#' \dontrun{
+#'
+#' ex <- hourly_fips("12086", coverage = 0.90, year = c(1994, 1995),
+#'                    var = "temperature")
+#'
+#' hourly_data <- ex$hourly_data
+#' hourly_stationdata <- ex$
+#'
+#'
+#'
+#' ex <- daily_fips("08031", coverage = 0.90,
+#'                    date_min = "2010-01-01", date_max = "2010-02-01",
+#'                    var = "prcp")
+#'
+#' weather_data <- ex$daily_data
+#' station_map <- ex$station_map
+#'
+#' mobile_ex <- daily_fips("01097", coverage = 0,
+#'                           date_min = "1997-07-13",
+#'                           date_max = "1997-07-25",
+#'                           var = "prcp", average_data = FALSE)
+#' library(ggplot2)
+#' ggplot(mobile_ex$daily_weather, aes(x = date, y = prcp, color = id)) +
+#'        geom_line()
+#' }
+#' @export
 #' @export
 hourly_fips <- function(fips, year, var = "all",
                         coverage = NULL, average_data = TRUE,
@@ -141,7 +168,7 @@ hourly_df <- function(fips, year,
   # if coverage is not null, filter stations
   if(!purrr::is_null(coverage)){
     filtered_list <- filter_hourly(hourly_data = data, coverage = coverage, var = var)
-    data <- filtered_list$df
+#    data <- filtered_list$df
 
     filtered_stations <- filtered_list$stations
 
@@ -150,6 +177,13 @@ hourly_df <- function(fips, year,
     }
 
   # average hourly across multiple stations
+
+  data <- data %>%
+    dplyr::mutate_(station = ~ paste(usaf_station, wban_station, sep = "-"))
+
+  data <- data %>% dplyr::filter_( ~ station %in% filtered_stations) %>%
+    dplyr::select_(quote(-station))
+
   if(average_data == TRUE){
     data <- ave_hourly(data)
   }
