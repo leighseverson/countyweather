@@ -424,9 +424,18 @@ and then try again. If you still get an error, you may not have set up your NOAA
 
 Sometimes, some of NOAA's web services will be off-line. In this case, you may get an error message when you try to pull data like: 
 
-`Error in gzfile(file, mode) : cannot open the connection`
+```
+Error in gzfile(file, mode) : cannot open the connection
+```
 
-In this case, try again in a new R session. If you're still getting this error, wait a few hours and then try again. 
+or 
+
+```
+Error in tt$results : $ operator is invalid for atomic vectors In addition: Warning message:
+Error: (500) - An error occured while servicing your request. 
+```
+
+In this case, wait a few hours and then try again. 
 
 ### Other errors
 
