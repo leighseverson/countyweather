@@ -172,10 +172,10 @@ hourly_df <- function(fips, year,
 
     station_metadata <- dplyr::right_join(station_metadata, station_stats,
                                           by = "station") %>%
-      select_(quote(usaf), quote(wban), quote(station), quote(station_name),
+      dplyr::select_(quote(usaf), quote(wban), quote(station), quote(station_name),
              quote(var), quote(calc_coverage), quote(standard_dev), quote(range),
              quote(ctry), quote(state), quote(elev_m), quote(begin), quote(end),
-             quote(lon), quote(lat))
+             quote(longitude), quote(latitude))
 
   # average hourly across multiple stations
 
