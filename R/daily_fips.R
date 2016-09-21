@@ -151,7 +151,7 @@ daily_df <- function(stations, coverage = NULL,
                                   var = toupper(var))$result
 
   # calculate coverage for each weather variable
-  # meteo_coverage() from meteo_utils.R in ropenscilabs/rnoaa
+  # meteo_coverage() from rnoaa
   coverage_df <- rnoaa::meteo_coverage(meteo_df, verbose = FALSE)
 
   # filter station dataset based on specified coverage
@@ -206,15 +206,42 @@ daily_df <- function(stations, coverage = NULL,
     }
   }
 
-  # average across stations, add a column for number of stations that
-  # contributed to each daily average
-  if(average_data == TRUE){
-    filtered_data <- ave_weather(filtered_data)
-  }
+  # have coverage in filtered df
+  # need standard deviation and range
+
+  all_cols <- colnames(filtered_data)
+  not_vars <- c("id", "date")
+  g_cols <- all_cols[!all_cols %in% not_vars]
+
+  group_cols <- c("id", "key")
+
+  stats <- filtered_data %>%
+    dplyr::select_(quote(-date)) %>%
+    tidyr::gather_(key_col = "key", value_col = "value", gather_cols = g_cols) %>%
+    dplyr::group_by_(.dots = group_cols) %>%
+    dplyr::summarize_(standard_dev = ~ sd(value, na.rm = TRUE),
+                      range = ~ max(value, na.rm = TRUE) -
+                        min(value, na.rm =TRUE))
+
+  filtered <- dplyr::filter_(filtered, ~ id %in% good_monitors)
+  stats <- full_join(stats, filtered, by = c("id", "key"))
 
   stations <- dplyr::filter_(stations, ~ id %in% good_monitors)
 
-  out <- list("daily_data" = filtered_data, "station_df" = stations)
+  stations <- dplyr::full_join(stats, stations, by = "id") %>%
+    dplyr::select_(quote(id), quote(name), quote(key), quote(calc_coverage),
+                   quote(standard_dev), quote(range), quote(latitude),
+                   quote(longitude))
+
+  colnames(stations)[3] <- "var"
+
+  # average across stations, add a column for number of stations that
+  # contributed to each daily average
+  if(average_data == TRUE){
+    out_data <- ave_weather(filtered_data)
+  }
+
+  out <- list("daily_data" = out_data, "station_df" = stations)
 
   return(out)
 }

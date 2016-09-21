@@ -127,7 +127,7 @@ hourly_df <- function(fips, year,
                            var = "all",
                            average_data = TRUE, coverage = NULL){
 
-  # hourly data for multiple monitors
+  # hourly data for multiple monitors for multiple years
   hourly_list <- lapply(year, function(x) isd_monitors_data(fips = fips,
                                                             year = x,
                                                             var = var))
@@ -152,14 +152,6 @@ hourly_df <- function(fips, year,
     }
   }
 
-  station_metadata[station_metadata == "999999"] <- NA
-  station_metadata[station_metadata == "99999"] <- NA
-
-  station_metadata <- unique(station_metadata) %>%
-    dplyr::mutate_(station = ~ paste(usaf, wban, sep = "-"))
-
-
-
   # filter stations (if coverage is NULL, filters as if coverage = 0) and get
   # statistical info for each station/var pair
     filtered_list <- filter_hourly(hourly_data = data, coverage = coverage, var = var)
@@ -167,19 +159,29 @@ hourly_df <- function(fips, year,
 
     filtered_stations <- unique(station_stats$station)
 
-    station_metadata <- dplyr::filter_(station_metadata, ~ station %in%
-                                         filtered_stations)
+    station_metadata[station_metadata == "999999"] <- NA
+    station_metadata[station_metadata == "99999"] <- NA
 
-    # combine station_metadata and station_stats
+    station_metadata <- unique(station_metadata) %>%
+      dplyr::mutate_(station = ~ paste(usaf, wban, sep = "-"))
+
+    station_metadata <- station_metadata %>%
+      dplyr::filter_(~ station %in% filtered_stations)
+
+  # combine station_metadata and station_stats
 
     station_metadata <- dplyr::right_join(station_metadata, station_stats,
-                                          by = "station")
+                                          by = "station") %>%
+      select_(quote(usaf), quote(wban), quote(station), quote(station_name),
+             quote(var), quote(calc_coverage), quote(standard_dev), quote(range),
+             quote(ctry), quote(state), quote(elev_m), quote(begin), quote(end),
+             quote(lon), quote(lat))
 
   # average hourly across multiple stations
 
   data <- data %>%
-    dplyr::mutate_(station = ~ paste(usaf_station, wban_station, sep = "-"))
-    dplyr::filter_( ~ station %in% filtered_stations) %>%
+    dplyr::mutate_(station = ~ paste(usaf_station, wban_station, sep = "-")) %>%
+    dplyr::filter_(~ station %in% filtered_stations) %>%
     dplyr::select_(quote(-station))
 
   if(average_data == TRUE){

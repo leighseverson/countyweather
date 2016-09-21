@@ -141,12 +141,15 @@ filter_coverage <- function(coverage_df, coverage = NULL){
     tidyr::gather_(key_col = "key", value_col = "covered",
                    gather_cols = g_cols)  %>%
     dplyr::filter_(~ covered >= coverage) %>%
-    dplyr::mutate_(covered = ~ 1) %>%
+    dplyr::mutate_(covered_n = ~ 1) %>%
     dplyr::group_by_(.dots = list("id")) %>%
-    dplyr::mutate_(good_monitor = ~ sum(!is.na(covered)) > 0) %>%
+    dplyr::mutate_(good_monitor = ~ sum(!is.na(covered_n)) > 0) %>%
     dplyr::ungroup() %>%
     dplyr::filter_(~ good_monitor) %>%
-    dplyr::select_(.dots = list("-good_monitor"))
+    dplyr::select_(.dots = list("-good_monitor", "-covered_n"))
+
+  colnames(filtered)[3] <- "calc_coverage"
+
   return(filtered)
 }
 

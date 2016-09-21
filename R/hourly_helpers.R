@@ -316,9 +316,9 @@ filter_hourly <- function(hourly_data, coverage = NULL,
     tidyr::gather_(key_col = "key", value_col = "value", gather_cols = g_cols) %>%
     dplyr::group_by_(.dots = group_cols) %>%
     dplyr::summarize_(calc_coverage = ~ mean(!is.na(value)),
-                      standard_dev = ~ sd(!is.na(value)),
-                      max = ~ max(value, na.rm = TRUE),
-                      min = ~ min(value, na.rm = TRUE))
+                      standard_dev = ~ sd(value, na.rm = TRUE),
+                      range = ~ max(value, na.rm = TRUE) -
+                        min(value, na.rm = TRUE))
 
   group_cols <- c("date_time", "key")
 

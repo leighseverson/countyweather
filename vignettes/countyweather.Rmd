@@ -97,9 +97,9 @@ load("data/andrew_precip.RData")
 names(andrew_precip)
 ```
 
-The output from this function call is a list that includes three elements: a daily timeseries of weather data for the county (`andrew_precip$daily_data`); a dataframe with meta-data about the weather stations used to create the timeseries data, and a map showing the locations of weather stations included in the county-averaged dataset (`andrew_precip$station_map`). 
+The output from this function call is a list that includes three elements: a daily timeseries of weather data for the county (`andrew_precip$daily_data`), a dataframe with meta-data about the weather stations used to create the timeseries data, as well as statistical information about the weather values pulled from these stations (`andrew_precip$station_metadata`), and a map showing the locations of weather stations included in the county-averaged dataset (`andrew_precip$station_map`). 
 
-Here are the first few rows of the dataset: 
+Here are the first few rows of the `daily_data` dataset: 
 
 ```{r}
 head(andrew_precip$daily_data)
@@ -129,6 +129,14 @@ andrew_precip$station_map
 
 This map uses functions from the `choroplethr` package to overlay weather station locations on a shaded map showing the county's boundaries. According to the `choroplethrMaps` [reference manual](https://cran.r-project.org/web/packages/choroplethrMaps/choroplethrMaps.pdf), the `choroplethr` package took these county shapefiles from the U.S. Census 2010 [Cartographic Boundary shapefiles page](https://www.census.gov/geo/mapsdata/data/tiger-cart-boundary.html) in May 2014.
 
+The `station_metadata` dataframe gives information about all of the stations contributing data to the `daily_data` dataframe, as well as information about how the values by each station vary within each weather variable. If a weather station is contributing data for multiple variables, it will show up in this dataframe multiple times. Here's what the `station_metadata` dataframe looks like for the `andrew_precip` list: 
+
+```{r}
+andrew_precip$station_metadata
+```
+
+For each station, the dataframe gives an `id` and `name`, as well as `latitude` and `longitude`. `var` indicates the variable for which the station is pulling data. If a station is contributing data for multiple variables, that station will show up in the dataframe once for each of those variables. For each variable and station combination, the dataframe also shows `calc_coverage`, which is the calculated percent of non-missing values. You can filter these by using the `daily_fips` option `coverage`. `standard_dev` gives the standard deviation for each sample of weather data from each station and weather variable, and `range` gives the range of these values. If you were interested in looking at the weather values for certain stations, you can use the `average_data = FALSE` option in `daily_fips`. For more on this option and a few others, see the "Futher options available in the package" section below.
+
 ### Pulling hourly data
 
 You can also use the `hourly_fips` function to pull hourly weather data by county from NOAA's Integrated Surface Data (ISD) weather dataset. In this case, NOAA's web services will not identify weather stations by FIPS, so instead this function will pull all stations within a certain radius of the county's population mean center to represent weather within that county. While there are seven main weather variables that are possible to pull (listed below in the "More on the weather data" section), `temperature` and `wind_speed` tend to be non-missing most often. 
@@ -146,7 +154,13 @@ save(andrew_hourly, file = "data/andrew_hourly.RData")
 load("data/andrew_hourly.RData")
 ```
 
-The output from this call is a list object that includes the dataset of hourly values (`hourly_data`). This dataset includes the date-time of the observation (given in UTC), values for the weather variables selected, and the number of stations reporting for each observation of each weather variable: 
+```{r}
+names(andrew_hourly)
+```
+
+The output from this call is a list object that includes six elements. `andrew_hourly$hourly_data` is an hourly timeseries of weather data for the county. The other five elements, `station_metadata`, `station_map`, `radius`, `lat_center`, and `lon_center`, are explained in more detail below. 
+
+Here are the first few rows of of the `hourly_data` dataset: 
 
 ```{r}
 head(andrew_hourly$hourly_data)
@@ -187,12 +201,21 @@ ggplot(to_plot, aes(x = date_time, y = wind_speed,
 ```
 
 Again, the intensity of conditions during Hurricane Andrew is clear, as is the reduction in the number of reporting stations during the storm. 
-
 The list object returned by `hourly_fips` also includes a map of station locations (`station_map`): 
 
 ```{r}
 andrew_hourly$station_map
 ```
+
+Other list elements returned by `hourly_fips` include `station_metadata`, `radius`, `lat_center`, and `lon_center`. `radius` is the estimated radius (in km) for the county calculated using 2010 U.S. Census Land Area data - the county is assumed to be roughly ciruclar. `lat_center` and `lon_center` are the longitude and latitude of the population-weighted center for the county, respectively. 
+
+The `station_metadata` dataframe gives information about all of the stations contributing data to the `hourly_data` dataframe, as well as information about how the values by each station vary within each weather variable. If a weather station is contributing data for multiple variables, it will show up in this dataframe multiple times. Here's what the `station_metadata` dataframe looks like for the `andrew_hourly` list: 
+
+```{r}
+andrew_hourly$station_metadata
+```
+
+`usaf` and `wban` are station ids. `station` is a unique identifier for each station -- usaf and wban ids have been pasted together, separated by "-". (Note: values for `wban` or `usaf` are sometimes missing (originally indicated by "99999" or "999999"), which could result in a `station` value like `722024-NA`.) `station_name` is the name for each station, and `var` indicates the variable for which the station is pulling data. If a station is contributing data for multiple variables, that station will show up in the dataframe once for each of those variables. For each variable and station combination, the dataframe also shows `calc_coverage`, which is the calculated percent of non-missing values. You can filter these by using the `hourly_fips` option `coverage`. `standard_dev` gives the standard deviation for each sample of weather data from each station and weather variable, and `range` gives the range of these values. Here, we can see in row 7 that the OPA LOCKA station has a very low percent coverage for temperature (0.0018), and a correspondingly high standard deviation (17.94). If you were interested in looking at the weather values for certain stations, you can use the `average_data = FALSE` option in `hourly_fips`. For more on this option and a few others, see the "Futher options available in the package" section below. The dataframe also gives station countries, states, ICAO codes, elevation (in meters), the earliest and latest dates for which the station has available data (`begin` and `end`, respectively), longitude, and latitude. 
 
 ## Writing out timeseries files 
 
