@@ -371,9 +371,15 @@ filter_hourly <- function(hourly_data, coverage = NULL,
 #'
 #' @return A plot showing points for all weather stations for a particular
 #'    county satisfying the conditions present in \code{hourly_df}'s
-#'    arguments (year(s) and/or var).
-#'    (\code{stationmap_fips} takes the resulting weather dataframe from this
-#'    function.)
+#'    arguments (year(s) and/or var). Because hourly data is pulled by radius
+#'    from each county's population-weighted center, this plot inlcudes the
+#'    calculated radius from which stations are pulled. This radius is calculated
+#'    for each county using 2010 U.S. Census Land Area data. 2010 U.S. Census
+#'    cartographic boundary shapefiles are used to proved county outlines,
+#'    included on this plot as well. Note: because stations are pulled within
+#'    a radius from the county's population-weighted center, stations from
+#'    outside of the county's boundaries may sometimes be providing data for that
+#'    county.
 #'
 #' @examples
 #' \dontrun{
@@ -388,34 +394,57 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
 
   census_data <- countyweather::county_centers
   row_num <- which(grepl(fips, census_data$fips))
-  choro_fips <- as.numeric(census_data[row_num, "fips"])
   title <- census_data[row_num, "name"]
 
-  to_map <- dplyr::select_(census_data, region = ~ region) %>%
-    dplyr::mutate_(value = 1)
+  county_outlines <- countyweather::county_outlines
+  colnames(county_outlines)[3] <- "fips_codes"
+  outline_df <- county_outlines %>%
+    dplyr::filter_( ~ fips_codes == fips)
 
-  map <- suppressMessages(choroplethr::county_choropleth(to_map,
-                                                         title = "", legend = "",
-                                                         num_colors = 1,
-                                                         state_zoom = NULL,
-                                                         county_zoom = choro_fips, reference_map = TRUE))
+  county <- suppressMessages(get_map(c(hourly_data$lon_center,
+                                       hourly_data$lat_center), zoom = 9,
+                                     color = "bw"))
 
+  map <- ggmap(county) + geom_path(aes(lon, lat), data = outline_df,
+                                   inherit.aes = FALSE)
+
+  r <- hourly_data$radius
+  r_lat <- r / 110.574
+  r_lon <- r / 111.320*(cos(r_lat))
+
+  x_c <- hourly_data$lon_center
+  y_c <- hourly_data$lat_center
+
+  x_v <- sapply(0:360, function(x) r_lon*cos(x) + x_c)
+  y_v <- sapply(0:360, function(y) r_lat*sin(y) + y_c)
+
+  df <- cbind(x_v, y_v)
+  df <- as.data.frame(df)
+
+  station_df <- subset(hourly_data$station_df, !duplicated(station))
 
   if(station_label == TRUE){
-    map <- map + ggplot2::geom_point(data = hourly_data$station_df,
-                                     ggplot2::aes_(~ longitude, ~ latitude),
-                                     col = point_color, size = point_size) +
-      ggplot2::geom_text(data = hourly_data$station_df,
-                         ggplot2::aes_(~ longitude, ~ latitude, label = ~usaf),
-                fontface = "bold") +
-      ggplot2::theme(legend.position = "none") +
-      ggplot2::ggtitle(title)
+    map_out <- map + geom_polygon(aes(x_v, y_v), data = df, inherit.aes = FALSE,
+                              fill = "#9999CC", alpha = 0.25) +
+      geom_point(data = station_df,
+                 aes(longitude, latitude), colour = point_color,
+                 size = point_size) +
+      theme(legend.position = "none") +
+      ggtitle(title) + geom_text(data = station_df,
+                                 aes(longitude, latitude, label = station),
+                                 vjust = 1.3,
+                                 fontface = "bold",
+                                 inherit.aes = F)
   } else {
-    map <- map + ggplot2::geom_point(data = hourly_data$station_df,
-                                     ggplot2::aes_(~ longitude, ~ latitude),
-                                     colour = point_color, size = point_size) +
-      ggplot2::theme(legend.position = "none") +
-      ggplot2::ggtitle(title)
+    map_out <- map + geom_polygon(aes(x_v, y_v), data = df, inherit.aes = FALSE,
+                              fill = "#9999CC", alpha = 0.25) +
+      geom_point(data = station_df,
+                 aes(longitude, latitude), colour = point_color,
+                 size = point_size) +
+      theme(legend.position = "none") +
+      ggtitle(title)
   }
-  return(map)
+
+  return(map_out)
+
 }
