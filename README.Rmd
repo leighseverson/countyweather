@@ -34,14 +34,14 @@ This package builds on functions from the `rnoaa` package to identify weather mo
 
 ## Required set-up for this package
 
-Currently, this package exists in a development version on GitHub. To use the function, you need to install it directly from GitHub using the `install_github` function from `devtools`. The package relies on some functions that are in a development version of `rnoaa`, so you also need to install that development version of the `rnoaa` package, which is available in the GitHub repository `geanders/rnoaa`. 
+Currently, this package exists in a development version on GitHub. To use the function, you need to install it directly from GitHub using the `install_github` function from `devtools`. The package relies on some functions that are in a development version of `rnoaa`, so you also need to install that development version of the `rnoaa` package, which is available in the GitHub repository `ropensci/rnoaa`. 
 
 You can use the following code to install the development versions of `rnoaa` and `countyweather`: 
 
 ```{r eval = FALSE}
 library(devtools)
 
-install_github("geanders/rnoaa")
+install_github("ropensci/rnoaa")
 library(rnoaa)
 
 install_github("leighseverson/countyweather")
@@ -219,7 +219,7 @@ two <- daily_fips(fips = "12087", date_min = "1992-08-01",
 save(two, file = "data/two.RData")
 ```
 ```{r echo = FALSE}
-load("vignette/data/two.RData")
+load("vignettes/data/two.RData")
 ```
 
 ```{r warning = FALSE, message = FALSE, echo = FALSE, eval = FALSE}
@@ -228,7 +228,7 @@ three <- daily_fips(fips = "12011", date_min = "1992-08-01",
 save(three, file = "data/three.RData")
 ```
 ```{r echo = FALSE}
-load("vignette/data/three.RData")
+load("vignettes/data/three.RData")
 ```
 
 ```{r echo = FALSE, out.width = 0.33}
