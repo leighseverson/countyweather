@@ -178,8 +178,8 @@ hourly_df <- function(fips, year,
   # average hourly across multiple stations
 
   data <- data %>%
-    dplyr::mutate_(station = ~ paste(usaf_station, wban_station, sep = "-"))
-    dplyr::filter_( ~ station %in% filtered_stations) %>%
+    dplyr::mutate_(station = ~ paste(usaf_station, wban_station, sep = "-")) %>%
+    dplyr::filter_(~ station %in% filtered_stations) %>%
     dplyr::select_(quote(-station))
 
   if(average_data == TRUE){
