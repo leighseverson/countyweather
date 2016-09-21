@@ -219,7 +219,7 @@ two <- daily_fips(fips = "12087", date_min = "1992-08-01",
 save(two, file = "data/two.RData")
 ```
 ```{r echo = FALSE}
-load("vignette/data/two.RData")
+load("vignettes/data/two.RData")
 ```
 
 ```{r warning = FALSE, message = FALSE, echo = FALSE, eval = FALSE}
@@ -228,7 +228,7 @@ three <- daily_fips(fips = "12011", date_min = "1992-08-01",
 save(three, file = "data/three.RData")
 ```
 ```{r echo = FALSE}
-load("vignette/data/three.RData")
+load("vignettes/data/three.RData")
 ```
 
 ```{r echo = FALSE, out.width = 0.33}
