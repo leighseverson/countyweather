@@ -20,6 +20,7 @@ License: GPL-2
 LazyData: TRUE
 Imports:
     choroplethr (>= 3.5.2),
+    choroplethrMaps (>= 1.0.0),
     dplyr (>= 0.4.3),
     ggplot2 (>= 2.1.0),
     lubridate (>= 1.5.6),
