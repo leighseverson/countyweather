@@ -280,21 +280,35 @@ ave_hourly <- function(hourly_data){
 #'    \code{temperature_dewpoint} and \code{air_pressure}. Alternatively,
 #'    you can specify var = "all" to include additional flag and quality codes.
 #'
-#' @return A list with two elements: \code{stations} is a vector of station ids
-#'    (usaf and wban identification numbers pasted together, separated by "-")
-#'    that meet the specified coverage requirements. \code{df} is a dataframe
-#'    with weather data from stations that meet the coverage requirements.
+#' @return A list with two elements: \code{stations} is a dataframe giving
+#'    statistical information for stations that meet the specified coverage
+#'    requirements. The column \code{station} gives the station id (usaf and
+#'    wban identification numbers pasted together, separated by "-"). Note: one
+#'    of these identification ids is sometimes missing. For example, value in
+#'    \code{station} might be \code{722029-NA}. The column \code{var}
+#'    gives the weather variable associated with the row of statistical values
+#'    for each station and variable combination. \code{calc_covearge} gives the
+#'    percentage coverage for each weather variable and station. These values
+#'    will all be greater than or equal to the specified \code{coverage} value.
+#'    \code{standard_dev} gives the standard deviation of values for each station
+#'    and weather variable. \code{max} and \code{min} give the minimum and
+#'    maximum values for the values in each station and weather variable.
 #'
 #' @importFrom dplyr %>%
-filter_hourly <- function(hourly_data, coverage,
+filter_hourly <- function(hourly_data, coverage = NULL,
                           var = "all"){
+
+  if(purrr::is_null(coverage)){
+   coverage <- 0
+  }
 
   all_cols <- colnames(hourly_data)
   not_vars <- c("usaf_station", "wban_station", "date_time", "latitude",
                 "longitude")
   g_cols <- all_cols[!all_cols %in% not_vars]
-
   group_cols <- c("station", "key")
+
+  # calc_coverage for each station (combination of usaf and wban ids)
 
   df <- hourly_data %>%
     tidyr::unite_(col = "station", from = c("usaf_station", "wban_station"),
@@ -302,7 +316,10 @@ filter_hourly <- function(hourly_data, coverage,
     dplyr::select_(quote(-date_time), quote(-latitude), quote(-longitude)) %>%
     tidyr::gather_(key_col = "key", value_col = "value", gather_cols = g_cols) %>%
     dplyr::group_by_(.dots = group_cols) %>%
-    dplyr::summarize_(coverage = ~ mean(!is.na(value)))
+    dplyr::summarize_(calc_coverage = ~ mean(!is.na(value)),
+                      standard_dev = ~ sd(!is.na(value)),
+                      max = ~ max(value, na.rm = TRUE),
+                      min = ~ min(value, na.rm = TRUE))
 
   group_cols <- c("date_time", "key")
 
@@ -312,10 +329,15 @@ filter_hourly <- function(hourly_data, coverage,
     dplyr::select_(quote(-latitude), quote(-longitude)) %>%
     tidyr::gather_(key_col = "key", value_col = "value", gather_cols = g_cols) %>%
     dplyr::left_join(df, by = c("station", "key")) %>%
-    dplyr::filter_(~ coverage > 0.80) %>%
+    dplyr::filter_(~ calc_coverage >= coverage) %>%
     dplyr::group_by_(.dots = group_cols)
 
-  stations <- unique(filtered$station)
+  stations <- filtered %>%
+    dplyr::ungroup() %>%
+    dplyr::select_(quote(-date_time), quote(-value)) %>%
+    dplyr::distinct()
+
+  colnames(stations)[2] <- "var"
 
   df2 <- filtered %>%
     dplyr::summarize_(n_reporting = ~ sum(!is.na(value))) %>%
