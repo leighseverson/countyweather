@@ -93,11 +93,19 @@ hourly_fips <- function(fips, year, var = "all",
 #'    as well as columns (\code{"var"_reporting}) for each weather variable
 #'    showing the number of stations contributing to the average for that
 #'    variable for each hour. \code{station_df} is a dataframe of station
-#'    metadata for each station contributing weather data. \code{radius} is the
-#'    calculated radius within which stations were pulled from the county's
-#'    population-weighted center. Elements \code{lat_center} and
-#'    \code{lon_center} are the latitude and longitude of the county's
-#'    population-weighted center.
+#'    metadata for each station contributing weather data. A weather station
+#'    will have one row per weather variable it contributes data to. In addition
+#'    to information such as usaf and wban ids and station names, this
+#'    dataframe includes statistical information about weather values
+#'    contributed by each station for each weather variable. These statistics
+#'    include calculated coverage (\code{calc_coverage}), which is the percent
+#'    of non-missing values for each station and variable for the specified
+#'    date range, \code{standard_dev} (standard deviation), and \code{max} and
+#'    \code{min} values for each station-weather variable combination. The
+#'    element \code{radius} is the calculated radius within which stations were
+#'    pulled from the county's population-weighted center. Elements
+#'    \code{lat_center} and \code{lon_center} are the latitude and longitude of
+#'    the county's population-weighted center.
 #'
 #' @note: Observation times are vased on Coordinated Universal Time Code (UTC).
 #'
@@ -144,26 +152,34 @@ hourly_df <- function(fips, year,
     }
   }
 
+  station_metadata[station_metadata == "999999"] <- NA
+  station_metadata[station_metadata == "99999"] <- NA
+
   station_metadata <- unique(station_metadata) %>%
     dplyr::mutate_(station = ~ paste(usaf, wban, sep = "-"))
 
-  # if coverage is not null, filter stations
-  if(!purrr::is_null(coverage)){
-    filtered_list <- filter_hourly(hourly_data = data, coverage = coverage, var = var)
-#    data <- filtered_list$df
 
-    filtered_stations <- filtered_list$stations
+
+  # filter stations (if coverage is NULL, filters as if coverage = 0) and get
+  # statistical info for each station/var pair
+    filtered_list <- filter_hourly(hourly_data = data, coverage = coverage, var = var)
+    station_stats <- filtered_list$stations
+
+    filtered_stations <- unique(station_stats$station)
 
     station_metadata <- dplyr::filter_(station_metadata, ~ station %in%
                                          filtered_stations)
-    }
+
+    # combine station_metadata and station_stats
+
+    station_metadata <- dplyr::right_join(station_metadata, station_stats,
+                                          by = "station")
 
   # average hourly across multiple stations
 
   data <- data %>%
     dplyr::mutate_(station = ~ paste(usaf_station, wban_station, sep = "-"))
-
-  data <- data %>% dplyr::filter_( ~ station %in% filtered_stations) %>%
+    dplyr::filter_( ~ station %in% filtered_stations) %>%
     dplyr::select_(quote(-station))
 
   if(average_data == TRUE){

@@ -294,8 +294,12 @@ ave_hourly <- function(hourly_data){
 #'    maximum values for the values in each station and weather variable.
 #'
 #' @importFrom dplyr %>%
-filter_hourly <- function(hourly_data, coverage,
+filter_hourly <- function(hourly_data, coverage = NULL,
                           var = "all"){
+
+  if(purrr::is_null(coverage)){
+   coverage <- 0
+  }
 
   all_cols <- colnames(hourly_data)
   not_vars <- c("usaf_station", "wban_station", "date_time", "latitude",
