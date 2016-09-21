@@ -403,16 +403,16 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
 
   if(station_label == TRUE){
     map <- map + ggplot2::geom_point(data = hourly_data$station_df,
-                                     ggplot2::aes_(~ lon, ~ lat),
+                                     ggplot2::aes_(~ longitude, ~ latitude),
                                      col = point_color, size = point_size) +
       ggplot2::geom_text(data = hourly_data$station_df,
-                         ggplot2::aes_(~ lon, ~ lat, label = ~usaf),
+                         ggplot2::aes_(~ longitude, ~ latitude, label = ~usaf),
                 fontface = "bold") +
       ggplot2::theme(legend.position = "none") +
       ggplot2::ggtitle(title)
   } else {
     map <- map + ggplot2::geom_point(data = hourly_data$station_df,
-                                     ggplot2::aes_(~ lon, ~ lat),
+                                     ggplot2::aes_(~ longitude, ~ latitude),
                                      colour = point_color, size = point_size) +
       ggplot2::theme(legend.position = "none") +
       ggplot2::ggtitle(title)
