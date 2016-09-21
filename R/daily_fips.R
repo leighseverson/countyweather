@@ -224,7 +224,7 @@ daily_df <- function(stations, coverage = NULL,
                         min(value, na.rm =TRUE))
 
   filtered <- dplyr::filter_(filtered, ~ id %in% good_monitors)
-  stats <- full_join(stats, filtered, by = c("id", "key"))
+  stats <- dplyr::full_join(stats, filtered, by = c("id", "key"))
 
   stations <- dplyr::filter_(stations, ~ id %in% good_monitors)
 
