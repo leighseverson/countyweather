@@ -1,7 +1,7 @@
 #' Pull average daily weather data by U.S. county.
 #'
-#' Given a particular county FIPS code, this function returns weather data
-#' and station meta-data, either for all available dates or for dates within a
+#' Given a particular county FIPS code, this function returns data and meta-data
+#' for weather data, either for all available dates or for dates within a
 #' requested time interval.
 #'
 #' @inheritParams daily_df
@@ -14,7 +14,7 @@
 #'    dataframe of daily weather data averaged across multiple stations, as well
 #'    as columns (\code{"var"_reporting}) for each weather variable showing the
 #'    number of stations contributing to the average for that variable on that
-#'    day. The second element (\code{station_metadata}) is a dataframe of station
+#'    day. The second element (\code{station_metadata} is a dataframe of station
 #'    metadata for stations included in the \code{daily_data} dataframe. Columns
 #'    include station id, latitude, longitude, and name. The third element
 #'    (\code{station_map}) is a plot showing points for all weather stations for
@@ -97,19 +97,18 @@ daily_fips <- function(fips, coverage = NULL,
 #' @param coverage A numeric value in the range of 0 to 1 that specifies
 #'    the desired percentage coverage for the weather variable (i.e., what
 #'    percent of each weather variable must be non-missing to include data from
-#'    a monitor when calculating daily values averaged across monitors). The
-#'    default is to include all monitors with any available data
-#'    (\code{coverage = 0}).)
+#'    a monitor when calculating daily values averaged across monitors. The
+#'    default is to include all monitors with any available data (i.e.,
+#'    \code{coverage = 0}).)
 #' @param var A character vector specifying desired weather variables. For
-#'    example, \code{var = c("tmin", "tmax", "prcp")} will return, if available,
-#'    data from maximum temperature, minimum temperature, and precipitation.
-#'    The default for this parameter is \code{"all"}, which includes all
-#'    available weather variables for at least one monitor in the county.
-#'    For a full list of all
+#'    example, var = c("tmin", "tmax", "prcp"). The default is \code{"all"},
+#'    which includes all available weather variables. For a full list of all
 #'    possible variable names, see NOAA's README file for the Daily Global
 #'    Historical Climatology Network (GHCN-Daily) at
-#'    \url{http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt}.
-#'    If you specify a variable here but it is
+#'    \url{http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt}. Many of
+#'    the weather variables are available for some, but not all, monitors, so
+#'    your output from this function may not include all the variables
+#'    specified using this argument. If you specify a variable here but it is
 #'    not included in the output dataset, it means that it was not available in
 #'    the time range for any monitor in the county.
 #' @param average_data TRUE / FALSE to indicate if you want the function to
