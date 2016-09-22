@@ -423,7 +423,11 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
   df <- as.data.frame(df)
   colnames(df) <- c("x_v", "y_v")
 
-  station_df <- subset(hourly_data$station_df, !duplicated(station))
+  station_df <- hourly_data$station_df %>%
+    dplyr::tbl_df() %>%
+    dplyr::filter_(~ !duplicated(station)) %>%
+    dplyr::arrange_(~ dplyr::desc(latitude)) %>%
+    dplyr::mutate_(station_name = ~ factor(station_name, levels = station_name))
 
   if(station_label == TRUE){
     map_out <- map + ggplot2::geom_polygon(ggplot2::aes_(~ x_v, ~ y_v),
@@ -435,7 +439,6 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
                           colour = "black",
                           size = point_size,
                           shape = 21) +
-      ggplot2::scale_fill_discrete(name = "Station name") +
       ggplot2::ggtitle(title) +
       ggplot2::theme_void()
   } else {
