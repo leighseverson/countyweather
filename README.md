@@ -74,7 +74,7 @@ names(andrew_precip)
 #> [1] "daily_data"       "station_metadata" "station_map"
 ```
 
-The output from this function call is a list that includes three elements: a daily timeseries of weather data for the county (`andrew_precip$daily_data`); a dataframe with meta-data about the weather stations used to create the timeseries data, and a map showing the locations of weather monitors included in the county-averaged dataset (`anderew_precip$station_map`).
+The output from this function call is a list that includes three elements: a daily timeseries of weather data for the county (`andrew_precip$daily_data`); a dataframe with meta-data about the weather stations used to create the timeseries data, and a map showing the locations of weather monitors included in the county-averaged dataset (`andrew_precip$station_map`).
 
 Here are the first few rows of the dataset:
 
@@ -369,7 +369,7 @@ We can replace all wind speed observations with quality codes of 2, 3, 6, or 7 w
 
 ``` r
 ex_data$wind_speed_quality <- as.numeric(ex_data$wind_speed_quality)
-ex_data$wind_speed[ex_data$wind_speed_quality == 2|3|6|7] <- NA
+ex_data$wind_speed[ex_data$wind_speed_quality %in% c(2, 3, 6, 7)] <- NA
 ```
 
 More on the weather data
