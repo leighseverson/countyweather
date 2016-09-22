@@ -317,8 +317,9 @@ filter_hourly <- function(hourly_data, coverage = NULL,
     dplyr::group_by_(.dots = group_cols) %>%
     dplyr::summarize_(calc_coverage = ~ mean(!is.na(value)),
                       standard_dev = ~ sd(value, na.rm = TRUE),
-                      range = ~ max(value, na.rm = TRUE) -
-                        min(value, na.rm = TRUE))
+                      min = ~ as.numeric(min(value, na.rm = TRUE)),
+                      max = ~ as.numeric(max(value, na.rm = TRUE)),
+                      range = ~ max - min)
 
   group_cols <- c("date_time", "key")
 
