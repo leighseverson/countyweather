@@ -305,7 +305,7 @@ head(ex_data)
 We can replace all wind speed observations with quality codes of 2, 3, 6, or 7 with `NA`s. 
 ```{r}
 ex_data$wind_speed_quality <- as.numeric(ex_data$wind_speed_quality)
-ex_data$wind_speed[ex_data$wind_speed_quality == 2|3|6|7] <- NA
+ex_data$wind_speed[ex_data$wind_speed_quality %in% c(2, 3, 6, 7)] <- NA
 ```
 
 ## More on the weather data
