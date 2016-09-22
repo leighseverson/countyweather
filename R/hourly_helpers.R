@@ -407,7 +407,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
                                        hourly_data$lat_center), zoom = 9,
                                      color = "bw"))
 
-  map <- ggmap::ggmap(county) + ggplot2::geom_path(ggplot2::aes(lon, lat),
+  map <- ggmap::ggmap(county) + ggplot2::geom_path(ggplot2::aes_(~lon, ~lat),
                                                    data = outline_df,
                                                    inherit.aes = FALSE)
 
@@ -427,26 +427,26 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
   station_df <- subset(hourly_data$station_df, !duplicated(station))
 
   if(station_label == TRUE){
-    map_out <- map + ggplot2::geom_polygon(ggplot2::aes(x_v, y_v),
+    map_out <- map + ggplot2::geom_polygon(ggplot2::aes_(~x_v, ~y_v),
                                            data = df, inherit.aes = FALSE,
                                            fill = "#9999CC", alpha = 0.25) +
       ggplot2::geom_point(data = station_df,
-                          ggplot2::aes(longitude, latitude),
+                          ggplot2::aes_(~longitude, ~latitude),
                           colour = point_color,
                           size = point_size) +
       ggplot2::theme(legend.position = "none") +
       ggplot2::ggtitle(title) +
       ggplot2::geom_text(data = station_df,
-                         ggplot2::aes(longitude, latitude, label = station),
+                         ggplot2::aes_(~longitude, ~latitude, label = ~station),
                          vjust = 1.3,
                          fontface = "bold",
                          inherit.aes = F)
   } else {
-    map_out <- map + ggplot2::geom_polygon(ggplot2::aes(x_v, y_v),
+    map_out <- map + ggplot2::geom_polygon(ggplot2::aes_(~x_v, ~y_v),
                                            data = df, inherit.aes = FALSE,
                                            fill = "#9999CC", alpha = 0.25) +
       ggplot2::geom_point(data = station_df,
-                          ggplot2::aes(longitude, latitude),
+                          ggplot2::aes_(~longitude, ~latitude),
                           colour = point_color,
                           size = point_size) +
       ggplot2::theme(legend.position = "none") +
