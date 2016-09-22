@@ -403,7 +403,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
   outline_df <- county_outlines %>%
     dplyr::filter_( ~ fips_codes == fips)
 
-  county <- suppressMessages(get_map(c(hourly_data$lon_center,
+  county <- suppressMessages(ggmap::get_map(c(hourly_data$lon_center,
                                        hourly_data$lat_center), zoom = 9,
                                      color = "bw"))
 
