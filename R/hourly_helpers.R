@@ -430,16 +430,14 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
                                            data = df, inherit.aes = FALSE,
                                            fill = "#9999CC", alpha = 0.25) +
       ggplot2::geom_point(data = station_df,
-                          ggplot2::aes_(~ longitude, ~ latitude),
-                          colour = point_color,
-                          size = point_size) +
-      ggplot2::theme(legend.position = "none") +
+                          ggplot2::aes_(~ longitude, ~ latitude,
+                                        fill = ~ station_name),
+                          colour = "black",
+                          size = point_size,
+                          shape = 21) +
+      ggplot2::scale_fill_discrete(name = "Station name") +
       ggplot2::ggtitle(title) +
-      ggplot2::geom_text(data = station_df,
-                         ggplot2::aes_(~ longitude, ~ latitude, label = ~ station),
-                         vjust = 1.3,
-                         fontface = "bold",
-                         inherit.aes = F)
+      ggplot2::theme_void()
   } else {
     map_out <- map + ggplot2::geom_polygon(ggplot2::aes_(~ x_v, ~ y_v),
                                            data = df, inherit.aes = FALSE,
@@ -448,7 +446,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
                           ggplot2::aes_(~ longitude, ~ latitude),
                           colour = point_color,
                           size = point_size) +
-      ggplot2::theme(legend.position = "none") +
+      ggplot2::theme_void() +
       ggplot2::ggtitle(title)
   }
 
