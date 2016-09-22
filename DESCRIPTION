@@ -10,7 +10,7 @@ Authors@R: c(person("Rachel", "Severson",
                   email = "brooke.anderson@colostate.edu",
                   role = c("aut")))
 Description: Interacts with NOAA data sources (including the NCDC API at
-  http://www.ncdc.noaa.gov/cdo-web/webservices/v2 and GHCND data), using
+  http://www.ncdc.noaa.gov/cdo-web/webservices/v2 and ISD data), using
   functions from the rnoaa package, to obtain and compile weather time series,
   including for precipitation and temperature, for U.S. counties. This work was
   supported in part by grants from the National Institute of Environmental
