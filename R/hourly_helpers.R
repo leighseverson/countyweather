@@ -315,10 +315,11 @@ filter_hourly <- function(hourly_data, coverage = NULL,
     dplyr::select_(quote(-date_time), quote(-latitude), quote(-longitude)) %>%
     tidyr::gather_(key_col = "key", value_col = "value", gather_cols = g_cols) %>%
     dplyr::group_by_(.dots = group_cols) %>%
+    dplyr::mutate_(value = ~ as.numeric(value)) %>%
     dplyr::summarize_(calc_coverage = ~ mean(!is.na(value)),
                       standard_dev = ~ sd(value, na.rm = TRUE),
-                      min = ~ as.numeric(min(value, na.rm = TRUE)),
-                      max = ~ as.numeric(max(value, na.rm = TRUE)),
+                      min = ~ min(value, na.rm = TRUE),
+                      max = ~ max(value, na.rm = TRUE),
                       range = ~ max - min)
 
   group_cols <- c("date_time", "key")
@@ -345,7 +346,7 @@ filter_hourly <- function(hourly_data, coverage = NULL,
     tidyr::spread_(key_col = "key", value_col = "n_reporting")
 
   df3 <- filtered %>%
-    dplyr::summarize_(value = ~ mean(value, na.rm = TRUE)) %>%
+    dplyr::summarize_(value = ~ mean(as.numeric(value), na.rm = TRUE)) %>%
     tidyr::spread_(key_col = "key", value_col = "value")
 
   out <- dplyr::full_join(df3, df2, by = "date_time")
