@@ -414,41 +414,38 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
                                                    inherit.aes = FALSE)
 
   r <- hourly_data$radius
-  r_lat <- r / 110.574
-  r_lon <- r / 111.320*(cos(r_lat))
-
   x_c <- hourly_data$lon_center
   y_c <- hourly_data$lat_center
 
-  x_v <- sapply(0:360, function(x) r_lon*cos(x) + x_c)
-  y_v <- sapply(0:360, function(y) r_lat*sin(y) + y_c)
-
-  df <- cbind(x_v, y_v)
+  df <- geosphere::destPoint(p = c(x_c, y_c),
+                             b = 0:360,
+                             d = r * 1000)
   df <- as.data.frame(df)
+  colnames(df) <- c("x_v", "y_v")
 
   station_df <- subset(hourly_data$station_df, !duplicated(station))
 
   if(station_label == TRUE){
-    map_out <- map + ggplot2::geom_polygon(ggplot2::aes(x_v, y_v),
+    map_out <- map + ggplot2::geom_polygon(ggplot2::aes_(~ x_v, ~ y_v),
                                            data = df, inherit.aes = FALSE,
                                            fill = "#9999CC", alpha = 0.25) +
       ggplot2::geom_point(data = station_df,
-                          ggplot2::aes(longitude, latitude),
+                          ggplot2::aes_(~ longitude, ~ latitude),
                           colour = point_color,
                           size = point_size) +
       ggplot2::theme(legend.position = "none") +
       ggplot2::ggtitle(title) +
       ggplot2::geom_text(data = station_df,
-                         ggplot2::aes(longitude, latitude, label = station),
+                         ggplot2::aes_(~ longitude, ~ latitude, label = ~ station),
                          vjust = 1.3,
                          fontface = "bold",
                          inherit.aes = F)
   } else {
-    map_out <- map + ggplot2::geom_polygon(ggplot2::aes(x_v, y_v),
+    map_out <- map + ggplot2::geom_polygon(ggplot2::aes_(~ x_v, ~ y_v),
                                            data = df, inherit.aes = FALSE,
                                            fill = "#9999CC", alpha = 0.25) +
       ggplot2::geom_point(data = station_df,
-                          ggplot2::aes(longitude, latitude),
+                          ggplot2::aes_(~ longitude, ~ latitude),
                           colour = point_color,
                           size = point_size) +
       ggplot2::theme(legend.position = "none") +
