@@ -52,3 +52,25 @@
 #'
 #' \url{http://www.census.gov/prod/cen2010/doc/sf1.pdf}
 "county_radius"
+
+#' County cartographic boundary shapefiles
+#'
+#' A dataframe containing longitude and latitude shapefile data for each U.S.
+#' FIPS code. This dataset was put together using data from the U.S. Census 2010
+#' Cartographic Boundary Shapefiles for counties. The cb_2015_us_county_500k zip
+#' file was downloaded from the website listed in "Source."
+#'
+#' @format A dataframe with 1,037,300 rows and 3 variables:
+#' \describe{
+#'    \item{lon}{A numeric vector giving longitude values for each county's
+#'               outline}
+#'    \item{lat}{A numeric vector giving latitude values for each county's
+#'               outline}
+#'    \item{fips_codes}{A character vector giving the county's five-digit Federal
+#'                      Information Processing Standard (FIPS) code}
+#' }
+#'
+#' @source
+#'
+#' \url{https://www.census.gov/geo/maps-data/data/cbf/cbf_counties.html}
+"county_outlines"

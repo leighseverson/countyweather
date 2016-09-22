@@ -407,11 +407,11 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
                                        hourly_data$lat_center), zoom = 9,
                                      color = "bw"))
 
-  map <- ggmap::ggmap(county) + ggplot2::geom_polygon(ggplot2::aes(lon, lat),
+  map <- ggmap::ggmap(county) + ggplot2::geom_polygon(ggplot2::aes_(~ lon, ~ lat),
                                                       alpha = 0.2,
                                                       fill = "yellow",
-                                                   data = outline_df,
-                                                   inherit.aes = FALSE)
+                                                      data = outline_df,
+                                                      inherit.aes = FALSE)
 
   r <- hourly_data$radius
   x_c <- hourly_data$lon_center
