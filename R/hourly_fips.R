@@ -47,7 +47,7 @@ hourly_fips <- function(fips, year, var = "all",
                                  average_data = average_data)
 
   station_map <- hourly_stationmap(fips = fips, hourly_data = weather_data,
-                                   station_label = FALSE)
+                                   station_label = station_label)
 
   list <- list("hourly_data" = weather_data$hourly_data,
                "station_metadata" = weather_data$station_df,
