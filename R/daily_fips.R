@@ -224,7 +224,7 @@ daily_df <- function(stations, coverage = NULL,
                         min(value, na.rm =TRUE))
 
   filtered <- dplyr::filter_(filtered, ~ id %in% good_monitors)
-  stats <- full_join(stats, filtered, by = c("id", "key"))
+  stats <- dplyr::full_join(stats, filtered, by = c("id", "key"))
 
   stations <- dplyr::filter_(stations, ~ id %in% good_monitors)
 
@@ -238,10 +238,10 @@ daily_df <- function(stations, coverage = NULL,
   # average across stations, add a column for number of stations that
   # contributed to each daily average
   if(average_data == TRUE){
-    out_data <- ave_weather(filtered_data)
+    filtered_data <- ave_weather(filtered_data)
   }
 
-  out <- list("daily_data" = out_data, "station_df" = stations)
+  out <- list("daily_data" = filtered_data, "station_df" = stations)
 
   return(out)
 }

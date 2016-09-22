@@ -315,10 +315,12 @@ filter_hourly <- function(hourly_data, coverage = NULL,
     dplyr::select_(quote(-date_time), quote(-latitude), quote(-longitude)) %>%
     tidyr::gather_(key_col = "key", value_col = "value", gather_cols = g_cols) %>%
     dplyr::group_by_(.dots = group_cols) %>%
+    dplyr::mutate_(value = ~ as.numeric(value)) %>%
     dplyr::summarize_(calc_coverage = ~ mean(!is.na(value)),
                       standard_dev = ~ sd(value, na.rm = TRUE),
-                      range = ~ max(value, na.rm = TRUE) -
-                        min(value, na.rm = TRUE))
+                      min = ~ min(value, na.rm = TRUE),
+                      max = ~ max(value, na.rm = TRUE),
+                      range = ~ max - min)
 
   group_cols <- c("date_time", "key")
 
@@ -344,7 +346,7 @@ filter_hourly <- function(hourly_data, coverage = NULL,
     tidyr::spread_(key_col = "key", value_col = "n_reporting")
 
   df3 <- filtered %>%
-    dplyr::summarize_(value = ~ mean(value, na.rm = TRUE)) %>%
+    dplyr::summarize_(value = ~ mean(as.numeric(value), na.rm = TRUE)) %>%
     tidyr::spread_(key_col = "key", value_col = "value")
 
   out <- dplyr::full_join(df3, df2, by = "date_time")
@@ -401,12 +403,13 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
   outline_df <- county_outlines %>%
     dplyr::filter_( ~ fips_codes == fips)
 
-  county <- suppressMessages(get_map(c(hourly_data$lon_center,
+  county <- suppressMessages(ggmap::get_map(c(hourly_data$lon_center,
                                        hourly_data$lat_center), zoom = 9,
                                      color = "bw"))
 
-  map <- ggmap(county) + geom_path(aes(lon, lat), data = outline_df,
-                                   inherit.aes = FALSE)
+  map <- ggmap::ggmap(county) + ggplot2::geom_path(ggplot2::aes(lon, lat),
+                                                   data = outline_df,
+                                                   inherit.aes = FALSE)
 
   r <- hourly_data$radius
   r_lat <- r / 110.574
@@ -424,23 +427,30 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
   station_df <- subset(hourly_data$station_df, !duplicated(station))
 
   if(station_label == TRUE){
-    map_out <- map + geom_polygon(aes(x_v, y_v), data = df, inherit.aes = FALSE,
-                              fill = "#9999CC", alpha = 0.25) +
-      geom_point(data = station_df,
-                 aes(lon, lat), colour = point_color, size = point_size) +
-      theme(legend.position = "none") +
-      ggtitle(title) + geom_text(data = station_df,
-                                 aes(lon, lat, label = station),
-                                 vjust = 1.3,
-                                 fontface = "bold",
-                                 inherit.aes = F)
+    map_out <- map + ggplot2::geom_polygon(ggplot2::aes(x_v, y_v),
+                                           data = df, inherit.aes = FALSE,
+                                           fill = "#9999CC", alpha = 0.25) +
+      ggplot2::geom_point(data = station_df,
+                          ggplot2::aes(longitude, latitude),
+                          colour = point_color,
+                          size = point_size) +
+      ggplot2::theme(legend.position = "none") +
+      ggplot2::ggtitle(title) +
+      ggplot2::geom_text(data = station_df,
+                         ggplot2::aes(longitude, latitude, label = station),
+                         vjust = 1.3,
+                         fontface = "bold",
+                         inherit.aes = F)
   } else {
-    map_out <- map + geom_polygon(aes(x_v, y_v), data = df, inherit.aes = FALSE,
-                              fill = "#9999CC", alpha = 0.25) +
-      geom_point(data = station_df,
-                 aes(lon, lat), colour = point_color, size = point_size) +
-      theme(legend.position = "none") +
-      ggtitle(title)
+    map_out <- map + ggplot2::geom_polygon(ggplot2::aes(x_v, y_v),
+                                           data = df, inherit.aes = FALSE,
+                                           fill = "#9999CC", alpha = 0.25) +
+      ggplot2::geom_point(data = station_df,
+                          ggplot2::aes(longitude, latitude),
+                          colour = point_color,
+                          size = point_size) +
+      ggplot2::theme(legend.position = "none") +
+      ggplot2::ggtitle(title)
   }
 
   return(map_out)
