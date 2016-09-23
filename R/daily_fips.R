@@ -52,6 +52,7 @@ daily_fips <- function(fips, coverage = NULL,
                          date_min = NULL, date_max = NULL,
                          var = "all",
                          average_data = TRUE, station_label = FALSE){
+  message("This function can take a while to run.")
   stations <- fips_stations(fips = fips, date_min = date_min,
                             date_max = date_max)
   weather_data <- daily_df(stations = stations,

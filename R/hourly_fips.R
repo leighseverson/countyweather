@@ -41,7 +41,7 @@
 hourly_fips <- function(fips, year, var = "all",
                         coverage = NULL, average_data = TRUE,
                         station_label = FALSE){
-
+  message("This function can take a while to run.")
   weather_data <- hourly_df(fips = fips, year = year, var = var,
                                  coverage = coverage,
                                  average_data = average_data)
