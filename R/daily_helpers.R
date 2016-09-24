@@ -194,12 +194,8 @@ daily_stationmap <- function(fips, daily_data, point_color = "purple4",
   lat_fips <- census_data[loc_fips, "latitude"]
   lon_fips <- census_data[loc_fips, "longitude"]
 
-  county <- suppressMessages(ggmap::get_map(c(lon_fips,
-                                              lat_fips), zoom = 9,
-                                            color = "bw"))
-
   shp <- countyweather::county_outlines
-  county_shp <- shp[shp$fips == fips, ]
+  county_shp <- shp[shp$fips == "02185", ]
 
   r <- raster(x = extent(county_shp), crs = crs(county_shp))
   res(r) <- 0.001
@@ -207,15 +203,25 @@ daily_stationmap <- function(fips, daily_data, point_color = "purple4",
   r <- mask(r, county_shp)
   rdf <- data.frame(rasterToPoints(r))
 
-  xmin <- r@extent[1] - 0.55
-  xmax <- r@extent[2] + 0.5
-  ymin <- r@extent[3]
-  ymax <- r@extent[4] + 0.2
+  x_range <- r@extent[2] - r@extent[1]
+  y_range <- r@extent[4] - r@extent[3]
+  # need to use these ^ to decide what zoom level to use
+
+  county <- suppressMessages(ggmap::get_map(c(lon_fips,
+                                              lat_fips), zoom = 6,
+                                            color = "bw"))
+
+  gg_map <- ggmap::ggmap(county)
+  gg_box <- gg_map$data
+  xmin <- gg_box$lon[1]
+  xmax <- gg_box$lon[2]
+  ymin <- gg_box$lat[1]
+  ymax <- gg_box$lat[3]
 
   map <- ggmap::ggmap(county) +
                      ggplot2::coord_fixed(xlim = c(xmin, xmax),
                                           ylim = c(ymin, ymax),
-                                          ratio = 0.5/0.4) +
+                                          ratio = 2) +
                      ggplot2::geom_raster(mapping = aes_(~x, ~y),
                                           data = rdf, fill = "yellow",
                                           alpha = 0.2,
