@@ -155,11 +155,12 @@ filter_coverage <- function(coverage_df, coverage = NULL){
 
 #' Plot daily weather stations for a particular county.
 #'
-#' @param fips A character string giving the five-digit U.S. FIPS county code
-#'    of the county for which the user wants to pull weather data.
-#' @param weather_data A list returned from \code{daily_df} with two elements:
-#'    \code{daily_data} and \code{station_df}.
-#' @param point_color The specified \code{ggplot2} color for each point
+#' This function produces a map with points indicating stations that contribute
+#' to the weather data in the argument \code{daily_data}.
+#'
+#' @param fips A five-digit FIPS county code.
+#' @param daily_data A list returned from the function \code{daily_df}.
+#' @param point_color point_color The specified \code{ggplot2} color for each point
 #'    representing the location of a station.
 #' @param point_size The specified \code{ggplot2} size for each point
 #'    representing the location of a station.
@@ -168,55 +169,76 @@ filter_coverage <- function(coverage_df, coverage = NULL){
 #'
 #' @return A plot showing points for all weather stations for a particular
 #'    county satisfying the conditions present in \code{daily_df}'s
-#'    arguments (coverage, date_min, date_max, and/or var).
-#'    (\code{stationmap_fips} takes the resulting weather dataframe from this
-#'    function.)
+#'    arguments (date range and/or var). 2010 U.S. Census cartographic boundary
+#'    shapefiles are used to proved county outlines.
 #'
 #' @examples
 #' \dontrun{
-#' all_stations <- fips_stations(fips = "12086", date_min = "1999-08-01",
-#'                           date_max = "1999-08-31")
-#' weather_data <- daily_df(stations = all_stations, coverage =
-#'                                 0.90, var = "PRCP", date_min = "1999-08-01",
-#'                                 date_max = "1999-08-31")
-#' stationmap_fips(fips = "12086", weather_data = weather_data)
+#' stations <- fips_stations(fips = "12086", date_min = "1992-08-01",
+#'                           date_max = "1992-08-31")
+#' daily_data <- daily_df(stations = stations, coverage = 0.90,
+#'                       var = c("tmax", "tmin", "prcp"),
+#'                       date_min = "1992-08-01", date_max = "1992-08-31")
+#' daily_stationmap("12086", daily_data)
 #' }
 #'
 #' @importFrom dplyr %>%
-#'
-stationmap_fips <- function(fips, weather_data, point_color = "firebrick",
-                            point_size = 2, station_label = FALSE){
+daily_stationmap <- function(fips, daily_data, point_color = "purple4",
+                              point_size = 2, station_label = FALSE){
 
   census_data <- countyweather::county_centers
   row_num <- which(grepl(fips, census_data$fips))
-  choro_fips <- as.numeric(census_data[row_num, "fips"])
   title <- census_data[row_num, "name"]
 
-  to_map <- dplyr::select_(census_data, region = ~ region) %>%
-    dplyr::mutate_(value = 1)
+  #county_outlines <- countyweather::county_outlines
+  county_outlines <- test2
 
-  map <- suppressMessages(choroplethr::county_choropleth(to_map,
-                                                         title = "", legend = "",
-                                                         num_colors = 1, state_zoom = NULL,
-                                                         county_zoom = choro_fips, reference_map = TRUE))
+  outline_df <- county_outlines %>%
+    dplyr::filter_( ~ fips_codes == fips)
+
+  df <- outline_df %>% group_by(piece)
+
+  census_data <- countyweather::county_centers
+  loc_fips <- which(census_data$fips == fips)
+  lat_fips <- census_data[loc_fips, "latitude"]
+  lon_fips <- census_data[loc_fips, "longitude"]
+
+  county <- suppressMessages(ggmap::get_map(c(lon_fips,
+                                              lat_fips), zoom = 9,
+                                            color = "bw"))
+
+  map <- ggmap::ggmap(county) + ggplot2::geom_polygon(ggplot2::aes_(~ lon, ~ lat),
+                                                      alpha = 0.2,
+                                                      fill = "yellow",
+                                                      data = df,
+                                                      inherit.aes = FALSE)
+
+  station_df <- daily_data$station_df %>%
+    dplyr::tbl_df() %>%
+    dplyr::filter_(~ !duplicated(id)) %>%
+    dplyr::arrange_(~ dplyr::desc(latitude)) %>%
+    dplyr::mutate_(name = ~ factor(name, levels = name))
 
   if(station_label == TRUE){
-    map <- map + ggplot2::geom_point(data = weather_data$station_df,
-                                     ggplot2::aes_(~ longitude, ~ latitude),
-                                     col = point_color, size = point_size) +
-      ggplot2::geom_text(data = weather_data$station_df,
-                         ggplot2::aes_(~ longitude, ~ latitude,
-                                                   label = ~id),
-                fontface = "bold") +
-      ggplot2::theme(legend.position = "none") +
-      ggplot2::ggtitle(title)
+    map_out <- map +
+      ggplot2::geom_point(data = station_df,
+                          ggplot2::aes_(~ longitude, ~ latitude,
+                                        fill = ~ name),
+                          colour = "black",
+                          size = point_size,
+                          shape = 21) +
+      ggplot2::ggtitle(title) +
+      ggplot2::theme_void()
   } else {
-    map <- map + ggplot2::geom_point(data = weather_data$station_df,
-                                     ggplot2::aes_(quote(longitude), quote(latitude)),
-                                     colour = point_color, size = point_size) +
-      ggplot2::theme(legend.position = "none") +
+    map_out <- map +
+      ggplot2::geom_point(data = station_df,
+                          ggplot2::aes_(~ longitude, ~ latitude),
+                          colour = point_color,
+                          size = point_size) +
+      ggplot2::theme_void() +
       ggplot2::ggtitle(title)
   }
 
-  return(map)
+  return(map_out)
+
 }
