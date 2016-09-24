@@ -197,10 +197,10 @@ daily_stationmap <- function(fips, daily_data, point_color = "purple4",
   shp <- countyweather::county_outlines
   county_shp <- shp[shp$fips == "02185", ]
 
-  r <- raster(x = extent(county_shp), crs = crs(county_shp))
+  r <- raster::raster(x = extent(county_shp), crs = crs(county_shp))
   res(r) <- 0.001
   r <- setValues(r, 1)
-  r <- mask(r, county_shp)
+  r <- raster::mask(r, county_shp)
   rdf <- data.frame(rasterToPoints(r))
 
   x_range <- r@extent[2] - r@extent[1]
