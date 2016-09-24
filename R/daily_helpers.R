@@ -195,7 +195,7 @@ daily_stationmap <- function(fips, daily_data, point_color = "purple4",
   lon_fips <- census_data[loc_fips, "longitude"]
 
   shp <- countyweather::county_outlines
-  county_shp <- shp[shp$fips == "02185", ]
+  county_shp <- shp[shp$fips == fips, ]
 
   r <- raster::raster(x = extent(county_shp), crs = crs(county_shp))
   res(r) <- 0.001
