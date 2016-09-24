@@ -196,7 +196,7 @@ daily_stationmap <- function(fips, daily_data, point_color = "purple4",
   outline_df <- county_outlines %>%
     dplyr::filter_( ~ fips_codes == fips)
 
-  df <- outline_df %>% group_by(piece)
+#  df <- outline_df %>% group_by(piece)
 
   census_data <- countyweather::county_centers
   loc_fips <- which(census_data$fips == fips)
@@ -207,11 +207,55 @@ daily_stationmap <- function(fips, daily_data, point_color = "purple4",
                                               lat_fips), zoom = 9,
                                             color = "bw"))
 
-  map <- ggmap::ggmap(county) + ggplot2::geom_polygon(ggplot2::aes_(~ lon, ~ lat),
+  map <- ggmap::ggmap(county) + ggplot2::geom_polygon(ggplot2::aes_(~ lon,
+                                                                    ~ lat,
+                                                                    group = ~ id),
                                                       alpha = 0.2,
                                                       fill = "yellow",
-                                                      data = df,
+                                                      data = outline_df,
                                                       inherit.aes = FALSE)
+
+  one <- filter(outline_df, group == "g.168.1")
+  two <- filter(outline_df, group == "g.168.2")
+  three <- filter(outline_df, group == "g.168.3")
+  four <- filter(outline_df, group == "g.168.4")
+
+  one <- filter(outline_df, piece == "p.1")
+  two <- filter(outline_df, piece == "p.2")
+  three <- filter(outline_df, piece == "p.3")
+  four <- filter(outline_df, piece == "p.4")
+
+  map2 <- ggmap::ggmap(county) + ggplot2::geom_polygon(data = ugh,
+                                                       ggplot2::aes_(~ x,
+                                                                    ~ y),
+                                                       alpha = 0.2,
+                                                       fill = "yellow",
+                                                       inherit.aes = FALSE)
+
+  ggmap::ggmap(county) + ggplot2::geom_polygon(data = one,
+                                               ggplot2::aes_(~ lon,
+                                                             ~ lat),
+                                               alpha = 0.2,
+                                               fill = "yellow",
+                                               inherit.aes = FALSE) +
+ggplot2::geom_polygon(data = two,
+                                               ggplot2::aes_(~ lon,
+                                                             ~ lat),
+                                               alpha = 0.2,
+                                               fill = "yellow",
+                                               inherit.aes = FALSE) +
+ggplot2::geom_polygon(data = three,
+                                               ggplot2::aes_(~ lon,
+                                                             ~ lat),
+                                               alpha = 0.2,
+                                               fill = "yellow",
+                                               inherit.aes = FALSE) +
+ggplot2::geom_polygon(data = four,
+                                               ggplot2::aes_(~ lon,
+                                                             ~ lat),
+                                               alpha = 0.2,
+                                               fill = "yellow",
+                                               inherit.aes = FALSE)
 
   station_df <- daily_data$station_df %>%
     dplyr::tbl_df() %>%
