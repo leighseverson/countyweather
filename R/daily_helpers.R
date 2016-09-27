@@ -186,47 +186,187 @@ filter_coverage <- function(coverage_df, coverage = NULL){
 daily_stationmap <- function(fips, daily_data, point_color = "purple4",
                               point_size = 2, station_label = FALSE){
 
+  # for plot title
   census_data <- countyweather::county_centers
   row_num <- which(grepl(fips, census_data$fips))
   title <- census_data[row_num, "name"]
 
+  # for ggmap lat/lon
   loc_fips <- which(census_data$fips == fips)
   lat_fips <- census_data[loc_fips, "latitude"]
   lon_fips <- census_data[loc_fips, "longitude"]
 
+  # filter county's shapefile
   shp <- countyweather::county_outlines
   county_shp <- shp[shp$fips == fips, ]
 
-  r <- raster::raster(x = extent(county_shp), crs = crs(county_shp))
+  # convert to raster so that we can add geom_raster() (which gets rid of the
+  # geom_polygons island problem)
+  r <- raster::raster(extent(county_shp))
   res(r) <- 0.001
-  r <- setValues(r, 1)
-  r <- raster::mask(r, county_shp)
+  projection(r) <- proj4string(county_shp)
+  r <- rasterize(county_shp, r)
   rdf <- data.frame(rasterToPoints(r))
 
+  # use range of raster object to figure out what zoom to use in ggmap
   x_range <- r@extent[2] - r@extent[1]
   y_range <- r@extent[4] - r@extent[3]
-  # need to use these ^ to decide what zoom level to use
+
+  # limits were calculated by finding out the x and y limits of a ggmap at each
+  # zoom, then accounting for the extra space we want to add around county
+  # shapes.
+
+  if(x_range > y_range){
+    if(x_range <= 0.1997){
+
+      zoom <- 12
+
+      xmin <- r@extent[1] - 0.01
+      xmax <- r@extent[2] + 0.01
+      ymin <- r@extent[3] - 0.01
+      ymax <- r@extent[4] + 0.01
+    }
+
+    if(x_range <= 0.3894 & x_range > 0.1997){
+
+      zoom <- 11
+
+      xmin <- r@extent[1] - 0.025
+      xmax <- r@extent[2] + 0.025
+      ymin <- r@extent[3] - 0.025
+      ymax <- r@extent[4] + 0.025
+    }
+
+    if(x_range <= 0.7989 & x_range > 0.3894){
+
+      zoom <- 10
+
+      xmin <- r@extent[1] - 0.04
+      xmax <- r@extent[2] + 0.04
+      ymin <- r@extent[3] - 0.04
+      ymax <- r@extent[4] + 0.04
+    }
+
+    if(x_range <= 1.6378 & x_range > 0.7989){
+
+      zoom <- 9
+
+      xmin <- r@extent[1] - 0.06
+      xmax <- r@extent[2] + 0.06
+      ymin <- r@extent[3] - 0.06
+      ymax <- r@extent[4] + 0.06
+    }
+
+    if(x_range <= 3.3556 & x_range > 1.6378){
+
+      zoom <- 8
+
+      xmin <- r@extent[1] - 0.08
+      xmax <- r@extent[2] + 0.08
+      ymin <- r@extent[3] - 0.08
+      ymax <- r@extent[4] + 0.08
+    }
+
+    if(x_range <= 6.8313 & x_range > 3.3556){
+
+      zoom <- 7
+
+      xmin <- r@extent[1] - 0.1
+      xmax <- r@extent[2] + 0.1
+      ymin <- r@extent[3] - 0.1
+      ymax <- r@extent[4] + 0.1
+    }
+
+  } else {
+    if(y_range <= 0.1616){
+
+      zoom <- 12
+
+      xmin <- r@extent[1] - 0.01
+      xmax <- r@extent[2] + 0.01
+      ymin <- r@extent[3] - 0.01
+      ymax <- r@extent[4] + 0.01
+    }
+
+    if(y_range <= 0.3135 & y_range > 0.1616){
+
+      zoom <- 11
+
+      xmin <- r@extent[1] - 0.025
+      xmax <- r@extent[2] + 0.025
+      ymin <- r@extent[3] - 0.025
+      ymax <- r@extent[4] + 0.025
+    }
+
+    if(y_range <= 0.647 & y_range > 0.3135){
+
+      zoom <- 10
+
+      xmin <- r@extent[1] - 0.04
+      xmax <- r@extent[2] + 0.04
+      ymin <- r@extent[3] - 0.04
+      ymax <- r@extent[4] + 0.04
+    }
+
+    if(y_range <= 1.3302 & y_range > 0.647){
+
+      zoom <- 9
+
+      xmin <- r@extent[1] - 0.06
+      xmax <- r@extent[2] + 0.06
+      ymin <- r@extent[3] - 0.06
+      ymax <- r@extent[4] + 0.06
+    }
+
+    if(y_range <= 2.7478 & y_range > 1.3302){
+
+      zoom <- 8
+
+      xmin <- r@extent[1] - 0.08
+      xmax <- r@extent[2] + 0.08
+      ymin <- r@extent[3] - 0.08
+      ymax <- r@extent[4] + 0.08
+    }
+
+    if(y_range <= 2.8313 & y_range > 2.7478){
+
+      zoom <- 7
+
+      xmin <- r@extent[1] - 0.1
+      xmax <- r@extent[2] + 0.1
+      ymin <- r@extent[3] - 0.1
+      ymax <- r@extent[4] + 0.1
+    }
+  }
 
   county <- suppressMessages(ggmap::get_map(c(lon_fips,
-                                              lat_fips), zoom = 6,
+                                              lat_fips), zoom = zoom,
                                             color = "bw"))
 
-  gg_map <- ggmap::ggmap(county)
-  gg_box <- gg_map$data
-  xmin <- gg_box$lon[1]
-  xmax <- gg_box$lon[2]
-  ymin <- gg_box$lat[1]
-  ymax <- gg_box$lat[3]
+  # limits of a ggmap depend on your center lat/lon (this means the limits
+  # above won't work exactly for every county)
+  map_ymin <- gg_map$data$lat[1]
+  map_ymax <- gg_map$data$lat[3]
+  map_xmin <- gg_map$data$lon[1]
+  map_xmax <- gg_map$data$lon[2]
 
-  map <- ggmap::ggmap(county) +
-                     ggplot2::coord_fixed(xlim = c(xmin, xmax),
-                                          ylim = c(ymin, ymax),
-                                          ratio = 2) +
-                     ggplot2::geom_raster(mapping = aes_(~x, ~y),
-                                          data = rdf, fill = "yellow",
-                                          alpha = 0.2,
-                                          inherit.aes = FALSE,
-                                          na.rm = TRUE)
+  if((ymin < map_ymin) | (ymax > map_ymax) | (xmin < map_xmin) |
+     (xmax > map_xmax)){
+    zoom <- zoom - 1
+    county <- suppressMessages(ggmap::get_map(c(lon_fips,
+                                                lat_fips), zoom = zoom,
+                                              color = "bw"))
+    gg_map <- ggmap::ggmap(county)
+  }
+
+  map <- gg_map +
+    ggplot2::coord_fixed(xlim = c(xmin, xmax),
+                         ylim = c(ymin, ymax)) +
+    ggplot2::geom_raster(mapping = aes_(~x, ~y),
+                         data = rdf, fill = "yellow",
+                         alpha = 0.2,
+                         inherit.aes = FALSE,
+                         na.rm = TRUE)
 
   station_df <- daily_data$station_df %>%
     dplyr::tbl_df() %>%
