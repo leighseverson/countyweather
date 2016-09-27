@@ -53,30 +53,6 @@
 #' \url{http://www.census.gov/prod/cen2010/doc/sf1.pdf}
 "county_radius"
 
-#' County land area data.
-#'
-#' A dataframe containing FIPS code and 2010 U.S. Census estimates for county
-#' land area in square meters. This dataset was put together using a dataset
-#' from the U.S. Census American FactFinder data dissemination tool. This
-#' dataset was downloaded from the geographic identifiers 'G001' option for the
-#' 2010 Summary File1 (SF1). The file was found by following the instructions
-#' recommended by the U.S. census here:
-#' \url{https://ask.census.gov/faq.php?id=5000&faqId=7825}. The website listed
-#' in "Source" gives more information about this dataset.
-#'
-#' @format A dataframe with 3,143 rows and 2 variables:
-#' \describe{
-#'    \item{fips}{A character vector giving the county's five-digit Federal
-#'                Information Processing Standard (FIPS) code}
-#'    \item{land_area}{A numeric vector giving land area estimates for each
-#'                     county in square meters.}
-#' }
-#'
-#' @source
-#'
-#' \url{http://www.census.gov/prod/cen2010/doc/sf1.pdf}
-"county_area"
-
 #' County cartographic boundary shapefiles
 #'
 #' A "SpatialPolygonsDataFrame" object. This shapefile downloaded from the U.S.

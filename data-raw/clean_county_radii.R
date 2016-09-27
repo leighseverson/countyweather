@@ -18,12 +18,6 @@ area$state_fips <- sprintf("%02d", area$state_fips)
 area$county_fips <- sprintf("%03d", area$county_fips)
 area$fips <- paste0(area$state_fips, area$county_fips)
 
-county_area <- area
-county_area <- county_area %>%
-  dplyr::select(land_area, fips)
-
-devtools::use_data(county_area, overwrite = TRUE)
-
 area <- dplyr::mutate_(area, land_area_km = ~ (land_area / 1000000)) %>%
   dplyr::mutate_(county_radius = ~ sqrt(land_area_km / pi)) %>%
   dplyr::select_(.dots = c("fips", "county_radius"))
