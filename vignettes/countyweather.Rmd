@@ -221,19 +221,19 @@ andrew_hourly$station_metadata
 
 ## Writing out timeseries files 
 
-There are a few functions that allow the user to write out daily or hourly timeseries datasets as `.rds` files to a specified local directory, as well as plots of this data. For daily weather data, see the functions `daily_timeseries` and `plot_daily_timeseries`. For hourly, see `hourly_timeseries` and `plot_hourly_timeseries`. 
+There are a few functions that allow the user to write out daily or hourly timeseries datasets as `.rds` files to a specified local directory, as well as plots of this data. For daily weather data, see the functions `write_daily_timeseries` and `plot_daily_timeseries`. For hourly, see `write_hourly_timeseries` and `plot_hourly_timeseries`. 
 
 For example, if we wanted to compare daily weather in the month of August for three counties in southern Florida, we could run: 
 
 ```{r eval = FALSE}
 fl_counties <- c("12086", "12087", "12011")
 
-daily_timeseries(fips = fl_counties, date_min = "1992-08-01", 
+write_daily_timeseries(fips = fl_counties, date_min = "1992-08-01", 
                  date_max = "1992-08-31", var = "prcp", 
                  out_directory = "~/Documents/andrew_data")
 ```
 
-`daily_timeseries()` saves each county's timeseries as a separate .rds file in the directory specified in the `out_directory` option. Each .rds file is a list including `daily_data`, which is the dataframe of daily weather data, `station_df`, which is the dataframe of station metadata, and `station_map`, which is a plot of the county showing locations of weather stations contributing to the weather data. At this stage, if you were to include a county in the `fips` argument without available data, a file would not be created for that county. 
+`write_daily_timeseries()` saves each county's timeseries as a separate .rds file in the directory specified in the `out_directory` option. Each .rds file is a list including `daily_data`, which is the dataframe of daily weather data, `station_df`, which is the dataframe of station metadata, and `station_map`, which is a plot of the county showing locations of weather stations contributing to the weather data. At this stage, if you were to include a county in the `fips` argument without available data, a file would not be created for that county. 
 
 The function `plot_daily_timeseries` creates and saves plots for each of these .rds files. 
 
@@ -424,7 +424,7 @@ This error message will come up after running functions pulling hourly data (`ho
 
 `Error in isd_monitors_data(fips = fips, year = x, var = var, radius = radius): None of the stations had available data.`
 
-This error message will come up after running \code{daily_timeseries} or \code{hourly_timeseries} if the function is unable to pull data for a particular fips code in your `fips` vector: 
+This error message will come up after running \code{write_daily_timeseries} or \code{write_hourly_timeseries} if the function is unable to pull data for a particular fips code in your `fips` vector: 
 
 `Unable to pull weather data for FIPS code "12086" for the specified percent coverage, year(s), and/or weather variables.`
 
