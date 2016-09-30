@@ -29,6 +29,7 @@ Imports:
     purrr (>= 0.2.1),
     raster (>= 2.5.8),
     rnoaa (>= 0.6.0),
+    tibble(>= 1.2),
     tidyr (>= 0.3.1)
 RoxygenNote: 5.0.1
 Depends:

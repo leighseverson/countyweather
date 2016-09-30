@@ -57,6 +57,7 @@ hourly_fips <- function(fips, year, var = "all",
                "lon_center" = weather_data$lon_center)
   return(list)
 
+
 }
 
 #' Return average hourly weather data for a particular county.
@@ -188,6 +189,8 @@ hourly_df <- function(fips, year,
     data <- ave_hourly(data)
   }
 
+  data <- tibble::as_tibble(data)
+
   radius <- hourly_list[[1]]$radius
   lat_center <- hourly_list[[1]]$lat_center
   lon_center <- hourly_list[[1]]$lon_center
@@ -261,7 +264,9 @@ write_hourly_timeseries <- function(fips, coverage = NULL, year,
                               station_label = station_label)
 
       out_data <- out_list$hourly_data
-      out_metadata <- out_list$station_metadata
+
+      meta <- c(2, 4:6)
+      out_metadata <- out_list[meta]
 
       data_file <- paste0(out_directory, "/data", "/", fips[i], ".rds")
       saveRDS(out_data, file = data_file)
