@@ -272,14 +272,14 @@ daily_df <- function(stations, coverage = NULL,
 #'
 #' @examples
 #' \dontrun{
-#' daily_timeseries(fips = c("41005", "13089"), coverage = 0.90,
+#' write_daily_timeseries(fips = c("41005", "13089"), coverage = 0.90,
 #'            date_min = "2000-01-01", date_max = "2000-01-10",
 #'            var = c("tmax", "tmin", "prcp"),
 #'            out_directory = "~/timeseries_data")
 #' }
 #'
 #' @export
-daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
+write_daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
                              date_max = NULL, var = "all",
                               average_data = TRUE,
                               out_directory, keep_map = TRUE){
@@ -287,18 +287,28 @@ daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
   if(!dir.exists(out_directory)){
     dir.create(out_directory)
   }
+
+  if(!dir.exists(paste0(out_directory, "/data"))){
+    dir.create(paste0(out_directory, "/data"))
+  }
+
+  if(!dir.exists(paste0(out_directory, "/metadata"))){
+    dir.create(paste0(out_directory, "/metadata"))
+  }
+
   for(i in 1:length(fips)) {
     possibleError <- tryCatch({
 
       out_list <- daily_fips(fips = fips[i], date_min = date_min,
                              date_max = date_max, var = var)
+      out_data <- out_list$daily_data
+      out_metadata <- out_list$station_df
 
-      if(!keep_map){
-        out_list <- out_list[-3] # Remove map if user does not want it
-      }
+      data_file <- paste0(out_directory, "/data", "/", fips[i], ".rds")
+        saveRDS(out_data, file = data_file)
 
-      out_file <- paste0(out_directory, "/", fips[i], ".rds")
-        saveRDS(out_list, file = out_file)
+      metadata_file <- paste0(out_directory, "/metadata", "/", fips[i], ".rds")
+        saveRDS(out_metadata, file = metadata_file)
     }
     ,
     error = function(e) {
@@ -308,6 +318,21 @@ daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
     }
     )
     if(inherits(possibleError, "error")) next
+
+    if(keep_map == TRUE){
+
+      if(!dir.exists(paste0(out_directory, "/maps"))){
+        dir.create(paste0(out_directory, "/maps"))
+      }
+
+      out_map <- out_list$station_map
+
+      map_file <- paste0(out_directory, "/maps")
+      map_name <- paste0(fips[i], ".png")
+      suppressMessages(ggplot2::ggsave(file = map_name, path = map_file,
+                                       plot = out_map))
+
+    }
 
   }
 
@@ -366,9 +391,8 @@ plot_daily_timeseries <- function(var, file_directory,
 
   for(i in 1:length(files)){
     dat <- readRDS(paste0(file_directory, "/", files[i]))
-    weather <- dat$daily_data %>%
-      dplyr::ungroup() %>%
-      as.data.frame()
+      weather <- dplyr::ungroup(dat) %>%
+        as.data.frame()
 
     file_name <- paste0(file_names[i], ".png")
     grDevices::png(filename = paste0(plot_directory, "/", file_name))
