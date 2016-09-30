@@ -282,6 +282,7 @@ daily_df <- function(stations, coverage = NULL,
 write_daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
                              date_max = NULL, var = "all",
                               average_data = TRUE,
+                              station_label = FALSE,
                               out_directory, keep_map = TRUE){
 
   if(!dir.exists(out_directory)){
@@ -378,8 +379,8 @@ write_daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
 #' @importFrom dplyr %>%
 #'
 #' @export
-plot_daily_timeseries <- function(var, file_directory,
-                            plot_directory, date_min, date_max){
+plot_daily_timeseries <- function(var, date_min, date_max, file_directory,
+                            plot_directory){
 
   files <- list.files(file_directory)
 
