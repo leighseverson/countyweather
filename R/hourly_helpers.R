@@ -545,6 +545,8 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
                                               lat_fips), zoom = zoom,
                                             color = "bw"))
 
+  gg_map <- ggmap::ggmap(county)
+
   # limits of a ggmap depend on your center lat/lon (this means the limits
   # above won't work exactly for every county)
   map_ymin <- gg_map$data$lat[1]
@@ -564,7 +566,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
   map <- gg_map +
     ggplot2::coord_fixed(xlim = c(xmin, xmax),
                          ylim = c(ymin, ymax)) +
-    ggplot2::geom_raster(mapping = aes_(~x, ~y),
+    ggplot2::geom_raster(mapping = ggplot2::aes_(~x, ~y),
                          data = rdf, fill = "yellow",
                          alpha = 0.2,
                          inherit.aes = FALSE,
