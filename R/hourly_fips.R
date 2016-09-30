@@ -235,21 +235,40 @@ hourly_df <- function(fips, year,
 #'                   out_directory = "~/timeseries_hourly")
 #' }
 #' @export
-hourly_timeseries <- function(fips, coverage = NULL, year,
+write_hourly_timeseries <- function(fips, coverage = NULL, year,
                               var = "all",
                               average_data = TRUE,
-                              out_directory){
+                              station_label = FALSE,
+                              out_directory, keep_map = TRUE){
   if(!dir.exists(out_directory)){
     dir.create(out_directory)
   }
+
+  if(!dir.exists(paste0(out_directory, "/data"))){
+    dir.create(paste0(out_directory, "/data"))
+  }
+
+  if(!dir.exists(paste0(out_directory, "/metadata"))){
+    dir.create(paste0(out_directory, "/metadata"))
+  }
+
   for(i in 1:length(fips)) {
     possibleError <- tryCatch({
-      out_list <- hourly_df(fips = fips[i], year = year, var = var,
-                               coverage = coverage,
-                               average_data = average_data)
 
-      out_file <- paste0(out_directory, "/", fips[i], ".rds")
-        saveRDS(out_list, file = out_file)
+      out_list <- hourly_fips(fips = fips[i], year = year, var = var,
+                               coverage = coverage,
+                               average_data = average_data,
+                              station_label = station_label)
+
+      out_data <- out_list$hourly_data
+      out_metadata <- out_list$station_metadata
+
+      data_file <- paste0(out_directory, "/data", "/", fips[i], ".rds")
+      saveRDS(out_data, file = data_file)
+
+      metadata_file <- paste0(out_directory, "/metadata", "/", fips[i], ".rds")
+      saveRDS(out_metadata, file = metadata_file)
+
     }
     ,
     error = function(e) {
@@ -260,13 +279,30 @@ hourly_timeseries <- function(fips, coverage = NULL, year,
     }
     )
     if(inherits(possibleError, "error")) next
+
+    if(keep_map == TRUE){
+
+      if(!dir.exists(paste0(out_directory, "/maps"))){
+        dir.create(paste0(out_directory, "/maps"))
+      }
+
+      out_map <- out_list$station_map
+
+      map_file <- paste0(out_directory, "/maps")
+      map_name <- paste0(fips[i], ".png")
+      suppressMessages(ggplot2::ggsave(file = map_name, path = map_file,
+                                       plot = out_map))
+
+    }
+
   }
+
 }
 
 #' Write plot files for hourly weather timeseries dataframes.
 #'
 #' This function writes out a directory with plots for every timeseries file
-#' present in the specified directory (produced by the \code{hourly_timeseries}
+#' present in the specified directory (produced by the \code{write_hourly_timeseries}
 #' function) for a particular weather variable. These plots are meant to aid in
 #' initial exploratory analysis.
 #'
@@ -293,6 +329,7 @@ hourly_timeseries <- function(fips, coverage = NULL, year,
 #' @export
 plot_hourly_timeseries <- function(var, year, file_directory,
                                   plot_directory){
+
   files <- list.files(file_directory)
 
   date_min <- paste0(min(year), "-01-01 UTC")
@@ -311,7 +348,6 @@ plot_hourly_timeseries <- function(var, year, file_directory,
 
     setwd(file_directory)
     dat <- readRDS(files[i])
-    dat <- dat$hourly_data
 
     # convert tibble to vector (avoiding error "'x' and 'y' lengths differ")
     y <- dat %>% dplyr::collect %>% .[[var]]
@@ -326,4 +362,5 @@ plot_hourly_timeseries <- function(var, year, file_directory,
                    )
     grDevices::dev.off()
   }
+
 }
