@@ -398,6 +398,11 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
   row_num <- which(grepl(fips, census_data$fips))
   title <- census_data[row_num, "name"]
 
+  # for ggmap lat/lon
+  loc_fips <- which(census_data$fips == fips)
+  lat_fips <- census_data[loc_fips, "latitude"]
+  lon_fips <- census_data[loc_fips, "longitude"]
+
   # filter county's shapefile
   shp <- countyweather::county_outlines
   county_shp <- shp[shp$fips == fips, ]

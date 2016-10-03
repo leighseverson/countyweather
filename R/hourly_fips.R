@@ -274,6 +274,23 @@ write_hourly_timeseries <- function(fips, coverage = NULL, year,
       metadata_file <- paste0(out_directory, "/metadata", "/", fips[i], ".rds")
       saveRDS(out_metadata, file = metadata_file)
 
+      if(keep_map == TRUE){
+
+        if(!dir.exists(paste0(out_directory, "/maps"))){
+          dir.create(paste0(out_directory, "/maps"))
+        }
+
+        out_map <- out_list$station_map
+
+        map_file <- paste0(out_directory, "/maps")
+        map_name <- paste0(fips[i], ".png")
+        suppressMessages(ggplot2::ggsave(file = map_name, path = map_file,
+                                         plot = out_map))
+
+      }
+      # problem - when data can't be pulled, still producing a map with
+      # a mismatched name and image
+
     }
     ,
     error = function(e) {
@@ -284,21 +301,6 @@ write_hourly_timeseries <- function(fips, coverage = NULL, year,
     }
     )
     if(inherits(possibleError, "error")) next
-
-    if(keep_map == TRUE){
-
-      if(!dir.exists(paste0(out_directory, "/maps"))){
-        dir.create(paste0(out_directory, "/maps"))
-      }
-
-      out_map <- out_list$station_map
-
-      map_file <- paste0(out_directory, "/maps")
-      map_name <- paste0(fips[i], ".png")
-      suppressMessages(ggplot2::ggsave(file = map_name, path = map_file,
-                                       plot = out_map))
-
-    }
 
   }
 

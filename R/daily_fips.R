@@ -248,8 +248,10 @@ daily_df <- function(stations, coverage = NULL,
 
 #' Write daily weather timeseries files for U.S. counties.
 #'
-#' Given a vector of U.S. county FIPS codes, this function saves lists created
-#' from the function \code{daily_fips}. Within this list, the element
+#' Given a vector of U.S. county FIPS codes, this function saves each element of
+#' the lists created from the function \code{daily_fips} to a separate
+#'
+#' Within this list, the element
 #' \code{daily_data} gives a timeseries dataframe giving: 1. the values for
 #' specified weather variables, and 2. the number of weather stations
 #' contributing to the average for each day within the specified date range.

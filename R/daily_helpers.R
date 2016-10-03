@@ -183,7 +183,7 @@ filter_coverage <- function(coverage_df, coverage = NULL){
 #' }
 #'
 #' @importFrom dplyr %>%
-daily_stationmap <- function(fips, daily_data, point_color = "purple4",
+daily_stationmap <- function(fips, daily_data, point_color = "firebrick",
                               point_size = 2, station_label = FALSE){
 
   # for plot title
