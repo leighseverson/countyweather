@@ -202,11 +202,11 @@ daily_stationmap <- function(fips, daily_data, point_color = "firebrick",
 
   # convert to raster so that we can add geom_raster() (which gets rid of the
   # geom_polygons island problem)
-  r <- raster::raster(extent(county_shp))
-  res(r) <- 0.001
-  projection(r) <- proj4string(county_shp)
-  r <- rasterize(county_shp, r)
-  rdf <- data.frame(rasterToPoints(r))
+  r <- raster::raster(raster::extent(county_shp))
+  raster::res(r) <- 0.001
+  raster::projection(r) <- sp::proj4string(county_shp)
+  r <- raster::rasterize(county_shp, r)
+  rdf <- data.frame(raster::rasterToPoints(r))
 
   # use range of raster object to figure out what zoom to use in ggmap
   x_range <- r@extent[2] - r@extent[1]
