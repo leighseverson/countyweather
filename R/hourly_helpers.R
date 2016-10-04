@@ -294,7 +294,7 @@ ave_hourly <- function(hourly_data){
 #'    maximum values for the values in each station and weather variable.
 #'
 #' @importFrom dplyr %>%
-filter_hourly <- function(hourly_data, coverage = NULL,
+filter_hourly <- function(fips, hourly_data, coverage = NULL,
                           var = "all"){
 
   if(purrr::is_null(coverage)){
@@ -324,37 +324,46 @@ filter_hourly <- function(hourly_data, coverage = NULL,
 
   group_cols <- c("date_time", "key")
 
-  filtered <- hourly_data %>%
-    tidyr::unite_(col = "station", from = c("usaf_station", "wban_station"),
-                  sep = "-") %>%
-    dplyr::select_(quote(-latitude), quote(-longitude)) %>%
-    tidyr::gather_(key_col = "key", value_col = "value", gather_cols = g_cols) %>%
-    dplyr::left_join(df, by = c("station", "key")) %>%
-    dplyr::filter_(~ calc_coverage >= coverage) %>%
-    dplyr::group_by_(.dots = group_cols)
+  test <- df %>%
+    dplyr::filter_(~ calc_coverage >= coverage)
 
-  stations <- filtered %>%
-    dplyr::ungroup() %>%
-    dplyr::select_(quote(-date_time), quote(-value)) %>%
-    dplyr::distinct()
+  if(nrow(test) == 0){
+    stop(paste0("Unable to pull weather data for FIPS code ", fips,
+                 " for the specified percent coverage, year(s), and/or",
+                 " weather variables."))
+  }
+    filtered <- hourly_data %>%
+      tidyr::unite_(col = "station", from = c("usaf_station", "wban_station"),
+                    sep = "-") %>%
+      dplyr::select_(quote(-latitude), quote(-longitude)) %>%
+      tidyr::gather_(key_col = "key", value_col = "value", gather_cols = g_cols) %>%
+      dplyr::left_join(df, by = c("station", "key")) %>%
+      dplyr::filter_(~ calc_coverage >= coverage) %>%
+      dplyr::group_by_(.dots = group_cols)
 
-  colnames(stations)[2] <- "var"
+    stations <- filtered %>%
+      dplyr::ungroup() %>%
+      dplyr::select_(quote(-date_time), quote(-value)) %>%
+      dplyr::distinct()
 
-  df2 <- filtered %>%
-    dplyr::summarize_(n_reporting = ~ sum(!is.na(value))) %>%
-    dplyr::mutate_(key = ~ paste(key, "reporting", sep = "_")) %>%
-    tidyr::spread_(key_col = "key", value_col = "n_reporting")
+    colnames(stations)[2] <- "var"
 
-  df3 <- filtered %>%
-    dplyr::summarize_(value = ~ mean(as.numeric(value), na.rm = TRUE)) %>%
-    tidyr::spread_(key_col = "key", value_col = "value")
+    df2 <- filtered %>%
+      dplyr::summarize_(n_reporting = ~ sum(!is.na(value))) %>%
+      dplyr::mutate_(key = ~ paste(key, "reporting", sep = "_")) %>%
+      tidyr::spread_(key_col = "key", value_col = "n_reporting")
 
-  out <- dplyr::full_join(df3, df2, by = "date_time")
+    df3 <- filtered %>%
+      dplyr::summarize_(value = ~ mean(as.numeric(value), na.rm = TRUE)) %>%
+      tidyr::spread_(key_col = "key", value_col = "value")
 
-  list <- list("df" = out,
-               "stations" = stations)
+    out <- dplyr::full_join(df3, df2, by = "date_time")
 
-  return(list)
+    list <- list("df" = out,
+                 "stations" = stations)
+
+    return(list)
+
 }
 
 #' Plot hourly weather stations for a particular county.
@@ -409,11 +418,11 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
 
   # convert to raster so that we can add geom_raster() (which gets rid of the
   # geom_polygons island problem)
-  r <- raster::raster(extent(county_shp))
-  res(r) <- 0.001
-  projection(r) <- proj4string(county_shp)
-  r <- rasterize(county_shp, r)
-  rdf <- data.frame(rasterToPoints(r))
+  r <- raster::raster(raster::extent(county_shp))
+  raster::res(r) <- 0.001
+  raster::projection(r) <- sp::proj4string(county_shp)
+  r <- raster::rasterize(county_shp, r)
+  rdf <- data.frame(raster::rasterToPoints(r))
 
   # use range of raster object to figure out what zoom to use in ggmap
   x_range <- r@extent[2] - r@extent[1]
