@@ -20,6 +20,8 @@
 #' @param date_max A string with the desired ending date in character, ISO
 #'    format ("yyyy-mm-dd"). The dataframe returned will include only stations
 #'    that have data for dates up to and including the specified date.
+#' @param verbose TRUE / FALSE to indicate if you want the function to print
+#'    out the name of the county it's processing.
 #'
 #' @examples
 #' \dontrun{
@@ -30,10 +32,18 @@
 #'
 #' @importFrom dplyr %>%
 #' @export
-fips_stations <- function(fips, date_min = NULL, date_max = NULL){
+fips_stations <- function(fips, date_min = NULL, date_max = NULL,
+                          verbose = TRUE){
+
+  if(verbose) {
+    print(paste0("Getting hourly weather stations for ",
+                 census_data[loc_fips, "name"]))
+  }
+
   FIPS <- paste0('FIPS:', fips)
   station_ids <- rnoaa::ncdc_stations(datasetid = 'GHCND', locationid = FIPS,
                                       limit = 10)
+
   station_df <- station_ids$data
   if(station_ids$meta$totalCount > 10){
     how_many_more <- station_ids$meta$totalCount - 10
