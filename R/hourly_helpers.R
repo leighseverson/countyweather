@@ -266,6 +266,9 @@ ave_hourly <- function(hourly_data){
 #' \code{filter_hourly} filters available weather variables based on a specified
 #' minimum coverage (i.e., percent non-missing hourly observations).
 #'
+#' @param fips A character string or vector giving the five-digit U.S. FIPS
+#'    county code of the county or counties for which the user wants to pull
+#'    weather data.
 #' @param hourly_data A \code{isd_monitors_data} dataframe (The "df" element of
 #'    a \code{isd_monitors_data} list)
 #' @param coverage A numeric value in the range of 0 to 1 that specifies the
