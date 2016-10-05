@@ -39,7 +39,7 @@ daily_stations <- function(fips, date_min = NULL, date_max = NULL,
   loc_fips <- which(census_data$fips == fips)
 
   if(verbose) {
-    print(paste0("Getting daily weather stations for ",
+    message(paste0("Getting daily weather stations for ",
                  census_data[loc_fips, "name"]))
   }
 

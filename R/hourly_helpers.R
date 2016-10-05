@@ -38,7 +38,7 @@ isd_fips_stations <- function(fips, verbose = TRUE){
   radius <- radius_data[loc_rad, "county_radius"]
 
   if(verbose) {
-    print(paste0("Getting hourly weather stations for ",
+    message(paste0("Getting hourly weather stations for ",
                  census_data[loc_fips, "name"]))
   }
 

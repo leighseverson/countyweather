@@ -296,7 +296,7 @@ write_hourly_timeseries <- function(fips, coverage = NULL, year,
     ,
     error = function(e) {
       e
-      print(paste0("Unable to pull weather data for FIPS code ", fips[i],
+      message(paste0("Unable to pull weather data for FIPS code ", fips[i],
                    " for the specified percent coverage, year(s), and/or",
                    " weather variables."))
     }
