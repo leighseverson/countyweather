@@ -1,6 +1,6 @@
 #' NOAA NCDC station IDs per county.
 #'
-#' \code{fips_stations} returns a dataframe showing NOAA NCDC station IDs for
+#' \code{daily_stations} returns a dataframe showing NOAA NCDC station IDs for
 #' a single U.S. county. This function has options to filter stations based on
 #' start and end date of available data, as well as percent of data coverage.
 #'
@@ -25,18 +25,21 @@
 #'
 #' @examples
 #' \dontrun{
-#' ex <- fips_stations("36005")
-#' ex2 <- fips_stations("12086", date_min = "1999-01-01",
+#' ex <- daily_stations("36005")
+#' ex2 <- daily_stations("12086", date_min = "1999-01-01",
 #'                               date_max = "2012-12-31")
 #' }
 #'
 #' @importFrom dplyr %>%
 #' @export
-fips_stations <- function(fips, date_min = NULL, date_max = NULL,
+daily_stations <- function(fips, date_min = NULL, date_max = NULL,
                           verbose = TRUE){
 
+  census_data <- countyweather::county_centers
+  loc_fips <- which(census_data$fips == fips)
+
   if(verbose) {
-    print(paste0("Getting hourly weather stations for ",
+    print(paste0("Getting daily weather stations for ",
                  census_data[loc_fips, "name"]))
   }
 
@@ -73,7 +76,6 @@ fips_stations <- function(fips, date_min = NULL, date_max = NULL,
     dplyr::select_(.dots = c("id", "latitude", "longitude", "name")) %>%
     dplyr::mutate_(id = ~ gsub("GHCND:", "", id))
 
-  # vec <- as.vector(tot_df$id)
   return(tot_df)
 }
 
@@ -184,7 +186,7 @@ filter_coverage <- function(coverage_df, coverage = NULL){
 #'
 #' @examples
 #' \dontrun{
-#' stations <- fips_stations(fips = "12086", date_min = "1992-08-01",
+#' stations <- daily_stations(fips = "12086", date_min = "1992-08-01",
 #'                           date_max = "1992-08-31")
 #' daily_data <- daily_df(stations = stations, coverage = 0.90,
 #'                       var = c("tmax", "tmin", "prcp"),
