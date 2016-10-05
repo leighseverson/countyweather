@@ -233,13 +233,13 @@ write_daily_timeseries(fips = fl_counties, date_min = "1992-08-01",
                  out_directory = "~/Documents/andrew_data")
 ```
 
-`write_daily_timeseries()` saves each county's timeseries as a separate .rds file in the directory specified in the `out_directory` option. Each .rds file is a list including `daily_data`, which is the dataframe of daily weather data, `station_df`, which is the dataframe of station metadata, and `station_map`, which is a plot of the county showing locations of weather stations contributing to the weather data. At this stage, if you were to include a county in the `fips` argument without available data, a file would not be created for that county. 
+`write_daily_timeseries()` saves each county's timeseries as a separate .rds file in a subdirectory called "data" of the directory specified in the `out_directory` option. Each .rds file is a time series dataframe of daily weather data. A dataframe of station metadata is saved in a second subdirectory called "metadata", and maps showing locations of weather stations contributing to each time series are saved in a subdirectory called "maps." At this stage, if you were to include a county in the `fips` argument without available data, a file would not be created for that county. 
 
 The function `plot_daily_timeseries` creates and saves plots for each of these .rds files. 
 
 ```{r eval = FALSE}
-plot_daily_timeseries("prcp", data_directory = "~/Documents/andrew_data", 
-                      plot_directory = "~/Documents/andrew_plots", 
+plot_daily_timeseries("prcp", data_directory = "~/Documents/andrew_data/data", 
+                      plot_directory = "~/Documents/andrew_data/plots", 
                       date_min = "1992-08-01", date_max = "1992-08-31")
 ```
 
