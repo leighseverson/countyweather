@@ -249,21 +249,26 @@ daily_df <- function(stations, coverage = NULL,
 #' Write daily weather timeseries files for U.S. counties.
 #'
 #' Given a vector of U.S. county FIPS codes, this function saves each element of
-#' the lists created from the function \code{daily_fips} to a separate
+#' the lists created from the function \code{daily_fips} to a separate folders
+#' within a given directory. The element \code{daily_data} is saved to a
+#' a subdirectory of the given directory called "data." This timeseries
+#' dataframe gives: 1. the values for specified weather variables, and 2. the
+#' number of weather stations contributing to the average value for each day
+#' within the specified date range. The element \code{station_metadata} is
+#' saved in a subdirectory called "metadata", the element \code{station_map},
+#' which is a map of contributing station locations, is saved in a subdirectory
+#' called "maps."
 #'
-#' Within this list, the element
-#' \code{daily_data} gives a timeseries dataframe giving: 1. the values for
-#' specified weather variables, and 2. the number of weather stations
-#' contributing to the average for each day within the specified date range.
-#' Other elements saved include \code{station_metadata} and \code{station_map}.
-#'
-#' @return Writes out a directory with daily weather RDS files for each FIPS
-#' code specified.
+#' @return Writes out three subdirectories of a given directory with daily
+#' weather RDS files saved in "data", station metadata saved in "metadata",
+#' and a map of weather station locations saved in "maps" for each FIPS code
+#' specified.
 #'
 #' @inheritParams daily_df
 #' @inheritParams daily_stations
 #' @param out_directory The absolute or relative pathname for the directory
-#' where you would like the timeseries files to be saved.
+#' where you would like the three subdirectories ("data", "metadata", and
+#' "plots") to be created.
 #' @param keep_map TRUE / FALSE indicating if a map of the stations should
 #'    be included in each output file. The map can substantially increase the
 #'    size of the files.
@@ -277,7 +282,7 @@ daily_df <- function(stations, coverage = NULL,
 #' write_daily_timeseries(fips = c("41005", "13089"), coverage = 0.90,
 #'            date_min = "2000-01-01", date_max = "2000-01-10",
 #'            var = c("tmax", "tmin", "prcp"),
-#'            out_directory = "~/timeseries_data")
+#'            out_directory = "~/timeseries")
 #' }
 #'
 #' @export
@@ -350,8 +355,8 @@ write_daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
 #'
 #' This function writes out a directory with plots for every timeseries file
 #' present in the specified directory (produced by the \code{daily_timeseries}
-#' function) for a particular weather variable. These plots are meant to aid in
-#' initial exploratory analysis.
+#' function and saved in the "data" subdirectory of the directory given in that
+#' function's arguments) for a particular weather variable.
 #'
 #' @return Writes out a directory with plots of timeseries data for a given
 #' weather variable for each file present in the directory specified.
@@ -372,16 +377,16 @@ write_daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
 #' @examples
 #' \dontrun{
 #'plot_daily_timeseries(var = "prcp",
-#'                data_directory = "~/Desktop/exposure_data/ihapps_timeseries",
-#'                plot_directory = "~/Desktop/exposure_data/plots_prcp")
+#'                data_directory = "~/timeseries/data",
+#'                plot_directory = "~/timeseries/plots_prcp")
 #'
 #'plot_daily_timeseries(files = files, var = "tmax",
-#'                data_directory = "~/Desktop/exposure_data/ihapps_timeseries",
-#'                plot_directory = "~/Desktop/exposure_data/plots_tmax")
+#'                data_directory = "~/timeseries/data",
+#'                plot_directory = "~/timeseries/plots_tmax")
 #'
 #'plot_daily_timeseries(var = "tmin",
-#'                data_directory = "~/Desktop/exposure_data/ihapps_timeseries",
-#'                plot_directory = "~/Desktop/exposure_data/plots_tmin")
+#'                data_directory = "~/timeseries/data",
+#'                plot_directory = "~/timeseries/plots_tmin")
 #' }
 #' @importFrom dplyr %>%
 #'
