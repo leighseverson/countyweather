@@ -5,7 +5,7 @@
 #' requested time interval.
 #'
 #' @inheritParams daily_df
-#' @inheritParams fips_stations
+#' @inheritParams daily_stations
 #'
 #' @param station_label TRUE / FALSE to indicate if you want your plot of
 #'    weather station locations to include labels indicating station ids.
@@ -52,7 +52,7 @@ daily_fips <- function(fips, coverage = NULL,
                          date_min = NULL, date_max = NULL,
                          var = "all",
                          average_data = TRUE, station_label = FALSE){
-  stations <- fips_stations(fips = fips, date_min = date_min,
+  stations <- daily_stations(fips = fips, date_min = date_min,
                             date_max = date_max)
   weather_data <- daily_df(stations = stations,
                            var = var,
@@ -93,7 +93,7 @@ daily_fips <- function(fips, coverage = NULL,
 #'    key you've requested from NOAA). See the package vignette for more details.
 #'
 #' @param stations A dataframe containing station metadata, returned from
-#'    the function \code{fips_stations}.
+#'    the function \code{daily_stations}.
 #' @param coverage A numeric value in the range of 0 to 1 that specifies
 #'    the desired percentage coverage for the weather variable (i.e., what
 #'    percent of each weather variable must be non-missing to include data from
@@ -117,7 +117,7 @@ daily_fips <- function(fips, coverage = NULL,
 #'    each monitor, while TRUE (the default) outputs a single estimate
 #'    for each day in the dataset, giving the average value of the weather
 #'    metric across all available monitors in the county that day.
-#' @inheritParams fips_stations
+#' @inheritParams daily_stations
 #'
 #' @return A list with two elements. \code{daily_data} is a dataframe of daily
 #'    weather data averaged across multiple monitors, as well as columns
@@ -128,7 +128,7 @@ daily_fips <- function(fips, coverage = NULL,
 #'
 #' @examples
 #' \dontrun{
-#' stations <- fips_stations(fips = "12086", date_min = "2010-01-01",
+#' stations <- daily_stations(fips = "12086", date_min = "2010-01-01",
 #'                           date_max = "2010-02-01")
 #' list <- daily_df(stations = stations, coverage = 0.90,
 #'                       var = c("tmax", "tmin", "prcp"),
@@ -261,7 +261,7 @@ daily_df <- function(stations, coverage = NULL,
 #' code specified.
 #'
 #' @inheritParams daily_df
-#' @inheritParams fips_stations
+#' @inheritParams daily_stations
 #' @param out_directory The absolute or relative pathname for the directory
 #' where you would like the timeseries files to be saved.
 #' @param keep_map TRUE / FALSE indicating if a map of the stations should
