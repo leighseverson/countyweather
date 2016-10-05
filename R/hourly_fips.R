@@ -352,13 +352,15 @@ plot_hourly_timeseries <- function(var, year, data_directory,
 
     file_names <- gsub(".rds", "", files)
 
+    current_wd <- getwd()
+
   for(i in 1:length(files)){
 
     setwd(data_directory)
     dat <- readRDS(files[i])
 
     # convert tibble to vector (avoiding error "'x' and 'y' lengths differ")
-    y <- dat %>% dplyr::collect %>% .[[var]]
+    y <- dat %>% dplyr::collect() %>% .[[var]]
 
     file_name <- paste0(file_names[i], ".png")
     setwd(plot_directory)
@@ -370,5 +372,7 @@ plot_hourly_timeseries <- function(var, year, data_directory,
                    )
     grDevices::dev.off()
   }
+
+    setwd(current_wd)
 
 }

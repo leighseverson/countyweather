@@ -129,7 +129,7 @@ ave_weather <- function(weather_data){
 #' @param coverage A numeric value in the range of 0 to 1 that specifies
 #'    the desired percentage coverage for the weather variable (i.e., what
 #'    percent of each weather variable must be non-missing to include data from
-#'    a monitor when calculating daily values averaged across monitors.
+#'    a monitor when calculating daily values averaged across monitors).
 #'
 #' @return a \code{dataframe} with stations that meet the specified coverage
 #'    requirements for weather variables included in the dataframe present in

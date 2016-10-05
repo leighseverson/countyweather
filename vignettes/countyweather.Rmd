@@ -238,7 +238,7 @@ write_daily_timeseries(fips = fl_counties, date_min = "1992-08-01",
 The function `plot_daily_timeseries` creates and saves plots for each of these .rds files. 
 
 ```{r eval = FALSE}
-plot_daily_timeseries("prcp", file_directory = "~/Documents/andrew_data", 
+plot_daily_timeseries("prcp", data_directory = "~/Documents/andrew_data", 
                       plot_directory = "~/Documents/andrew_plots", 
                       date_min = "1992-08-01", date_max = "1992-08-31")
 ```
