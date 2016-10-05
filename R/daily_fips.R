@@ -359,7 +359,7 @@ write_daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
 #' @param var A character string (all lower-case) specifying which weather
 #' variable present in the timeseries dataframe you would like to produce
 #' plots for. For example, var = "prcp".
-#' @param file_directory The absolute or relative pathname for the directory
+#' @param data_directory The absolute or relative pathname for the directory
 #' where your daily timeseries dataframes (produced by \code{daily_timeseries})
 #' are saved.
 #' @param plot_directory The absolute or relative pathname for the directory
@@ -372,24 +372,24 @@ write_daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
 #' @examples
 #' \dontrun{
 #'plot_daily_timeseries(var = "prcp",
-#'                file_directory = "~/Desktop/exposure_data/ihapps_timeseries",
+#'                data_directory = "~/Desktop/exposure_data/ihapps_timeseries",
 #'                plot_directory = "~/Desktop/exposure_data/plots_prcp")
 #'
 #'plot_daily_timeseries(files = files, var = "tmax",
-#'                file_directory = "~/Desktop/exposure_data/ihapps_timeseries",
+#'                data_directory = "~/Desktop/exposure_data/ihapps_timeseries",
 #'                plot_directory = "~/Desktop/exposure_data/plots_tmax")
 #'
 #'plot_daily_timeseries(var = "tmin",
-#'                file_directory = "~/Desktop/exposure_data/ihapps_timeseries",
+#'                data_directory = "~/Desktop/exposure_data/ihapps_timeseries",
 #'                plot_directory = "~/Desktop/exposure_data/plots_tmin")
 #' }
 #' @importFrom dplyr %>%
 #'
 #' @export
-plot_daily_timeseries <- function(var, date_min, date_max, file_directory,
+plot_daily_timeseries <- function(var, date_min, date_max, data_directory,
                             plot_directory){
 
-  files <- list.files(file_directory)
+  files <- list.files(data_directory)
 
   if(!dir.exists(plot_directory)){
     dir.create(plot_directory)
@@ -398,7 +398,7 @@ plot_daily_timeseries <- function(var, date_min, date_max, file_directory,
     file_names <- gsub(".rds", "", files)
 
   for(i in 1:length(files)){
-    dat <- readRDS(paste0(file_directory, "/", files[i]))
+    dat <- readRDS(paste0(data_directory, "/", files[i]))
       weather <- dplyr::ungroup(dat) %>%
         as.data.frame()
 

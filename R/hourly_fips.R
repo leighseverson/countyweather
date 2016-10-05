@@ -320,7 +320,7 @@ write_hourly_timeseries <- function(fips, coverage = NULL, year,
 #' @param var A character string (all lower-case) specifying which weather
 #' variable present in the timeseries dataframe you would like to produce
 #' plots for. For example, var = "wind_speed".
-#' @param file_directory The absolute or relative pathname for the directory
+#' @param data_directory The absolute or relative pathname for the directory
 #' where your daily timeseries dataframes (produced by \code{county_timeseries})
 #' are saved.
 #' @param plot_directory The absolute or relative pathname for the directory
@@ -330,15 +330,15 @@ write_hourly_timeseries <- function(fips, coverage = NULL, year,
 #' @examples
 #' \dontrun{
 #'plot_hourly_timeseries(var = "wind_speed", year = 1992,
-#'                file_directory = "~/timeseries_hourly",
+#'                data_directory = "~/timeseries_hourly",
 #'                plot_directory = "~/timeseries_plots")
 #'}
 #' @importFrom dplyr %>%
 #' @export
-plot_hourly_timeseries <- function(var, year, file_directory,
+plot_hourly_timeseries <- function(var, year, data_directory,
                                   plot_directory){
 
-  files <- list.files(file_directory)
+  files <- list.files(data_directory)
 
   date_min <- paste0(min(year), "-01-01 UTC")
   date_min <- as.POSIXct(date_min, tz = "UTC")
@@ -354,7 +354,7 @@ plot_hourly_timeseries <- function(var, year, file_directory,
 
   for(i in 1:length(files)){
 
-    setwd(file_directory)
+    setwd(data_directory)
     dat <- readRDS(files[i])
 
     # convert tibble to vector (avoiding error "'x' and 'y' lengths differ")
