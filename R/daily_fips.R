@@ -52,6 +52,7 @@ daily_fips <- function(fips, coverage = NULL,
                          date_min = NULL, date_max = NULL,
                          var = "all",
                          average_data = TRUE, station_label = FALSE){
+
   stations <- daily_stations(fips = fips, date_min = date_min,
                             date_max = date_max)
   weather_data <- daily_df(stations = stations,
