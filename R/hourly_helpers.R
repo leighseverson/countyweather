@@ -266,6 +266,9 @@ ave_hourly <- function(hourly_data){
 #' \code{filter_hourly} filters available weather variables based on a specified
 #' minimum coverage (i.e., percent non-missing hourly observations).
 #'
+#' @param fips A character string or vector giving the five-digit U.S. FIPS
+#'    county code of the county or counties for which the user wants to pull
+#'    weather data.
 #' @param hourly_data A \code{isd_monitors_data} dataframe (The "df" element of
 #'    a \code{isd_monitors_data} list)
 #' @param coverage A numeric value in the range of 0 to 1 that specifies the
@@ -294,7 +297,7 @@ ave_hourly <- function(hourly_data){
 #'    maximum values for the values in each station and weather variable.
 #'
 #' @importFrom dplyr %>%
-filter_hourly <- function(hourly_data, coverage = NULL,
+filter_hourly <- function(fips, hourly_data, coverage = NULL,
                           var = "all"){
 
   if(purrr::is_null(coverage)){
@@ -324,37 +327,46 @@ filter_hourly <- function(hourly_data, coverage = NULL,
 
   group_cols <- c("date_time", "key")
 
-  filtered <- hourly_data %>%
-    tidyr::unite_(col = "station", from = c("usaf_station", "wban_station"),
-                  sep = "-") %>%
-    dplyr::select_(quote(-latitude), quote(-longitude)) %>%
-    tidyr::gather_(key_col = "key", value_col = "value", gather_cols = g_cols) %>%
-    dplyr::left_join(df, by = c("station", "key")) %>%
-    dplyr::filter_(~ calc_coverage >= coverage) %>%
-    dplyr::group_by_(.dots = group_cols)
+  test <- df %>%
+    dplyr::filter_(~ calc_coverage >= coverage)
 
-  stations <- filtered %>%
-    dplyr::ungroup() %>%
-    dplyr::select_(quote(-date_time), quote(-value)) %>%
-    dplyr::distinct()
+  if(nrow(test) == 0){
+    stop(paste0("Unable to pull weather data for FIPS code ", fips,
+                 " for the specified percent coverage, year(s), and/or",
+                 " weather variables."))
+  }
+    filtered <- hourly_data %>%
+      tidyr::unite_(col = "station", from = c("usaf_station", "wban_station"),
+                    sep = "-") %>%
+      dplyr::select_(quote(-latitude), quote(-longitude)) %>%
+      tidyr::gather_(key_col = "key", value_col = "value", gather_cols = g_cols) %>%
+      dplyr::left_join(df, by = c("station", "key")) %>%
+      dplyr::filter_(~ calc_coverage >= coverage) %>%
+      dplyr::group_by_(.dots = group_cols)
 
-  colnames(stations)[2] <- "var"
+    stations <- filtered %>%
+      dplyr::ungroup() %>%
+      dplyr::select_(quote(-date_time), quote(-value)) %>%
+      dplyr::distinct()
 
-  df2 <- filtered %>%
-    dplyr::summarize_(n_reporting = ~ sum(!is.na(value))) %>%
-    dplyr::mutate_(key = ~ paste(key, "reporting", sep = "_")) %>%
-    tidyr::spread_(key_col = "key", value_col = "n_reporting")
+    colnames(stations)[2] <- "var"
 
-  df3 <- filtered %>%
-    dplyr::summarize_(value = ~ mean(as.numeric(value), na.rm = TRUE)) %>%
-    tidyr::spread_(key_col = "key", value_col = "value")
+    df2 <- filtered %>%
+      dplyr::summarize_(n_reporting = ~ sum(!is.na(value))) %>%
+      dplyr::mutate_(key = ~ paste(key, "reporting", sep = "_")) %>%
+      tidyr::spread_(key_col = "key", value_col = "n_reporting")
 
-  out <- dplyr::full_join(df3, df2, by = "date_time")
+    df3 <- filtered %>%
+      dplyr::summarize_(value = ~ mean(as.numeric(value), na.rm = TRUE)) %>%
+      tidyr::spread_(key_col = "key", value_col = "value")
 
-  list <- list("df" = out,
-               "stations" = stations)
+    out <- dplyr::full_join(df3, df2, by = "date_time")
 
-  return(list)
+    list <- list("df" = out,
+                 "stations" = stations)
+
+    return(list)
+
 }
 
 #' Plot hourly weather stations for a particular county.
@@ -398,20 +410,184 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
   row_num <- which(grepl(fips, census_data$fips))
   title <- census_data[row_num, "name"]
 
-  county_outlines <- countyweather::county_outlines
-  colnames(county_outlines)[3] <- "fips_codes"
-  outline_df <- county_outlines %>%
-    dplyr::filter_( ~ fips_codes == fips)
+  # for ggmap lat/lon
+  loc_fips <- which(census_data$fips == fips)
+  lat_fips <- census_data[loc_fips, "latitude"]
+  lon_fips <- census_data[loc_fips, "longitude"]
 
-  county <- suppressMessages(ggmap::get_map(c(hourly_data$lon_center,
-                                       hourly_data$lat_center), zoom = 9,
-                                     color = "bw"))
+  # filter county's shapefile
+  shp <- countyweather::county_outlines
+  county_shp <- shp[shp$fips == fips, ]
 
-  map <- ggmap::ggmap(county) + ggplot2::geom_polygon(ggplot2::aes_(~ lon, ~ lat),
-                                                      alpha = 0.2,
-                                                      fill = "yellow",
-                                                      data = outline_df,
-                                                      inherit.aes = FALSE)
+  # convert to raster so that we can add geom_raster() (which gets rid of the
+  # geom_polygons island problem)
+  r <- raster::raster(raster::extent(county_shp))
+  raster::res(r) <- 0.001
+  raster::projection(r) <- sp::proj4string(county_shp)
+  r <- raster::rasterize(county_shp, r)
+  rdf <- data.frame(raster::rasterToPoints(r))
+
+  # use range of raster object to figure out what zoom to use in ggmap
+  x_range <- r@extent[2] - r@extent[1]
+  y_range <- r@extent[4] - r@extent[3]
+
+  # limits were calculated by finding out the x and y limits of a ggmap at each
+  # zoom, then accounting for the extra space we want to add around county
+  # shapes.
+
+  if(x_range > y_range){
+    if(x_range <= 0.1997){
+
+      zoom <- 12
+
+      xmin <- r@extent[1] - 0.01
+      xmax <- r@extent[2] + 0.01
+      ymin <- r@extent[3] - 0.01
+      ymax <- r@extent[4] + 0.01
+    }
+
+    if(x_range <= 0.3894 & x_range > 0.1997){
+
+      zoom <- 11
+
+      xmin <- r@extent[1] - 0.025
+      xmax <- r@extent[2] + 0.025
+      ymin <- r@extent[3] - 0.025
+      ymax <- r@extent[4] + 0.025
+    }
+
+    if(x_range <= 0.7989 & x_range > 0.3894){
+
+      zoom <- 10
+
+      xmin <- r@extent[1] - 0.04
+      xmax <- r@extent[2] + 0.04
+      ymin <- r@extent[3] - 0.04
+      ymax <- r@extent[4] + 0.04
+    }
+
+    if(x_range <= 1.6378 & x_range > 0.7989){
+
+      zoom <- 9
+
+      xmin <- r@extent[1] - 0.06
+      xmax <- r@extent[2] + 0.06
+      ymin <- r@extent[3] - 0.06
+      ymax <- r@extent[4] + 0.06
+    }
+
+    if(x_range <= 3.3556 & x_range > 1.6378){
+
+      zoom <- 8
+
+      xmin <- r@extent[1] - 0.08
+      xmax <- r@extent[2] + 0.08
+      ymin <- r@extent[3] - 0.08
+      ymax <- r@extent[4] + 0.08
+    }
+
+    if(x_range <= 6.8313 & x_range > 3.3556){
+
+      zoom <- 7
+
+      xmin <- r@extent[1] - 0.1
+      xmax <- r@extent[2] + 0.1
+      ymin <- r@extent[3] - 0.1
+      ymax <- r@extent[4] + 0.1
+    }
+
+  } else {
+    if(y_range <= 0.1616){
+
+      zoom <- 12
+
+      xmin <- r@extent[1] - 0.01
+      xmax <- r@extent[2] + 0.01
+      ymin <- r@extent[3] - 0.01
+      ymax <- r@extent[4] + 0.01
+    }
+
+    if(y_range <= 0.3135 & y_range > 0.1616){
+
+      zoom <- 11
+
+      xmin <- r@extent[1] - 0.025
+      xmax <- r@extent[2] + 0.025
+      ymin <- r@extent[3] - 0.025
+      ymax <- r@extent[4] + 0.025
+    }
+
+    if(y_range <= 0.647 & y_range > 0.3135){
+
+      zoom <- 10
+
+      xmin <- r@extent[1] - 0.04
+      xmax <- r@extent[2] + 0.04
+      ymin <- r@extent[3] - 0.04
+      ymax <- r@extent[4] + 0.04
+    }
+
+    if(y_range <= 1.3302 & y_range > 0.647){
+
+      zoom <- 9
+
+      xmin <- r@extent[1] - 0.06
+      xmax <- r@extent[2] + 0.06
+      ymin <- r@extent[3] - 0.06
+      ymax <- r@extent[4] + 0.06
+    }
+
+    if(y_range <= 2.7478 & y_range > 1.3302){
+
+      zoom <- 8
+
+      xmin <- r@extent[1] - 0.08
+      xmax <- r@extent[2] + 0.08
+      ymin <- r@extent[3] - 0.08
+      ymax <- r@extent[4] + 0.08
+    }
+
+    if(y_range <= 2.8313 & y_range > 2.7478){
+
+      zoom <- 7
+
+      xmin <- r@extent[1] - 0.1
+      xmax <- r@extent[2] + 0.1
+      ymin <- r@extent[3] - 0.1
+      ymax <- r@extent[4] + 0.1
+    }
+  }
+
+  county <- suppressMessages(ggmap::get_map(c(lon_fips,
+                                              lat_fips), zoom = zoom,
+                                            color = "bw"))
+
+  gg_map <- ggmap::ggmap(county)
+
+  # limits of a ggmap depend on your center lat/lon (this means the limits
+  # above won't work exactly for every county)
+  map_ymin <- gg_map$data$lat[1]
+  map_ymax <- gg_map$data$lat[3]
+  map_xmin <- gg_map$data$lon[1]
+  map_xmax <- gg_map$data$lon[2]
+
+  if((ymin < map_ymin) | (ymax > map_ymax) | (xmin < map_xmin) |
+     (xmax > map_xmax)){
+    zoom <- zoom - 1
+    county <- suppressMessages(ggmap::get_map(c(lon_fips,
+                                                lat_fips), zoom = zoom,
+                                              color = "bw"))
+    gg_map <- ggmap::ggmap(county)
+  }
+
+  map <- gg_map +
+    ggplot2::coord_fixed(xlim = c(xmin, xmax),
+                         ylim = c(ymin, ymax)) +
+    ggplot2::geom_raster(mapping = ggplot2::aes_(~x, ~y),
+                         data = rdf, fill = "yellow",
+                         alpha = 0.2,
+                         inherit.aes = FALSE,
+                         na.rm = TRUE)
 
   r <- hourly_data$radius
   x_c <- hourly_data$lon_center

@@ -57,6 +57,7 @@ hourly_fips <- function(fips, year, var = "all",
                "lon_center" = weather_data$lon_center)
   return(list)
 
+
 }
 
 #' Return average hourly weather data for a particular county.
@@ -154,7 +155,8 @@ hourly_df <- function(fips, year,
 
   # filter stations (if coverage is NULL, filters as if coverage = 0) and get
   # statistical info for each station/var pair
-    filtered_list <- filter_hourly(hourly_data = data, coverage = coverage, var = var)
+    filtered_list <- filter_hourly(fips = fips, hourly_data = data,
+                                   coverage = coverage, var = var)
     station_stats <- filtered_list$stations
 
     filtered_stations <- unique(station_stats$station)
@@ -187,6 +189,8 @@ hourly_df <- function(fips, year,
   if(average_data == TRUE){
     data <- ave_hourly(data)
   }
+
+  data <- tibble::as_tibble(data)
 
   radius <- hourly_list[[1]]$radius
   lat_center <- hourly_list[[1]]$lat_center
@@ -235,38 +239,78 @@ hourly_df <- function(fips, year,
 #'                   out_directory = "~/timeseries_hourly")
 #' }
 #' @export
-hourly_timeseries <- function(fips, coverage = NULL, year,
-                              var = "all",
+write_hourly_timeseries <- function(fips, coverage = NULL, year,
+                              var = "all", out_directory,
                               average_data = TRUE,
-                              out_directory){
+                              station_label = FALSE,
+                              keep_map = TRUE){
   if(!dir.exists(out_directory)){
     dir.create(out_directory)
   }
+
+  if(!dir.exists(paste0(out_directory, "/data"))){
+    dir.create(paste0(out_directory, "/data"))
+  }
+
+  if(!dir.exists(paste0(out_directory, "/metadata"))){
+    dir.create(paste0(out_directory, "/metadata"))
+  }
+
   for(i in 1:length(fips)) {
     possibleError <- tryCatch({
-      out_list <- hourly_df(fips = fips[i], year = year, var = var,
-                               coverage = coverage,
-                               average_data = average_data)
 
-      out_file <- paste0(out_directory, "/", fips[i], ".rds")
-        saveRDS(out_list, file = out_file)
+      out_list <- hourly_fips(fips = fips[i], year = year, var = var,
+                               coverage = coverage,
+                               average_data = average_data,
+                              station_label = station_label)
+
+      out_data <- out_list$hourly_data
+
+      meta <- c(2, 4:6)
+      out_metadata <- out_list[meta]
+
+      data_file <- paste0(out_directory, "/data", "/", fips[i], ".rds")
+      saveRDS(out_data, file = data_file)
+
+      metadata_file <- paste0(out_directory, "/metadata", "/", fips[i], ".rds")
+      saveRDS(out_metadata, file = metadata_file)
+
+      if(keep_map == TRUE){
+
+        if(!dir.exists(paste0(out_directory, "/maps"))){
+          dir.create(paste0(out_directory, "/maps"))
+        }
+
+        out_map <- out_list$station_map
+
+        map_file <- paste0(out_directory, "/maps")
+        map_name <- paste0(fips[i], ".png")
+        suppressMessages(ggplot2::ggsave(file = map_name, path = map_file,
+                                         plot = out_map))
+
+      }
+      # problem - when data can't be pulled, still producing a map with
+      # a mismatched name and image
+
     }
     ,
     error = function(e) {
       e
-      print(paste0("Unable to pull weather data for FIPS code ", fips[i],
+      message(paste0("Unable to pull weather data for FIPS code ", fips[i],
                    " for the specified percent coverage, year(s), and/or",
                    " weather variables."))
     }
     )
     if(inherits(possibleError, "error")) next
+
   }
+
 }
 
 #' Write plot files for hourly weather timeseries dataframes.
 #'
 #' This function writes out a directory with plots for every timeseries file
-#' present in the specified directory (produced by the \code{hourly_timeseries}
+#' present in the specified directory (produced by the \code{write_hourly_timeseries}
 #' function) for a particular weather variable. These plots are meant to aid in
 #' initial exploratory analysis.
 #'
@@ -276,7 +320,7 @@ hourly_timeseries <- function(fips, coverage = NULL, year,
 #' @param var A character string (all lower-case) specifying which weather
 #' variable present in the timeseries dataframe you would like to produce
 #' plots for. For example, var = "wind_speed".
-#' @param file_directory The absolute or relative pathname for the directory
+#' @param data_directory The absolute or relative pathname for the directory
 #' where your daily timeseries dataframes (produced by \code{county_timeseries})
 #' are saved.
 #' @param plot_directory The absolute or relative pathname for the directory
@@ -286,14 +330,15 @@ hourly_timeseries <- function(fips, coverage = NULL, year,
 #' @examples
 #' \dontrun{
 #'plot_hourly_timeseries(var = "wind_speed", year = 1992,
-#'                file_directory = "~/timeseries_hourly",
+#'                data_directory = "~/timeseries_hourly",
 #'                plot_directory = "~/timeseries_plots")
 #'}
 #' @importFrom dplyr %>%
 #' @export
-plot_hourly_timeseries <- function(var, year, file_directory,
+plot_hourly_timeseries <- function(var, year, data_directory,
                                   plot_directory){
-  files <- list.files(file_directory)
+
+  files <- list.files(data_directory)
 
   date_min <- paste0(min(year), "-01-01 UTC")
   date_min <- as.POSIXct(date_min, tz = "UTC")
@@ -307,14 +352,15 @@ plot_hourly_timeseries <- function(var, year, file_directory,
 
     file_names <- gsub(".rds", "", files)
 
+    current_wd <- getwd()
+
   for(i in 1:length(files)){
 
-    setwd(file_directory)
+    setwd(data_directory)
     dat <- readRDS(files[i])
-    dat <- dat$hourly_data
 
     # convert tibble to vector (avoiding error "'x' and 'y' lengths differ")
-    y <- dat %>% dplyr::collect %>% .[[var]]
+    y <- dat %>% dplyr::collect() %>% .[[var]]
 
     file_name <- paste0(file_names[i], ".png")
     setwd(plot_directory)
@@ -326,4 +372,7 @@ plot_hourly_timeseries <- function(var, year, file_directory,
                    )
     grDevices::dev.off()
   }
+
+    setwd(current_wd)
+
 }
