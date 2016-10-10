@@ -251,32 +251,41 @@ daily_df <- function(stations, coverage = NULL,
 #'
 #' Given a vector of U.S. county FIPS codes, this function saves each element of
 #' the lists created from the function \code{daily_fips} to a separate folders
-#' within a given directory. The element \code{daily_data} is saved to a
+#' within a given directory. The dataframe \code{daily_data} is saved to a
 #' a subdirectory of the given directory called "data." This timeseries
 #' dataframe gives: 1. the values for specified weather variables, and 2. the
 #' number of weather stations contributing to the average value for each day
-#' within the specified date range. The element \code{station_metadata} is
-#' saved in a subdirectory called "metadata", the element \code{station_map},
-#' which is a map of contributing station locations, is saved in a subdirectory
-#' called "maps."
+#' within the specified date range. The element \code{station_metadata}, which
+#' gives information about stations contributing to the time series, is saved
+#' in a subdirectory called "metadata", the element \code{station_map}, which is
+#' a map of contributing station locations, is saved in a subdirectory called
+#' "maps."
 #'
 #' @return Writes out three subdirectories of a given directory with daily
-#' weather RDS files saved in "data", station metadata saved in "metadata",
+#' weather files saved in "data", station metadata saved in "metadata",
 #' and a map of weather station locations saved in "maps" for each FIPS code
-#' specified.
+#' specified. The user can specify either .rds or .csv files for the data and
+#' metadata files, using the arguments \code{data_type} and
+#' \code{metadata_type}, respectively. Maps are saved as .png files.
 #'
 #' @inheritParams daily_df
 #' @inheritParams daily_stations
 #' @param out_directory The absolute or relative pathname for the directory
-#' where you would like the three subdirectories ("data", "metadata", and
-#' "plots") to be created.
+#'    where you would like the three subdirectories ("data", "metadata", and
+#'    "plots") to be created.
+#' @param data_type A character string indicating that you would like either
+#'    .rds files (out_type = "rds") or .csv files (out_type = "csv") for the
+#'    timeseries output. This option defaults to .rds files.
+#' @param metadata_type A character string indicating that you would like either
+#'    .rds files (out_type  = "rds") or .csv files (out_type = "csv") for the
+#'    station metadata output. This option defaults to .rds files.
 #' @param keep_map TRUE / FALSE indicating if a map of the stations should
-#'    be included in each output file. The map can substantially increase the
-#'    size of the files.
+#'    be included. The map can substantially increase the size of the files. If
+#'    FALSE, the "maps" subdirectory will not be created.
 #'
 #' @note If the function is unable to pull weather data for a particular county
 #' given the specified percent coverage, date range, and/or weather variables,
-#' \code{daily_timeseries} will not produce a file for that county.
+#' \code{daily_timeseries} will not produce files for that county.
 #'
 #' @examples
 #' \dontrun{
@@ -285,14 +294,12 @@ daily_df <- function(stations, coverage = NULL,
 #'            var = c("tmax", "tmin", "prcp"),
 #'            out_directory = "~/timeseries")
 #' }
-#'
 #' @export
 write_daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
-                             date_max = NULL, var = "all",
-                             out_directory,
-                              average_data = TRUE,
-                              station_label = FALSE,
-                              keep_map = TRUE){
+                                   date_max = NULL, var = "all",
+                                   out_directory, data_type = "rds",
+                                   meatadata_type = "rds", average_data = TRUE,
+                                   station_label = FALSE, keep_map = TRUE){
 
   if(!dir.exists(out_directory)){
     dir.create(out_directory)
@@ -314,12 +321,31 @@ write_daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
       out_data <- out_list$daily_data
       out_metadata <- out_list$station_df
 
-      data_file <- paste0(out_directory, "/data", "/", fips[i], ".rds")
+      if(data_type == "rds"){
+
+        data_file <- paste0(out_directory, "/data", "/", fips[i], ".rds")
         saveRDS(out_data, file = data_file)
 
-      metadata_file <- paste0(out_directory, "/metadata", "/", fips[i], ".rds")
+      } else if (data_type == "csv"){
+
+        data_file <- paste0(out_directory, "/data", "/", fips[i], ".csv")
+        utils::write.csv(out_data, file = data_file, row.names = FALSE)
+
+      }
+
+      if(metadata_type == "rds"){
+
+        metadata_file <- paste0(out_directory, "/metadata", "/", fips[i],
+                                ".rds")
         saveRDS(out_metadata, file = metadata_file)
 
+      } else if (metadata_type == "csv"){
+
+        metadata_file <- paste0(out_directory, "/metadata", "/", fips[i],
+                                ".csv")
+        utils::write.csv(out_metadata, file = metadata_file)
+
+      }
 
         if(keep_map == TRUE){
 
@@ -335,8 +361,6 @@ write_daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
                                            plot = out_map))
 
         }
-
-
 
     }
     ,
@@ -364,17 +388,20 @@ write_daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
 #' weather variable for each file present in the directory specified.
 #'
 #' @param var A character string (all lower-case) specifying which weather
-#' variable present in the timeseries dataframe you would like to produce
-#' plots for. For example, var = "prcp".
+#'    variable present in the timeseries dataframe you would like to produce
+#'    plots for. For example, var = "prcp".
 #' @param data_directory The absolute or relative pathname for the directory
-#' where your daily timeseries dataframes (produced by \code{daily_timeseries})
-#' are saved.
+#'    where your daily timeseries dataframes (produced by \code{daily_timeseries})
+#'    are saved.
 #' @param plot_directory The absolute or relative pathname for the directory
-#' where you would like the plots to be saved.
+#'    where you would like the plots to be saved.
 #' @param date_min A character string giving the earliest date present in the
-#' timeseries dataframe in "yyyy-mm-dd" format.
+#'    timeseries dataframe in "yyyy-mm-dd" format.
 #' @param date_max  A character string giving the latest date present in the
-#' timeseries dataframe in "yyyy-mm-dd" format.
+#'    timeseries dataframe in "yyyy-mm-dd" format.
+#' @param data_type A character string indicating the type of timeseries files
+#'    you would like to produce plots for (either "rds" or "csv"). This option
+#'    defaults to .rds files.
 #'
 #' @examples
 #' \dontrun{
@@ -394,7 +421,7 @@ write_daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
 #'
 #' @export
 plot_daily_timeseries <- function(var, date_min, date_max, data_directory,
-                            plot_directory){
+                            plot_directory, data_type = "rds"){
 
   files <- list.files(data_directory)
 
@@ -402,7 +429,12 @@ plot_daily_timeseries <- function(var, date_min, date_max, data_directory,
     dir.create(plot_directory)
   }
 
+  if(data_type == "rds"){
     file_names <- gsub(".rds", "", files)
+  } else if (data_type == "csv"){
+    file_names <- gsub(".csv", "", files)
+  }
+
 
   for(i in 1:length(files)){
     dat <- readRDS(paste0(data_directory, "/", files[i]))
