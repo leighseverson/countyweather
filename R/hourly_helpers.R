@@ -7,8 +7,6 @@
 #' stations. This radius is estimated from 2010 U.S. Census Land Area data.
 #'
 #' @param fips A five-digit FIPS county code.
-#' @param verbose TRUE / FALSE to indicate if you want the function to print
-#'    out the name of the county it's processing
 #'
 #' @return A list with four elements. The first element, \code{stations}, is a
 #'    dataframe of monitors within a calculated radius of the
@@ -36,11 +34,6 @@ isd_fips_stations <- function(fips, verbose = TRUE){
   radius_data <- countyweather::county_radius
   loc_rad <- which(radius_data == fips)
   radius <- radius_data[loc_rad, "county_radius"]
-
-  if(verbose) {
-    message(paste0("Getting hourly weather stations for ",
-                 census_data[loc_fips, "name"]))
-  }
 
   quiet_station_search <- purrr::quietly(rnoaa::isd_stations_search)
   stations <- quiet_station_search(lat = lat_fips, lon = lon_fips,

@@ -9,6 +9,8 @@
 #'
 #' @param station_label TRUE / FALSE to indicate if you want your plot of
 #'    weather station locations to include labels indicating station ids.
+#' @param verbose TRUE / FALSE to indicate if you want the function to print
+#'    out the name of the county it's processing.
 #'
 #' @return A list with three elements. The first element (\code{daily_data}) is a
 #'    dataframe of daily weather data averaged across multiple stations, as well
@@ -48,10 +50,18 @@
 #'        geom_line()
 #' }
 #' @export
-daily_fips <- function(fips, coverage = NULL,
-                         date_min = NULL, date_max = NULL,
-                         var = "all",
-                         average_data = TRUE, station_label = FALSE){
+daily_fips <- function(fips, coverage = NULL, date_min = NULL, date_max = NULL,
+                       var = "all", average_data = TRUE, station_label = FALSE,
+                       verbose = TRUE){
+
+  census_data <- countyweather::county_centers
+  loc_fips <- which(census_data$fips == fips)
+
+  if(verbose) {
+    message(paste0("Getting daily weather data for ",
+                   census_data[loc_fips, "name"], ".",
+                   " This may take a while."))
+  }
 
   stations <- daily_stations(fips = fips, date_min = date_min,
                             date_max = date_max)
@@ -282,6 +292,8 @@ daily_df <- function(stations, coverage = NULL,
 #' @param keep_map TRUE / FALSE indicating if a map of the stations should
 #'    be included. The map can substantially increase the size of the files. If
 #'    FALSE, the "maps" subdirectory will not be created.
+#' @param verbose TRUE / FALSE to indicate if you want the function to print
+#'    out the county or vector of counties it's saving files for.
 #'
 #' @note If the function is unable to pull weather data for a particular county
 #' given the specified percent coverage, date range, and/or weather variables,
@@ -299,7 +311,23 @@ write_daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
                                    date_max = NULL, var = "all",
                                    out_directory, data_type = "rds",
                                    meatadata_type = "rds", average_data = TRUE,
-                                   station_label = FALSE, keep_map = TRUE){
+                                   station_label = FALSE, keep_map = TRUE,
+                                   verbose = TRUE){
+
+  if(verbose) {
+    for(i in 1:length(fips)){
+      if(i == 1){
+        codes <- (paste0(fips[i], ", "))
+      } else if (i == length(fips)) {
+        codes <- paste0(codes, "and ", fips[i])
+      } else {
+        codes <- paste0(codes, fips[i], ", ")
+      }
+    }
+    message(paste0("Saving daily weather files for FIPS codes ", codes,
+                   " in the directory ", out_directory, ".", " This may take ",
+                   "a while."))
+  }
 
   if(!dir.exists(out_directory)){
     dir.create(out_directory)
