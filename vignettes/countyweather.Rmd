@@ -436,7 +436,14 @@ Error in getOption("noaakey", stop("need an API key for NOAA data")) :
   need an API key for NOAA data
 ```
 
-If you get this error message, run the code: 
+You might also see this warning message: 
+
+```{r eval = FALSE}
+Warning message:
+Error: (400) - Token parameter is required.
+```
+
+If you get one of these messages, run the code: 
 
 ```{r}
 options("noaakey" = Sys.getenv("noaakey"))
