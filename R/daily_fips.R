@@ -274,11 +274,11 @@ daily_df <- function(stations, coverage = NULL,
 #'    where you would like the three subdirectories ("data", "metadata", and
 #'    "plots") to be created.
 #' @param data_type A character string indicating that you would like either
-#'    .rds files (out_type = "rds") or .csv files (out_type = "csv") for the
+#'    .rds files (data_type = "rds") or .csv files (data_type = "csv") for the
 #'    timeseries output. This option defaults to .rds files.
 #' @param metadata_type A character string indicating that you would like either
-#'    .rds files (out_type  = "rds") or .csv files (out_type = "csv") for the
-#'    station metadata output. This option defaults to .rds files.
+#'    .rds files (metadata_type  = "rds") or .csv files (metadata_type = "csv")
+#'    for the station metadata output. This option defaults to .rds files.
 #' @param keep_map TRUE / FALSE indicating if a map of the stations should
 #'    be included. The map can substantially increase the size of the files. If
 #'    FALSE, the "maps" subdirectory will not be created.

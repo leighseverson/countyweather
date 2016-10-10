@@ -70,9 +70,8 @@ hourly_fips <- function(fips, year, var = "all",
 #' This function filters and averages across NOAA ISD/ISH stations based on
 #' user-specified coverage specifications.
 #'
-#' @param fips A character string or vector giving the five-digit U.S. FIPS
-#'    county code of the county or counties for which the user wants to pull
-#'    weather data.
+#' @param fips A string with the five-digit U.S. FIPS code of a county
+#'    in numeric, character, or factor format.
 #' @param year a four digit number or vector of numbers indicating the year or
 #'    years for which you want to pull hourly data. Values for \code{year} can
 #'    be in the range from 1901 to the current year.
@@ -205,28 +204,47 @@ hourly_df <- function(fips, year,
 
 #' Write hourly weather timeseries files for U.S. counties.
 #'
-#' Given a vector of U.S. county FIPS codes, this function saves lists of five
-#' elements created from the function \code{hourly_fips}. Within this list,
-#' the element \code{hourly_data} gives a timeseries dataframe giving: 1. the
-#' values for specified weather variables, and 2. the number of weather stations
-#' contributing to the average for each day within the specified date range.
-#' Other elements saved include \code{station_metadata} and \code{station_map}.
-#' \code{radius} gives the radius (in km) within which weather stations
-#' were pulled from each county's population-weighted center, and
-#' \code{lat_center} and \code{lon_center} are the latitude and longitude of the
-#' county's population-weighted center.
+#' Given a vector of U.S. county FIPS codes, this function saves each element of
+#' the lists created from the function \code{daily_fips} to a separate folder
+#' within a fiven directory. The dataframe \code{daily_data} is saved to a
+#' subdirectory of the given directory called "data." This timeseries dataframe
+#' gives 1. the values for specified weather variables, and 2. the number of
+#' weather stations contributing to the average for each day within the
+#' specified year(s). Metadata information about the weather stations and
+#' county are saved in a list with four elements in a subdirectory called
+#' "metadata." These elements include \code{station_metadata} (station metadata
+#' for stations contributing to the time series dataframe), \code{radius}
+#' (the radius (in km) within which weather stations were pulled from each
+#' county's center), \code{lat_center}, and \code{lon_center} (the latitude
+#' and longitude of the county's center). If the user specifies "csv" ouput for
+#' the \code{metadata_type}, argument, \code{radius}, \code{lat_center}, and
+#' \code{lon_center} are added to the \code{station_metadata} dataframe as three
+#' additional columns.
 #'
-#' Given a vector of U.S. county FIPS codes, this function creates timeseries
-#' dataframes giving: 1. the values for specified weather variables, and 2. the
-#' number of weather stations contributing to the average for each day within the
-#' specified date range.
-#'
-#' @return Writes out a directory with daily weather RDS files for each FIPS
-#' code specified.
+#' @return Writes out three subirectories of a fiven directory with hourly
+#' weather files saved in "data", station and county metadata saved in
+#' "metadata", and a map of weather station locations saved in "maps" for each
+#' FIPS code specified. The user can specify either .rds or .csv files for the
+#' data and metadatafiles, using the arguments \code{data_type} and
+#' \code{metadata_type}, respectively. Maps are saved as .png files.
 #'
 #' @inheritParams hourly_df
 #' @param out_directory The absolute or relative pathname for the directory
-#' where you would like the timeseries files to be saved.
+#'    where you would like the timeseries files to be saved.
+#' @param data_type A character strign indicating that you would like either
+#'    .rds files (data_type = "rds") or .csv files (data_type = "csv") for the
+#'    timeseries output. This option defaults to .rds files.
+#' @param metadata_type A character string indicating that you would like either
+#'    .rds files (metadata_type = "rds") or .csv files (metadata_type = "csv")
+#'    for the station and county metadata output. This option defaults to .rds
+#'    files, in which case a list of four elements is saved
+#'    (\code{station_metadata}, \code{radius}, \code{lat_center}, and
+#'    \code{lon_center}). If the user specified "csv" output, \code{radius},
+#'    \code{lat_center}, and \code{lon_center} are added to the
+#'    \code{station_metadata} dataframe as additional columns.
+#' @param keep_map TRUE / FALSE indicating if a map of the stations should
+#'    be included. The map can substantially increase the size of the files. If
+#'    FALSE, the "maps" subdirectory will not be created.
 #'
 #' @note If the function is unable to pull weather data for a particular county
 #' given the specified percent coverage, date range, and/or weather variables,
@@ -239,11 +257,10 @@ hourly_df <- function(fips, year,
 #'                   out_directory = "~/timeseries_hourly")
 #' }
 #' @export
-write_hourly_timeseries <- function(fips, coverage = NULL, year,
-                              var = "all", out_directory,
-                              average_data = TRUE,
-                              station_label = FALSE,
-                              keep_map = TRUE){
+write_hourly_timeseries <- function(fips, coverage = NULL, year, var = "all",
+                                    out_directory, data_type = "rds",
+                                    meatadata_type = "rds", average_data = TRUE,
+                                    station_label = FALSE, keep_map = TRUE){
   if(!dir.exists(out_directory)){
     dir.create(out_directory)
   }
@@ -269,15 +286,42 @@ write_hourly_timeseries <- function(fips, coverage = NULL, year,
       meta <- c(2, 4:6)
       out_metadata <- out_list[meta]
 
-      data_file <- paste0(out_directory, "/data", "/", fips[i], ".rds")
-      saveRDS(out_data, file = data_file)
+      if(data_type == "rds"){
 
-      metadata_file <- paste0(out_directory, "/metadata", "/", fips[i], ".rds")
-      saveRDS(out_metadata, file = metadata_file)
+        data_file <- paste0(out_directory, "/data", "/", fips[i], ".rds")
+        saveRDS(out_data, file = data_file)
 
-      if(keep_map == TRUE){
+      } else if (data_type == "csv"){
 
-        if(!dir.exists(paste0(out_directory, "/maps"))){
+        data_file <- paste0(out_directory, "/data", "/", fips[i], ".csv")
+        utils::write.csv(out_data, file = data_file, row.names = FALSE)
+
+      }
+
+      if (metadata_type == "rds"){
+
+        metadata_file <- paste0(out_directory, "/metadata", "/", fips[i],
+                                ".rds")
+        saveRDS(out_metadata, file = metadata_file)
+
+      } else if (metadata_type == "csv"){
+
+        out_metadata[[1]]$radius <- out_metadata[[2]]
+        out_metadata[[1]]$lat_center <- out_metadata[[3]]
+        out_metadata[[1]]$lon_center <- out_metadata[[4]]
+
+        out_metadata <- out_metadata[[1]]
+
+        metadata_file <- paste0(out_directory, "/metadata", "/", fips[i],
+                                ".csv")
+        utils::write.csv(out_metadata, file = metadata_file, row.names = FALSE)
+
+      }
+
+
+      if (keep_map == TRUE){
+
+        if (!dir.exists(paste0(out_directory, "/maps"))){
           dir.create(paste0(out_directory, "/maps"))
         }
 
@@ -289,8 +333,6 @@ write_hourly_timeseries <- function(fips, coverage = NULL, year,
                                          plot = out_map))
 
       }
-      # problem - when data can't be pulled, still producing a map with
-      # a mismatched name and image
 
     }
     ,
@@ -301,7 +343,7 @@ write_hourly_timeseries <- function(fips, coverage = NULL, year,
                    " weather variables."))
     }
     )
-    if(inherits(possibleError, "error")) next
+    if (inherits(possibleError, "error")) next
 
   }
 
@@ -318,15 +360,19 @@ write_hourly_timeseries <- function(fips, coverage = NULL, year,
 #' weather variable for each file present in the directory specified.
 #'
 #' @param var A character string (all lower-case) specifying which weather
-#' variable present in the timeseries dataframe you would like to produce
-#' plots for. For example, var = "wind_speed".
+#'    variable present in the timeseries dataframe you would like to produce
+#'    plots for. For example, var = "wind_speed".
 #' @param data_directory The absolute or relative pathname for the directory
-#' where your daily timeseries dataframes (produced by \code{county_timeseries})
-#' are saved.
+#'    where your daily timeseries dataframes (produced by \code{county_timeseries})
+#'    are saved.
 #' @param plot_directory The absolute or relative pathname for the directory
-#' where you would like the plots to be saved.
-#' @param year A year or vecotr of years giving the year(s) present in the
-#' timeseries dataframe.
+#'    where you would like the plots to be saved.
+#' @param year A year or vector of years giving the year(s) present in the
+#'    timeseries dataframe.
+#' @param data_type A character string indicating the type of timeseries files
+#'    you would like to produce plots for (either "rds" or "csv"). This option
+#'    defaults to .rds files.
+#'
 #' @examples
 #' \dontrun{
 #'plot_hourly_timeseries(var = "wind_speed", year = 1992,
@@ -336,7 +382,7 @@ write_hourly_timeseries <- function(fips, coverage = NULL, year,
 #' @importFrom dplyr %>%
 #' @export
 plot_hourly_timeseries <- function(var, year, data_directory,
-                                  plot_directory){
+                                  plot_directory, data_type = "rds"){
 
   files <- list.files(data_directory)
 
@@ -350,7 +396,12 @@ plot_hourly_timeseries <- function(var, year, data_directory,
     dir.create(plot_directory)
   }
 
+  if(data_type == "rds"){
     file_names <- gsub(".rds", "", files)
+  } else if (data_type == "csv"){
+    file_names <- gsub(".csv", files)
+  }
+
 
     current_wd <- getwd()
 
