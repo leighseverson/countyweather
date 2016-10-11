@@ -254,7 +254,8 @@ ave_hourly <- function(hourly_data){
   return(averaged_data)
 }
 
-#' Filter NOAA ISD stations based on "coverage" requirements.
+#' Filter NOAA ISD stations based on "coverage" requirements, and calculate
+#' coverage and statistical information for each station-variable combination.
 #'
 #' \code{filter_hourly} filters available weather variables based on a specified
 #' minimum coverage (i.e., percent non-missing hourly observations).
@@ -268,12 +269,6 @@ ave_hourly <- function(hourly_data){
 #'    desired percentage coverage for each weather variable (i.e., what percent
 #'    of each weather variable must be non-missing to include the data from a
 #'    station when calculating hourly values averaged across stations).
-#' @param var A character vector specifying desired weather variables. For
-#'    example, var = c("wind_speed", "temperature"). The core available weather
-#'    variables include \code{wind_direction}, \code{wind_speed},
-#'    \code{ceiling_height}, \code{visibility_distance}, \code{temperature},
-#'    \code{temperature_dewpoint} and \code{air_pressure}. Alternatively,
-#'    you can specify var = "all" to include additional flag and quality codes.
 #'
 #' @return A list with two elements: \code{stations} is a dataframe giving
 #'    statistical information for stations that meet the specified coverage
@@ -290,8 +285,7 @@ ave_hourly <- function(hourly_data){
 #'    maximum values for the values in each station and weather variable.
 #'
 #' @importFrom dplyr %>%
-filter_hourly <- function(fips, hourly_data, coverage = NULL,
-                          var = "all"){
+filter_hourly <- function(fips, hourly_data, coverage = NULL){
 
   if(purrr::is_null(coverage)){
    coverage <- 0
@@ -304,8 +298,9 @@ filter_hourly <- function(fips, hourly_data, coverage = NULL,
   group_cols <- c("station", "key")
 
   # calc_coverage for each station (combination of usaf and wban ids)
+  # suppressing "NAs introduced by coercion" warning message
 
-  df <- hourly_data %>%
+  df <- suppressWarnings(hourly_data %>%
     tidyr::unite_(col = "station", from = c("usaf_station", "wban_station"),
                   sep = "-") %>%
     dplyr::select_(quote(-date_time), quote(-latitude), quote(-longitude)) %>%
@@ -316,7 +311,21 @@ filter_hourly <- function(fips, hourly_data, coverage = NULL,
                       standard_dev = ~ sd(value, na.rm = TRUE),
                       min = ~ min(value, na.rm = TRUE),
                       max = ~ max(value, na.rm = TRUE),
-                      range = ~ max - min)
+                      range = ~ max - min))
+
+  weather_vars <- c("wind_direction", "wind_speed", "ceiling_height",
+                    "visibility_distance", "temperature",
+                    "temperature_dewpoint", "air_pressure")
+  flag_vars <- df[!df$key %in% weather_vars, "key"]$key
+
+  if(length(flag_vars) != 0){
+    for(i in 1:length(flag_vars)){
+      df[which(df$key == flag_vars[i]), ]$standard_dev <- NA
+      df[which(df$key == flag_vars[i]), ]$min <- NA
+      df[which(df$key == flag_vars[i]), ]$max <- NA
+      df[which(df$key == flag_vars[i]), ]$range <- NA
+    }
+  }
 
   group_cols <- c("date_time", "key")
 
