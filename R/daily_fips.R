@@ -86,8 +86,11 @@ daily_fips <- function(fips, coverage = NULL, date_min = NULL, date_max = NULL,
 #' \code{averaged} is a dataframe of average daily weather values for a
 #' particular county, date range, and/or specified "coverage." The element
 #' \code{stations} is a dataframe containing metadata about stations
-#' contributing to the average weather values in the \code{averaged} dataframe.
-#' Columns in the \code{stations} dataframe include each station's latitude,
+#' contributing to the average weather values in the \code{averaged} dataframe,
+#' as well as statistical information about the values for each station-weather
+#' variable combination.
+#' Columns in the \code{stations} dataframe include each station's id, key
+#' (indicating the weather variable that station is contributing data for), latitude,
 #' longitude, id, and name.
 #'
 #' This function serves as a wrapper to several functions from the \code{rnoaa}
@@ -134,8 +137,35 @@ daily_fips <- function(fips, coverage = NULL, date_min = NULL, date_max = NULL,
 #'    weather data averaged across multiple monitors, as well as columns
 #'    (\code{"var"_reporting}) for each weather variable showing the number of
 #'    stations contributing to the average for that variable on that day.
-#'    The element \code{station_df} is a vector of weather stations contributing
-#'    to the average value in the \code{daily_data} dataframe.
+#'    The element \code{station_df} is a dataframe of station metadata for each
+#'    station contributing weather data. A weather station will have one row per
+#'    weather variable it contributes data to. In addition to information such
+#'    as station id, name, latitude, and longitude, this dataframe includes
+#'    statistical information abotu weather values contributed by each station
+#'    for each weather variable. These statistics include calculated coverage
+#'
+#'    to the average value in the \code{daily_data} dataframe, as well as
+#'    statistical calculations for each station-weather variable combination.
+#'    Calculated statistics include \code{calc_coverage} (the percent of
+#'    non-missing values for each station-weather variable combination for the
+#'    specified date range), \code{standard_dev} (standard deviation), \code{max},
+#'    and \code{min}, (giving the minimum and maximum values), and \code{range},
+#'    giving the range of values in each station-weather variable combination.
+#'
+#'    dataframe of station
+#'    metadata for each station contributing weather data. A weather station
+#'    will have one row per weather variable it contributes data to. In addition
+#'    to information such as usaf and wban ids and station names, this
+#'    dataframe includes statistical information about weather values
+#'    contributed by each station for each weather variable. These statistics
+#'    include calculated coverage (\code{calc_coverage}), which is the percent
+#'    of non-missing values for each station and variable for the specified
+#'    date range, \code{standard_dev} (standard deviation), and \code{max} and
+#'    \code{min} values for each station-weather variable combination. The
+#'    element \code{radius} is the calculated radius within which stations were
+#'    pulled from the county's population-weighted center. Elements
+#'    \code{lat_center} and \code{lon_center} are the latitude and longitude of
+#'    the county's population-weighted center.
 #'
 #' @examples
 #' \dontrun{
@@ -231,8 +261,9 @@ daily_df <- function(stations, coverage = NULL,
     tidyr::gather_(key_col = "key", value_col = "value", gather_cols = g_cols) %>%
     dplyr::group_by_(.dots = group_cols) %>%
     dplyr::summarize_(standard_dev = ~ sd(value, na.rm = TRUE),
-                      range = ~ max(value, na.rm = TRUE) -
-                        min(value, na.rm =TRUE))
+                      min = ~ min(value, na.rm = TRUE),
+                      max = ~ max(value, na.rm = TRUE),
+                      range = ~ max - min)
 
   filtered <- dplyr::filter_(filtered, ~ id %in% good_monitors)
   stats <- dplyr::full_join(stats, filtered, by = c("id", "key"))
@@ -240,9 +271,9 @@ daily_df <- function(stations, coverage = NULL,
   stations <- dplyr::filter_(stations, ~ id %in% good_monitors)
 
   stations <- dplyr::full_join(stats, stations, by = "id") %>%
-    dplyr::select_(quote(id), quote(name), quote(key), quote(calc_coverage),
-                   quote(standard_dev), quote(range), quote(latitude),
-                   quote(longitude))
+    dplyr::select_(quote(id), quote(name), quote(key), quote(latitude),
+                   quote(longitude), quote(calc_coverage), quote(standard_dev),
+                   quote(min), quote(max), quote(range))
 
   colnames(stations)[3] <- "var"
 

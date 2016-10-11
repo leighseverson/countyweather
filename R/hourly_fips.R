@@ -19,18 +19,19 @@
 #'    as columns (\code{"var"_reporting}) for each weather variable showing the
 #'    number of stations contributing to the average for that variable for that
 #'    hour. The second element (\code{station_metadata} is a dataframe of station
-#'    metadata for stations included in the \code{daily_data} dataframe.
-#'    The third element (\code{station_map}) is a plot showing points for all
-#'    weather stations for a particular county satisfying the conditions present
-#'    in \code{hourly_fips}'s arguments (year, coverage, and/or var).
-#'    \code{radius} is the calculated radius within which stations were pulled
-#'    from the county's population-weighted center. Elements \code{lat_center}
-#'    and \code{lon_center} are the latitude and longitude of the county's
-#'    population-weighted center.
+#'    metadata for stations included in the \code{daily_data} dataframe, as
+#'    well as statistical information about the values contriuted to each
+#'    weather variable by each station. The third element (\code{station_map})
+#'    is a plot showing points for all weather stations for a particular county
+#'    satisfying the conditions present in \code{hourly_fips}'s arguments
+#'    (year, coverage, and/or var). \code{radius} is the calculated radius
+#'    within which stations were pulled from the county's center. Elements
+#'    \code{lat_center} and \code{lon_center} are the latitude and longitude of
+#'    the county's center.
 #'
 #' @note Observation times are vased on Coordinated Universal Time Code (UTC).
 #'
-#'@examples
+#' @examples
 #' \dontrun{
 #'
 #' ex <- hourly_fips("12086", coverage = 0.90, year = c(1994, 1995),
@@ -67,7 +68,6 @@ hourly_fips <- function(fips, year, var = "all",
                "lat_center" = weather_data$lat_center,
                "lon_center" = weather_data$lon_center)
   return(list)
-
 
 }
 
@@ -111,12 +111,12 @@ hourly_fips <- function(fips, year, var = "all",
 #'    contributed by each station for each weather variable. These statistics
 #'    include calculated coverage (\code{calc_coverage}), which is the percent
 #'    of non-missing values for each station and variable for the specified
-#'    date range, \code{standard_dev} (standard deviation), and \code{max} and
-#'    \code{min} values for each station-weather variable combination. The
-#'    element \code{radius} is the calculated radius within which stations were
-#'    pulled from the county's population-weighted center. Elements
+#'    date range, \code{standard_dev} (standard deviation), \code{max},
+#'    \code{min}, and \code{range} values for each station-weather variable
+#'    combination. The element \code{radius} is the calculated radius within
+#'    which stations were pulled from the county's center. Elements
 #'    \code{lat_center} and \code{lon_center} are the latitude and longitude of
-#'    the county's population-weighted center.
+#'    the county's center.
 #'
 #' @note: Observation times are vased on Coordinated Universal Time Code (UTC).
 #'
