@@ -270,19 +270,30 @@ ave_hourly <- function(hourly_data){
 #'    of each weather variable must be non-missing to include the data from a
 #'    station when calculating hourly values averaged across stations).
 #'
-#' @return A list with two elements: \code{stations} is a dataframe giving
-#'    statistical information for stations that meet the specified coverage
+#' @return A list with two elements: \code{df} and \code{stations}. \code{df} is
+#'    a dataframe of hourly weather data filtered based on the specfified
+#'    coverage, as well as columns (\code{"var"_reporting}) for each weather
+#'    variable showing the number of stations contributing to the average for that
+#'    variable for each hour. The second element, \code{stations} is a dataframe
+#'    giving statistical information for stations that meet the specified coverage
 #'    requirements. The column \code{station} gives the station id (usaf and
 #'    wban identification numbers pasted together, separated by "-"). Note: one
-#'    of these identification ids is sometimes missing. For example, value in
+#'    of these identification ids is sometimes missing. For example, a value in
 #'    \code{station} might be \code{722029-NA}. The column \code{var}
 #'    gives the weather variable associated with the row of statistical values
 #'    for each station and variable combination. \code{calc_covearge} gives the
-#'    percentage coverage for each weather variable and station. These values
-#'    will all be greater than or equal to the specified \code{coverage} value.
-#'    \code{standard_dev} gives the standard deviation of values for each station
-#'    and weather variable. \code{max} and \code{min} give the minimum and
-#'    maximum values for the values in each station and weather variable.
+#'    percentage coverage for each station-weather variable combination. These
+#'    values will all be greater than or equal to the specified \code{coverage}
+#'    value. \code{standard_dev} gives the standard deviation of values for each
+#'    station-weather variable combination. \code{max} and \code{min} give the
+#'    minimum and maximum values, and \code{range} gives the range of values in
+#'    each station-weather variable combination. These last four statistical
+#'    calculations (\code{standard_dev}, \code{max}, \code{min}, and
+#'    \code{range}) are only included for the seven core hourly weather variables,
+#'    which include "wind_direction", "wind_speed", "ceiling_height",
+#'    "visibility_distance", "temperature", "temperature_dewpoint", and
+#'    "air_pressure." (The values of these columns are set to "NA" for other
+#'    variables, such as quality flag data.)
 #'
 #' @importFrom dplyr %>%
 filter_hourly <- function(fips, hourly_data, coverage = NULL){
