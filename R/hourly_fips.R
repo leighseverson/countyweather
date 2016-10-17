@@ -49,7 +49,7 @@ hourly_fips <- function(fips, year, var = "all",
   loc_fips <- which(census_data$fips == fips)
 
   if(verbose) {
-    message(paste0("Getting daily weather data for ",
+    message(paste0("Getting hourly weather data for ",
                    census_data[loc_fips, "name"], ".",
                    " This may take a while."))
   }
