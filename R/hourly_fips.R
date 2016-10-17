@@ -166,7 +166,7 @@ hourly_df <- function(fips, year,
   # filter stations (if coverage is NULL, filters as if coverage = 0) and get
   # statistical info for each station/var pair
     filtered_list <- filter_hourly(fips = fips, hourly_data = data,
-                                   coverage = coverage, var = var)
+                                   coverage = coverage)
     station_stats <- filtered_list$stations
 
     filtered_stations <- unique(station_stats$station)
