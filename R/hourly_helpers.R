@@ -27,13 +27,13 @@ isd_fips_stations <- function(fips, verbose = TRUE){
   # population-weighted center for specified county
   census_data <- countyweather::county_centers
   loc_fips <- which(census_data$fips == fips)
-  lat_fips <- census_data[loc_fips, "latitude"]
-  lon_fips <- census_data[loc_fips, "longitude"]
+  lat_fips <- as.numeric(census_data[loc_fips, "latitude"])
+  lon_fips <- as.numeric(census_data[loc_fips, "longitude"])
 
   # radius data for specified county
   radius_data <- countyweather::county_radius
   loc_rad <- which(radius_data == fips)
-  radius <- radius_data[loc_rad, "county_radius"]
+  radius <- as.numeric(radius_data[loc_rad, "county_radius"])
 
   quiet_station_search <- purrr::quietly(rnoaa::isd_stations_search)
   stations <- quiet_station_search(lat = lat_fips, lon = lon_fips,
@@ -421,12 +421,12 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
 
   census_data <- countyweather::county_centers
   row_num <- which(grepl(fips, census_data$fips))
-  title <- census_data[row_num, "name"]
+  title <- as.character(census_data[row_num, "name"])
 
   # for ggmap lat/lon
   loc_fips <- which(census_data$fips == fips)
-  lat_fips <- census_data[loc_fips, "latitude"]
-  lon_fips <- census_data[loc_fips, "longitude"]
+  lat_fips <- as.numeric(census_data[loc_fips, "latitude"])
+  lon_fips <- as.numeric(census_data[loc_fips, "longitude"])
 
   # filter county's shapefile
   shp <- countyweather::county_outlines

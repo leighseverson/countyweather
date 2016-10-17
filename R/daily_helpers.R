@@ -190,12 +190,12 @@ daily_stationmap <- function(fips, daily_data, point_color = "firebrick",
   # for plot title
   census_data <- countyweather::county_centers
   row_num <- which(grepl(fips, census_data$fips))
-  title <- census_data[row_num, "name"]
+  title <- as.character(census_data[row_num, "name"])
 
   # for ggmap lat/lon
   loc_fips <- which(census_data$fips == fips)
-  lat_fips <- census_data[loc_fips, "latitude"]
-  lon_fips <- census_data[loc_fips, "longitude"]
+  lat_fips <- as.numeric(census_data[loc_fips, "latitude"])
+  lon_fips <- as.numeric(census_data[loc_fips, "longitude"])
 
   # filter county's shapefile
   shp <- countyweather::county_outlines
