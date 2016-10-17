@@ -280,7 +280,7 @@ daily_df <- function(stations, coverage = NULL,
   # average across stations, add a column for number of stations that
   # contributed to each daily average
   if(average_data == TRUE){
-    filtered_data <- ave_weather(filtered_data)
+    filtered_data <- ave_daily(filtered_data)
   }
 
   out <- list("daily_data" = filtered_data, "station_df" = stations)

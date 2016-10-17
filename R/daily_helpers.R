@@ -70,7 +70,7 @@ daily_stations <- function(fips, date_min = NULL, date_max = NULL){
 
 #' Average weather data across multiple stations.
 #'
-#' \code{ave_weather} returns a dataframe with daily weather averaged across
+#' \code{ave_daily} returns a dataframe with daily weather averaged across
 #'    stations, as well as columns showing the number of stations contributing
 #'    to the average for each variable and each day.
 #'
@@ -80,7 +80,7 @@ daily_stations <- function(fips, date_min = NULL, date_max = NULL){
 #'
 #' @importFrom dplyr %>%
 #'
-ave_weather <- function(weather_data){
+ave_daily <- function(weather_data){
 
   all_cols <- colnames(weather_data)
   not_vars <- c("id", "date")
