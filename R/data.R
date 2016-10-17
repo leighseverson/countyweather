@@ -1,18 +1,24 @@
 #' County latitude and longitude designations.
 #'
-#' A dataframe containing latitude, longitude, FIPS code, name, and region code
-#' for each U.S. county. This dataset was put together using a dataframe from the U.S.
-#' Census Bureau, which was pulled from the website listed in "Source."
+#' A dataframe containing state, FIPS code, name, geographic latitude and
+#' longitude, and region code for each U.S. county as of 2010. This dataset was
+#' put together using a dataframe from the U.S. Census Bureau, which was pulled
+#' from the website listed in "Source." (Note: the names (in county, state format)
+#' for each county were pulled from the 2010 U.S. Census file found here:
+#' \url{http://www2.census.gov/geo/docs/reference/cenpop2010/county/CenPop2010_Mean_CO.txt}.)
+#'
 #'
 #' @format A dataframe with 3,143 rows and 5 variables:
 #' \describe{
-#'    \item{latitude}{A numeric vector giving the latutude at the center of each
-#'                    county}
-#'    \item{longitude}{A numeric vector giving the longitude at the center of
-#'                     each county}
+#'    \item{state}{A character vector giving the two-letter abbreviation for
+#'                 the state of each county}
 #'    \item{fips}{A numeric vector giving the county's five-digit Federal
 #'                Information Processing Standard (FIPS) code}
 #'    \item{name}{A character vector giving the name and state for each county}
+#'    \item{latitude}{A numeric vector giving the latutude at the geographic
+#'                    center of each county}
+#'    \item{longitude}{A numeric vector giving the longitude at the geographic
+#'                     center of each county}
 #'    \item{region}{A numeric vector giving the four-digit or five-digit Federal
 #'                  Information Processing Standard (FIPS) code (values in this
 #'                  column are identical to those in the "fips" column, but do
@@ -21,7 +27,7 @@
 #'
 #' @source
 #'
-#' \url{http://www2.census.gov/geo/docs/reference/cenpop2010/county/CenPop2010_Mean_CO.txt}
+#' \url{https://www.census.gov/geo/maps-data/data/gazetteer2010.html}
 "county_centers"
 
 #' County land area data.
