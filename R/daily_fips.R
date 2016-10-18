@@ -316,7 +316,7 @@ daily_df <- function(stations, coverage = NULL,
 #'
 #' @examples
 #' \dontrun{
-#' write_daily_timeseries(fips = c("37055", "15005"), coverage = 0.90
+#' write_daily_timeseries(fips = c("37055", "15005"), coverage = 0.90,
 #'                        date_min = "1995-01-01", date_max = "1995-01-31",
 #'                        var = c("tmax", "tmin", "prcp"),
 #'                        out_directory = "~/timeseries")
@@ -330,19 +330,47 @@ write_daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
                                    verbose = TRUE){
 
   if(verbose) {
-    for(i in 1:length(fips)){
-      if(i == 1){
-        codes <- (paste0(fips[i], ", "))
-      } else if (i == length(fips)) {
-        codes <- paste0(codes, "and ", fips[i])
-      } else {
-        codes <- paste0(codes, fips[i], ", ")
+
+    if(length(fips) > 2){
+
+      for(i in 1:length(fips)){
+        if(i == 1){
+          codes <- (paste0(fips[i], ", "))
+        } else if (i == length(fips)) {
+          codes <- paste0(codes, "and ", fips[i])
+        } else {
+          codes <- paste0(codes, fips[i], ", ")
+        }
       }
+      message(paste0("Saving daily weather files for FIPS codes ", codes,
+                     " in the directory ", out_directory, ".", " This may take ",
+                     "a while."))
+
+    } else if (length(fips == 2)) {
+
+      for(i in 1:length(fips)){
+        if(i == 1){
+          codes <- paste0(fips[i], " ")
+        } else if (i == length(fips)) {
+          codes <- paste0(codes, "and ", fips[i])
+        } else {
+          codes <- paste0(codes, fips[i], ", ")
+        }
+      }
+      message(paste0("Saving daily weather files for FIPS codes ", codes,
+                     " in the directory ", out_directory, ".", " This may take ",
+                     "a while."))
+
+    } else {
+
+      message(paste0("Saving daily weather files for FIPS code ", fips,
+                     " in the directory ", out_directory, ".", " This may take ",
+                     "a while."))
+
+      }
+
     }
-    message(paste0("Saving daily weather files for FIPS codes ", codes,
-                   " in the directory ", out_directory, ".", " This may take ",
-                   "a while."))
-  }
+
 
   if(!dir.exists(out_directory)){
     dir.create(out_directory)
@@ -447,9 +475,10 @@ write_daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
 #'
 #' @examples
 #' \dontrun{
-#'plot_daily_timeseries(var = "prcp",
-#'                data_directory = "~/timeseries/data",
-#'                plot_directory = "~/timeseries/plots_prcp")
+#' plot_daily_timeseries(var = "prcp", date_min = "1995-01-01",
+#'                       date_max = "1995-01-31",
+#'                       data_directory = "~/timeseries/data",
+#'                       plot_directory = "~/timeseries/plots_prcp")
 #'
 #'plot_daily_timeseries(files = files, var = "tmax",
 #'                data_directory = "~/timeseries/data",
