@@ -24,12 +24,10 @@
 #' @examples
 #' \dontrun{
 #' ex <- daily_stations("36005")
-#' ex2 <- daily_stations("12086", date_min = "1999-01-01",
-#'                               date_max = "2012-12-31")
+#' ex2 <- daily_stations("12086", date_min = "1999-01-01", date_max = "2012-12-31")
 #' }
 #'
 #' @importFrom dplyr %>%
-#' @export
 daily_stations <- function(fips, date_min = NULL, date_max = NULL){
 
   FIPS <- paste0('FIPS:', fips)
@@ -79,7 +77,6 @@ daily_stations <- function(fips, date_min = NULL, date_max = NULL){
 #'    \code{meteo_pull_monitors}.
 #'
 #' @importFrom dplyr %>%
-#'
 ave_daily <- function(weather_data){
 
   all_cols <- colnames(weather_data)
@@ -125,7 +122,6 @@ ave_daily <- function(weather_data){
 #'    this function's arguments.
 #'
 #' @importFrom dplyr %>%
-#'
 filter_coverage <- function(coverage_df, coverage = NULL){
 
   if (is.null(coverage)){
