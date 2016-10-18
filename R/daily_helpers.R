@@ -167,7 +167,7 @@ filter_coverage <- function(coverage_df, coverage = NULL) {
 #' @return A plot showing points for all weather stations for a particular
 #'    county satisfying the conditions present in \code{daily_df}'s
 #'    arguments (date range and/or var). 2010 U.S. Census cartographic boundary
-#'    shapefiles are used to proved county outlines.
+#'    shapefiles are used to provide county outlines.
 #'
 #' @examples
 #' \dontrun{
