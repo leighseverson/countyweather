@@ -28,9 +28,7 @@
 #' }
 #'
 #' @importFrom dplyr %>%
-daily_stations <- function(fips,
-                           date_min = NULL,
-                           date_max = NULL) {
+daily_stations <- function(fips, date_min = NULL, date_max = NULL) {
 
   FIPS <- paste0('FIPS:', fips)
   station_ids <- rnoaa::ncdc_stations(datasetid = 'GHCND', locationid = FIPS,
@@ -124,8 +122,7 @@ ave_daily <- function(weather_data) {
 #'    this function's arguments.
 #'
 #' @importFrom dplyr %>%
-filter_coverage <- function(coverage_df,
-                            coverage = NULL) {
+filter_coverage <- function(coverage_df, coverage = NULL) {
 
   if (is.null(coverage)) {
     coverage <- 0
@@ -183,11 +180,8 @@ filter_coverage <- function(coverage_df,
 #' }
 #'
 #' @importFrom dplyr %>%
-daily_stationmap <- function(fips,
-                             daily_data,
-                             point_color = "firebrick",
-                              point_size = 2,
-                             station_label = FALSE) {
+daily_stationmap <- function(fips, daily_data, point_color = "firebrick",
+                             point_size = 2, station_label = FALSE) {
 
   # for plot title
   census_data <- countyweather::county_centers

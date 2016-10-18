@@ -49,13 +49,8 @@
 #'    geom_line()
 #' }
 #' @export
-daily_fips <- function(fips,
-                       coverage = NULL,
-                       date_min = NULL,
-                       date_max = NULL,
-                       var = "all",
-                       average_data = TRUE,
-                       station_label = FALSE,
+daily_fips <- function(fips, coverage = NULL, date_min = NULL, date_max = NULL,
+                       var = "all", average_data = TRUE, station_label = FALSE,
                        verbose = TRUE) {
 
   census_data <- countyweather::county_centers
@@ -168,12 +163,8 @@ daily_fips <- function(fips,
 #' averaged_data <- list$daily_data
 #' station_info <- list$stations
 #' }
-daily_df <- function(stations,
-                     coverage = NULL,
-                     var = "all",
-                     date_min = NULL,
-                     date_max = NULL,
-                     average_data = TRUE) {
+daily_df <- function(stations, coverage = NULL, var = "all", date_min = NULL,
+                     date_max = NULL, average_data = TRUE) {
 
   # get tidy full dataset for all monitors
   quiet_pull_monitors <- purrr::quietly(rnoaa::meteo_pull_monitors)
@@ -326,17 +317,11 @@ daily_df <- function(stations,
 #'                        out_directory = "~/timeseries")
 #' }
 #' @export
-write_daily_timeseries <- function(fips, coverage = NULL,
-                                   date_min = NULL,
-                                   date_max = NULL,
-                                   var = "all",
-                                   out_directory,
-                                   data_type = "rds",
-                                   metadata_type = "rds",
-                                   average_data = TRUE,
-                                   station_label = FALSE,
-                                   keep_map = TRUE,
-                                   verbose = TRUE) {
+write_daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
+                                   date_max = NULL, var = "all", out_directory,
+                                   data_type = "rds", metadata_type = "rds",
+                                   average_data = TRUE, station_label = FALSE,
+                                   keep_map = TRUE, verbose = TRUE) {
 
   if (verbose) {
 
@@ -488,23 +473,21 @@ write_daily_timeseries <- function(fips, coverage = NULL,
 #'                       data_directory = "~/timeseries/data",
 #'                       plot_directory = "~/timeseries/plots_prcp")
 #'
-#'plot_daily_timeseries(files = files, var = "tmax",
-#'                data_directory = "~/timeseries/data",
-#'                plot_directory = "~/timeseries/plots_tmax")
+#' plot_daily_timeseries(var = "tmax", date_min = "1995-01-01",
+#'                       date_max = "1995-01-31",
+#'                       data_directory = "~/timeseries/data",
+#'                       plot_directory = "~/timeseries/plots_tmax")
 #'
-#'plot_daily_timeseries(var = "tmin",
-#'                data_directory = "~/timeseries/data",
-#'                plot_directory = "~/timeseries/plots_tmin")
+#'plot_daily_timeseries(var = "tmin", date_min = "1995-01-01",
+#'                      date_max = "1995-01-31",
+#'                      data_directory = "~/timeseries/data",
+#'                      plot_directory = "~/timeseries/plots_tmin")
 #' }
 #' @importFrom dplyr %>%
 #'
 #' @export
-plot_daily_timeseries <- function(var,
-                                  date_min,
-                                  date_max,
-                                  data_directory,
-                                  plot_directory,
-                                  data_type = "rds") {
+plot_daily_timeseries <- function(var, date_min, date_max, data_directory,
+                                  plot_directory, data_type = "rds") {
 
   files <- list.files(data_directory)
 

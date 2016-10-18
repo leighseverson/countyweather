@@ -41,12 +41,8 @@
 #' station_data <- ex$station_metadata
 #' station_map <- ex$station_map
 #' @export
-hourly_fips <- function(fips,
-                        year,
-                        var = "all",
-                        coverage = NULL,
-                        average_data = TRUE,
-                        station_label = FALSE,
+hourly_fips <- function(fips, year, var = "all", coverage = NULL,
+                        average_data = TRUE, station_label = FALSE,
                         verbose = TRUE) {
 
   census_data <- countyweather::county_centers
@@ -139,10 +135,7 @@ hourly_fips <- function(fips,
 #' }
 #'
 #' @export
-hourly_df <- function(fips,
-                      year,
-                      var = "all",
-                      average_data = TRUE,
+hourly_df <- function(fips, year, var = "all", average_data = TRUE,
                       coverage = NULL) {
 
   # hourly data for multiple monitors for multiple years
@@ -274,23 +267,16 @@ hourly_df <- function(fips,
 #'
 #' @examples
 #' \dontrun{
-#' write_hourly_timeseries(fips = c("08031", "12086"), coverage = 0.90,
-#'                         year = c(1994, 1995),
-#'                         var = c("wind_speed", "temperature"),
+#' write_hourly_timeseries(fips = c("08031", "12086"), year = c("1994, 1995),
+#'                         coverage = 0.90, var = c("wind_speed", "temperature"),
 #'                         out_directory = "~/timeseries_hourly")
 #'
 #' }
 #' @export
-write_hourly_timeseries <- function(fips,
-                                    coverage = NULL,
-                                    year,
-                                    var = "all",
-                                    out_directory,
-                                    data_type = "rds",
-                                    metadata_type = "rds",
-                                    average_data = TRUE,
-                                    station_label = FALSE,
-                                    keep_map = TRUE,
+write_hourly_timeseries <- function(fips, year, coverage = NULL, var = "all",
+                                    out_directory, data_type = "rds",
+                                    metadata_type = "rds", average_data = TRUE,
+                                    station_label = FALSE, keep_map = TRUE,
                                     verbose = TRUE){
 
   if (verbose) {
@@ -458,10 +444,7 @@ write_hourly_timeseries <- function(fips,
 #'}
 #' @importFrom dplyr %>%
 #' @export
-plot_hourly_timeseries <- function(var,
-                                   year,
-                                   data_directory,
-                                   plot_directory,
+plot_hourly_timeseries <- function(var, year, data_directory, plot_directory,
                                    data_type = "rds") {
 
   files <- list.files(data_directory)

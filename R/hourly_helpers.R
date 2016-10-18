@@ -23,8 +23,7 @@
 #' list <- isd_fips_stations(fips = "12086")
 #' ids <- list$stations
 #' }
-isd_fips_stations <- function(fips,
-                              verbose = TRUE) {
+isd_fips_stations <- function(fips, verbose = TRUE) {
 
   # population-weighted center for specified county
   census_data <- countyweather::county_centers
@@ -85,10 +84,7 @@ isd_fips_stations <- function(fips,
 #'                                     year = 1992,
 #'                                     var = c("wind_speed", "temperature"))
 #' }
-int_surface_data <- function(usaf_code,
-                             wban_code,
-                             year,
-                             var = "all") {
+int_surface_data <- function(usaf_code, wban_code, year, var = "all") {
 
   quiet_isd <- purrr::quietly(rnoaa::isd)
   isd_df <- quiet_isd(usaf = usaf_code, wban = wban_code, year = year)
@@ -158,9 +154,7 @@ int_surface_data <- function(usaf_code,
 #'    geom_point(alpha = 0.5, size = 0.2) +
 #'    facet_wrap(~ usaf_station, ncol = 1)
 #' }
-isd_monitors_data <- function(fips,
-                              year,
-                              var = "all") {
+isd_monitors_data <- function(fips, year, var = "all") {
 
   list <- isd_fips_stations(fips)
   ids <- list$stations
@@ -306,9 +300,7 @@ ave_hourly <- function(hourly_data) {
 #'    variables, such as quality flag data.)
 #'
 #' @importFrom dplyr %>%
-filter_hourly <- function(fips,
-                          hourly_data,
-                          coverage = NULL) {
+filter_hourly <- function(fips, hourly_data, coverage = NULL) {
 
   if (purrr::is_null(coverage)) {
    coverage <- 0
@@ -427,11 +419,8 @@ filter_hourly <- function(fips,
 #' }
 #'
 #' @importFrom dplyr %>%
-hourly_stationmap <- function(fips,
-                              hourly_data,
-                              point_color = "firebrick",
-                              point_size = 2,
-                              station_label = FALSE) {
+hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
+                              point_size = 2, station_label = FALSE) {
 
   census_data <- countyweather::county_centers
   row_num <- which(grepl(fips, census_data$fips))
