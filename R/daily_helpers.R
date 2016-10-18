@@ -234,7 +234,7 @@ daily_stationmap <- function(fips, daily_data, point_color = "firebrick",
       ymax <- r@extent[4] + 0.025
     }
 
-    if(x_range <= 0.7989 & x_range > 0.3894){
+    if(x_range <= 0.7989 & x_range > 0.3894) {
 
       zoom <- 10
 
@@ -275,7 +275,7 @@ daily_stationmap <- function(fips, daily_data, point_color = "firebrick",
     }
 
   } else {
-    if(y_range <= 0.1616){
+    if(y_range <= 0.1616) {
 
       zoom <- 12
 
