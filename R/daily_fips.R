@@ -46,37 +46,45 @@
 #'                         average_data = FALSE)
 #' library(ggplot2)
 #' ggplot(mobile_ex$daily_weather, aes(x = date, y = prcp, color = id)) +
-#'        geom_line()
+#'    geom_line()
 #' }
 #' @export
-daily_fips <- function(fips, coverage = NULL, date_min = NULL, date_max = NULL,
-                       var = "all", average_data = TRUE, station_label = FALSE,
-                       verbose = TRUE){
+daily_fips <- function(fips,
+                       coverage = NULL,
+                       date_min = NULL,
+                       date_max = NULL,
+                       var = "all",
+                       average_data = TRUE,
+                       station_label = FALSE,
+                       verbose = TRUE) {
 
   census_data <- countyweather::county_centers
   loc_fips <- which(census_data$fips == fips)
 
-  if(verbose) {
+  if (verbose) {
+
     message(paste0("Getting daily weather data for ",
                    census_data[loc_fips, "name"], ".",
                    " This may take a while."))
+
   }
 
   stations <- daily_stations(fips = fips, date_min = date_min,
-                            date_max = date_max)
+                             date_max = date_max)
   weather_data <- daily_df(stations = stations,
                            var = var,
-                                  date_min = date_min,
-                                  date_max = date_max,
-                                  coverage = coverage,
-                                  average_data = average_data)
+                           date_min = date_min,
+                           date_max = date_max,
+                           coverage = coverage,
+                           average_data = average_data)
   station_map <- daily_stationmap(fips = fips,
-                                 daily_data = weather_data,
-                                 station_label = station_label)
+                                  daily_data = weather_data,
+                                  station_label = station_label)
   list <- list("daily_data" = weather_data$daily_data,
                "station_metadata" = weather_data$station_df,
                "station_map" = station_map)
   return(list)
+
 }
 
 #' Return average daily weather data for a particular county.
@@ -160,13 +168,14 @@ daily_fips <- function(fips, coverage = NULL, date_min = NULL, date_max = NULL,
 #' averaged_data <- list$daily_data
 #' station_info <- list$stations
 #' }
-daily_df <- function(stations, coverage = NULL,
-                            var = "all",
-                            date_min = NULL, date_max = NULL,
-                            average_data = TRUE){
+daily_df <- function(stations,
+                     coverage = NULL,
+                     var = "all",
+                     date_min = NULL,
+                     date_max = NULL,
+                     average_data = TRUE) {
 
   # get tidy full dataset for all monitors
-  # meteo_pull_monitors() from helpers_ghcnd.R in ropenscilabs/rnoaa
   quiet_pull_monitors <- purrr::quietly(rnoaa::meteo_pull_monitors)
   meteo_df <- quiet_pull_monitors(monitors = stations$id,
                                   keep_flags = FALSE,
@@ -175,7 +184,6 @@ daily_df <- function(stations, coverage = NULL,
                                   var = toupper(var))$result
 
   # calculate coverage for each weather variable
-  # meteo_coverage() from rnoaa
   coverage_df <- rnoaa::meteo_coverage(meteo_df, verbose = FALSE)
 
   # filter station dataset based on specified coverage
@@ -188,50 +196,47 @@ daily_df <- function(stations, coverage = NULL,
 
   # steps to filter out erroneous data from individual stations
   # precipitation
-  if("prcp" %in% var){
+  if ("prcp" %in% var) {
     filtered_data$prcp <- filtered_data$prcp / 10
-    if(max(filtered_data$prcp, na.rm = TRUE) > 1100){
+    if (max(filtered_data$prcp, na.rm = TRUE) > 1100) {
       bad_prcp <- which(with(filtered_data, prcp > 1100))
       filtered_data <- filtered_data[-bad_prcp,]
     }
   }
 
   # snowfall
-  if("snow" %in% var){
-    if(max(filtered_data$snow, na.rm = TRUE) > 1600){
+  if ("snow" %in% var) {
+    if(max(filtered_data$snow, na.rm = TRUE) > 1600) {
       bad_snow <- which(with(filtered_data, snow > 1600))
       filtered_data <- filtered_data[-bad_snow,]
     }
   }
 
   # snow depth
-  if("snwd" %in% var){
-    if(max(filtered_data$snwd, na.rm = TRUE) > 11500){
+  if ("snwd" %in% var) {
+    if (max(filtered_data$snwd, na.rm = TRUE) > 11500) {
       bad_snwd <- which(with(filtered_data, snwd > 11500))
       filtered_data <- filtered_data[-bad_snwd,]
     }
   }
 
   # tmax
-  if("tmax" %in% var){
+  if ("tmax" %in% var) {
     filtered_data$tmax <- filtered_data$tmax / 10
-    if(max(filtered_data$tmax, na.rm = TRUE) > 57){
+    if (max(filtered_data$tmax, na.rm = TRUE) > 57) {
       bad_tmax <- which(with(filtered_data, tmax > 57))
       filtered_data <- filtered_data[-bad_tmax,]
     }
   }
 
   # tmin
-  if("tmin" %in% var){
+  if ("tmin" %in% var) {
     filtered_data$tmin <- filtered_data$tmin / 10
-    if(min(filtered_data$tmin, na.rm = TRUE) < -62){
+    if (min(filtered_data$tmin, na.rm = TRUE) < -62) {
       bad_tmin <- which(with(filtered_data, tmin < -62))
       filtered_data <- filtered_data[-bad_tmin,]
     }
   }
-
-  # have coverage in filtered df
-  # need standard deviation and range
 
   all_cols <- colnames(filtered_data)
   not_vars <- c("id", "date")
@@ -260,15 +265,14 @@ daily_df <- function(stations, coverage = NULL,
 
   colnames(stations)[3] <- "var"
 
-  # average across stations, add a column for number of stations that
-  # contributed to each daily average
-  if(average_data == TRUE){
+  if (average_data == TRUE) {
     filtered_data <- ave_daily(filtered_data)
   }
 
   out <- list("daily_data" = filtered_data, "station_df" = stations)
 
   return(out)
+
 }
 
 #' Write daily weather timeseries files for U.S. counties.
@@ -322,19 +326,23 @@ daily_df <- function(stations, coverage = NULL,
 #'                        out_directory = "~/timeseries")
 #' }
 #' @export
-write_daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
-                                   date_max = NULL, var = "all",
-                                   out_directory, data_type = "rds",
-                                   metadata_type = "rds", average_data = TRUE,
-                                   station_label = FALSE, keep_map = TRUE,
-                                   verbose = TRUE){
+write_daily_timeseries <- function(fips, coverage = NULL,
+                                   date_min = NULL,
+                                   date_max = NULL,
+                                   var = "all",
+                                   out_directory,
+                                   data_type = "rds",
+                                   metadata_type = "rds",
+                                   average_data = TRUE,
+                                   station_label = FALSE,
+                                   keep_map = TRUE,
+                                   verbose = TRUE) {
 
-  if(verbose) {
+  if (verbose) {
 
-    if(length(fips) > 2){
-
-      for(i in 1:length(fips)){
-        if(i == 1){
+    if (length(fips) > 2) {
+      for (i in 1:length(fips)) {
+        if (i == 1) {
           codes <- (paste0(fips[i], ", "))
         } else if (i == length(fips)) {
           codes <- paste0(codes, "and ", fips[i])
@@ -348,8 +356,8 @@ write_daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
 
     } else if (length(fips == 2)) {
 
-      for(i in 1:length(fips)){
-        if(i == 1){
+      for (i in 1:length(fips)) {
+        if (i == 1) {
           codes <- paste0(fips[i], " ")
         } else if (i == length(fips)) {
           codes <- paste0(codes, "and ", fips[i])
@@ -372,19 +380,19 @@ write_daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
     }
 
 
-  if(!dir.exists(out_directory)){
+  if (!dir.exists(out_directory)) {
     dir.create(out_directory)
   }
 
-  if(!dir.exists(paste0(out_directory, "/data"))){
+  if (!dir.exists(paste0(out_directory, "/data"))) {
     dir.create(paste0(out_directory, "/data"))
   }
 
-  if(!dir.exists(paste0(out_directory, "/metadata"))){
+  if (!dir.exists(paste0(out_directory, "/metadata"))) {
     dir.create(paste0(out_directory, "/metadata"))
   }
 
-  for(i in 1:length(fips)) {
+  for (i in 1:length(fips)) {
     possibleError <- tryCatch({
 
       out_list <- daily_fips(fips = fips[i], date_min = date_min,
@@ -392,25 +400,25 @@ write_daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
       out_data <- out_list$daily_data
       out_metadata <- out_list$station_metadata
 
-      if(data_type == "rds"){
+      if (data_type == "rds") {
 
         data_file <- paste0(out_directory, "/data", "/", fips[i], ".rds")
         saveRDS(out_data, file = data_file)
 
-      } else if (data_type == "csv"){
+      } else if (data_type == "csv") {
 
         data_file <- paste0(out_directory, "/data", "/", fips[i], ".csv")
         utils::write.csv(out_data, file = data_file, row.names = FALSE)
 
       }
 
-      if(metadata_type == "rds"){
+      if (metadata_type == "rds") {
 
         metadata_file <- paste0(out_directory, "/metadata", "/", fips[i],
                                 ".rds")
         saveRDS(out_metadata, file = metadata_file)
 
-      } else if (metadata_type == "csv"){
+      } else if (metadata_type == "csv") {
 
         metadata_file <- paste0(out_directory, "/metadata", "/", fips[i],
                                 ".csv")
@@ -418,9 +426,9 @@ write_daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
 
       }
 
-        if(keep_map == TRUE){
+        if (keep_map == TRUE) {
 
-          if(!dir.exists(paste0(out_directory, "/maps"))){
+          if (!dir.exists(paste0(out_directory, "/maps"))) {
             dir.create(paste0(out_directory, "/maps"))
           }
 
@@ -442,7 +450,7 @@ write_daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
                    " weather variables."))
     }
     )
-    if(inherits(possibleError, "error")) next
+    if (inherits(possibleError, "error")) next
 
   }
 
@@ -491,23 +499,27 @@ write_daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
 #' @importFrom dplyr %>%
 #'
 #' @export
-plot_daily_timeseries <- function(var, date_min, date_max, data_directory,
-                            plot_directory, data_type = "rds"){
+plot_daily_timeseries <- function(var,
+                                  date_min,
+                                  date_max,
+                                  data_directory,
+                                  plot_directory,
+                                  data_type = "rds") {
 
   files <- list.files(data_directory)
 
-  if(!dir.exists(plot_directory)){
+  if (!dir.exists(plot_directory)) {
     dir.create(plot_directory)
   }
 
-  if(data_type == "rds"){
+  if (data_type == "rds") {
     file_names <- gsub(".rds", "", files)
   } else if (data_type == "csv"){
     file_names <- gsub(".csv", "", files)
   }
 
 
-  for(i in 1:length(files)){
+  for (i in 1:length(files)) {
     dat <- readRDS(paste0(data_directory, "/", files[i]))
       weather <- dplyr::ungroup(dat) %>%
         as.data.frame()

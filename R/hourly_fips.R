@@ -41,14 +41,18 @@
 #' station_data <- ex$station_metadata
 #' station_map <- ex$station_map
 #' @export
-hourly_fips <- function(fips, year, var = "all",
-                        coverage = NULL, average_data = TRUE,
-                        station_label = FALSE, verbose = TRUE){
+hourly_fips <- function(fips,
+                        year,
+                        var = "all",
+                        coverage = NULL,
+                        average_data = TRUE,
+                        station_label = FALSE,
+                        verbose = TRUE) {
 
   census_data <- countyweather::county_centers
   loc_fips <- which(census_data$fips == fips)
 
-  if(verbose) {
+  if (verbose) {
     message(paste0("Getting hourly weather data for ",
                    census_data[loc_fips, "name"], ".",
                    " This may take a while."))
@@ -67,6 +71,7 @@ hourly_fips <- function(fips, year, var = "all",
                "radius" = weather_data$radius,
                "lat_center" = weather_data$lat_center,
                "lon_center" = weather_data$lon_center)
+
   return(list)
 
 }
@@ -134,18 +139,20 @@ hourly_fips <- function(fips, year, var = "all",
 #' }
 #'
 #' @export
-hourly_df <- function(fips, year,
-                           var = "all",
-                           average_data = TRUE, coverage = NULL){
+hourly_df <- function(fips,
+                      year,
+                      var = "all",
+                      average_data = TRUE,
+                      coverage = NULL) {
 
   # hourly data for multiple monitors for multiple years
   hourly_list <- lapply(year, function(x) isd_monitors_data(fips = fips,
                                                             year = x,
                                                             var = var))
 
-  for(i in 1:length(year)){
+  for (i in 1:length(year)) {
     list <- hourly_list[[i]]
-    if (i == 1){
+    if (i == 1) {
       data <- list$df
     } else {
       data <- dplyr::bind_rows(data, list$df)
@@ -154,18 +161,17 @@ hourly_df <- function(fips, year,
 
   # station meta data for one county (unfiltered)
 
-  for(i in 1:length(year)){
+  for (i in 1:length(year)) {
     list <- hourly_list[[i]]
-    if (i == 1){
+    if (i == 1) {
       station_metadata <- list$ids
     } else {
       station_metadata <- dplyr::bind_rows(station_metadata, list$ids)
     }
   }
 
-  # filter stations (if coverage is NULL, filters as if coverage = 0) and get
-  # statistical info for each station/var pair
-    filtered_list <- filter_hourly(fips = fips, hourly_data = data,
+    filtered_list <- filter_hourly(fips = fips,
+                                   hourly_data = data,
                                    coverage = coverage)
     station_stats <- filtered_list$stations
 
@@ -196,7 +202,7 @@ hourly_df <- function(fips, year,
     dplyr::filter_(~ station %in% filtered_stations) %>%
     dplyr::select_(quote(-station))
 
-  if(average_data == TRUE){
+  if (average_data == TRUE) {
     data <- ave_hourly(data)
   }
 
@@ -206,11 +212,14 @@ hourly_df <- function(fips, year,
   lat_center <- hourly_list[[1]]$lat_center
   lon_center <- hourly_list[[1]]$lon_center
 
-  out <- list("hourly_data" = data, "station_df" = station_metadata,
+  out <- list("hourly_data" = data,
+              "station_df" = station_metadata,
               "radius" = radius,
               "lat_center" = lat_center,
               "lon_center" = lon_center)
+
   return(out)
+
 }
 
 #' Write hourly weather time series files for U.S. counties.
@@ -272,18 +281,24 @@ hourly_df <- function(fips, year,
 #'
 #' }
 #' @export
-write_hourly_timeseries <- function(fips, coverage = NULL, year, var = "all",
-                                    out_directory, data_type = "rds",
-                                    metadata_type = "rds", average_data = TRUE,
-                                    station_label = FALSE, keep_map = TRUE,
+write_hourly_timeseries <- function(fips,
+                                    coverage = NULL,
+                                    year,
+                                    var = "all",
+                                    out_directory,
+                                    data_type = "rds",
+                                    metadata_type = "rds",
+                                    average_data = TRUE,
+                                    station_label = FALSE,
+                                    keep_map = TRUE,
                                     verbose = TRUE){
 
-  if(verbose) {
+  if (verbose) {
 
-    if(length(fips) > 2){
+    if (length(fips) > 2) {
 
-      for(i in 1:length(fips)){
-        if(i == 1){
+      for (i in 1:length(fips)) {
+        if (i == 1) {
           codes <- (paste0(fips[i], ", "))
         } else if (i == length(fips)) {
           codes <- paste0(codes, "and ", fips[i])
@@ -297,8 +312,8 @@ write_hourly_timeseries <- function(fips, coverage = NULL, year, var = "all",
 
     } else if (length(fips == 2)) {
 
-      for(i in 1:length(fips)){
-        if(i == 1){
+      for (i in 1:length(fips)) {
+        if (i == 1) {
           codes <- paste0(fips[i], " ")
         } else if (i == length(fips)) {
           codes <- paste0(codes, "and ", fips[i])
@@ -321,24 +336,23 @@ write_hourly_timeseries <- function(fips, coverage = NULL, year, var = "all",
 
   }
 
-  if(!dir.exists(out_directory)){
+  if (!dir.exists(out_directory)) {
     dir.create(out_directory)
   }
 
-  if(!dir.exists(paste0(out_directory, "/data"))){
+  if (!dir.exists(paste0(out_directory, "/data"))) {
     dir.create(paste0(out_directory, "/data"))
   }
 
-  if(!dir.exists(paste0(out_directory, "/metadata"))){
+  if (!dir.exists(paste0(out_directory, "/metadata"))) {
     dir.create(paste0(out_directory, "/metadata"))
   }
 
-  for(i in 1:length(fips)) {
+  for (i in 1:length(fips)) {
     possibleError <- tryCatch({
 
       out_list <- hourly_fips(fips = fips[i], year = year, var = var,
-                               coverage = coverage,
-                               average_data = average_data,
+                              coverage = coverage, average_data = average_data,
                               station_label = station_label, verbose = FALSE)
 
       out_data <- out_list$hourly_data
@@ -346,25 +360,25 @@ write_hourly_timeseries <- function(fips, coverage = NULL, year, var = "all",
       meta <- c(2, 4:6)
       out_metadata <- out_list[meta]
 
-      if(data_type == "rds"){
+      if (data_type == "rds") {
 
         data_file <- paste0(out_directory, "/data", "/", fips[i], ".rds")
         saveRDS(out_data, file = data_file)
 
-      } else if (data_type == "csv"){
+      } else if (data_type == "csv") {
 
         data_file <- paste0(out_directory, "/data", "/", fips[i], ".csv")
         utils::write.csv(out_data, file = data_file, row.names = FALSE)
 
       }
 
-      if (metadata_type == "rds"){
+      if (metadata_type == "rds") {
 
         metadata_file <- paste0(out_directory, "/metadata", "/", fips[i],
                                 ".rds")
         saveRDS(out_metadata, file = metadata_file)
 
-      } else if (metadata_type == "csv"){
+      } else if (metadata_type == "csv") {
 
         out_metadata[[1]]$radius <- out_metadata[[2]]
         out_metadata[[1]]$lat_center <- out_metadata[[3]]
@@ -379,9 +393,9 @@ write_hourly_timeseries <- function(fips, coverage = NULL, year, var = "all",
       }
 
 
-      if (keep_map == TRUE){
+      if (keep_map == TRUE) {
 
-        if (!dir.exists(paste0(out_directory, "/maps"))){
+        if (!dir.exists(paste0(out_directory, "/maps"))) {
           dir.create(paste0(out_directory, "/maps"))
         }
 
@@ -444,8 +458,11 @@ write_hourly_timeseries <- function(fips, coverage = NULL, year, var = "all",
 #'}
 #' @importFrom dplyr %>%
 #' @export
-plot_hourly_timeseries <- function(var, year, data_directory,
-                                  plot_directory, data_type = "rds"){
+plot_hourly_timeseries <- function(var,
+                                   year,
+                                   data_directory,
+                                   plot_directory,
+                                   data_type = "rds") {
 
   files <- list.files(data_directory)
 
@@ -455,20 +472,20 @@ plot_hourly_timeseries <- function(var, year, data_directory,
   date_max <- paste0(max(year), "-12-31 23:00:00 UTC")
   date_max <- as.POSIXct(date_max, tz = "UTC")
 
-  if(!dir.exists(plot_directory)){
+  if (!dir.exists(plot_directory)) {
     dir.create(plot_directory)
   }
 
-  if(data_type == "rds"){
+  if (data_type == "rds") {
     file_names <- gsub(".rds", "", files)
-  } else if (data_type == "csv"){
+  } else if (data_type == "csv") {
     file_names <- gsub(".csv", files)
   }
 
 
     current_wd <- getwd()
 
-  for(i in 1:length(files)){
+  for (i in 1:length(files)) {
 
     setwd(data_directory)
     dat <- readRDS(files[i])

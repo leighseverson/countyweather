@@ -23,7 +23,8 @@
 #' list <- isd_fips_stations(fips = "12086")
 #' ids <- list$stations
 #' }
-isd_fips_stations <- function(fips, verbose = TRUE){
+isd_fips_stations <- function(fips,
+                              verbose = TRUE) {
 
   # population-weighted center for specified county
   census_data <- countyweather::county_centers
@@ -46,6 +47,7 @@ isd_fips_stations <- function(fips, verbose = TRUE){
                "lon_center" = lon_fips)
 
   return(list)
+
 }
 
 #' Get hourly data for a single monitor.
@@ -83,14 +85,17 @@ isd_fips_stations <- function(fips, verbose = TRUE){
 #'                                     year = 1992,
 #'                                     var = c("wind_speed", "temperature"))
 #' }
-int_surface_data <- function(usaf_code, wban_code, year,
-                             var = "all"){
+int_surface_data <- function(usaf_code,
+                             wban_code,
+                             year,
+                             var = "all") {
+
   quiet_isd <- purrr::quietly(rnoaa::isd)
   isd_df <- quiet_isd(usaf = usaf_code, wban = wban_code, year = year)
   isd_df <- isd_df$result
 
     # select variables if `var` isn't "all"
-  if(length(var) == 1 && var == "all"){
+  if (length(var) == 1 && var == "all") {
     w_vars <- colnames(isd_df)
     var <- w_vars[9:length(w_vars)]
   }
@@ -105,19 +110,21 @@ int_surface_data <- function(usaf_code, wban_code, year,
   isd_df <- dplyr::select_(isd_df, .dots = subset_vars)
 
   na_code_vars <- colnames(isd_df)[apply(isd_df, 2, max) %in%
-                                     c(99.9, 999, 999.9, 9999, 9999.9, 99999, 999999)]
+                                     c(99.9, 999, 999.9, 9999, 9999.9, 99999,
+                                       999999)]
 
-  for(na_var in na_code_vars){
+  for (na_var in na_code_vars) {
     isd_df[[na_var]] <- as.numeric(isd_df[[na_var]])
   }
 
-  if(length(na_code_vars) > 0){
-    for(na_var in na_code_vars){
+  if (length(na_code_vars) > 0) {
+    for (na_var in na_code_vars) {
       isd_df[isd_df[ , na_var] == max(isd_df[ , na_var]), na_var] <- NA
     }
   }
 
   return(isd_df)
+
 }
 
 #' Pull hourly data for multiple monitors.
@@ -151,7 +158,9 @@ int_surface_data <- function(usaf_code, wban_code, year,
 #'    geom_point(alpha = 0.5, size = 0.2) +
 #'    facet_wrap(~ usaf_station, ncol = 1)
 #' }
-isd_monitors_data <- function(fips, year, var = "all"){
+isd_monitors_data <- function(fips,
+                              year,
+                              var = "all") {
 
   list <- isd_fips_stations(fips)
   ids <- list$stations
@@ -165,7 +174,7 @@ isd_monitors_data <- function(fips, year, var = "all"){
                           year = year, var = list(var = var))
 
   good_st <- sapply(mult_stations, function(x) !is.null(dim(x)))
-  if(sum(good_st) > 0){
+  if (sum(good_st) > 0) {
     st_out_list <- lapply(which(good_st), function(x) mult_stations[[x]])
     st_out_list <- lapply(st_out_list, function(x){
       x$usaf_station <- as.numeric(x$usaf_station)
@@ -173,34 +182,36 @@ isd_monitors_data <- function(fips, year, var = "all"){
 
       cols <- colnames(st_out_list[[1]])
 
-      if("wind_direction" %in% cols){
+      if ("wind_direction" %in% cols) {
         x$wind_direction <- as.numeric(x$wind_direction)
       }
-      if("ceiling_height" %in% cols){
+      if ("ceiling_height" %in% cols) {
         x$ceiling_height <- as.numeric(x$ceiling_height)
       }
-      if("visibility_distance" %in% cols){
+      if ("visibility_distance" %in% cols) {
         x$visibility_distance <- as.numeric(x$visibility_distance)
       }
-      if("temperature" %in% cols){
+      if ("temperature" %in% cols) {
         x$temperature <- as.numeric(x$temperature)
       }
-      if("temperature_dewpoint" %in% cols){
+      if ("temperature_dewpoint" %in% cols) {
         x$temperature_dewpoint <- as.numeric(x$temperature_dewpoint)
       }
-      if("air_pressure" %in% cols){
+      if ("air_pressure" %in% cols) {
         x$air_pressure <- as.numeric(x$air_pressure)
       }
-      if("GF1_lowest_cloud_base_height" %in% cols){
+      if ("GF1_lowest_cloud_base_height" %in% cols) {
         x$GF1_lowest_cloud_base_height <- as.numeric(x$GF1_lowest_cloud_base_height)
       }
 
       return(x)
-    })
+    }
+    )
+
     st_out_df <- dplyr::bind_rows(st_out_list)
-  } else(
+  } else {
     stop("None of the stations had available data.")
-  )
+  }
 
   list <- list("df" = st_out_df,
                "ids" = ids,
@@ -221,7 +232,7 @@ isd_monitors_data <- function(fips, year, var = "all"){
 #'    \code{isd_monitors_data}.
 #'
 #' @importFrom dplyr %>%
-ave_hourly <- function(hourly_data){
+ave_hourly <- function(hourly_data) {
 
   df <- dplyr::mutate_(hourly_data, id = ~ paste0(usaf_station, wban_station))
   df <- dplyr::select_(df, .dots = c("-usaf_station", "-wban_station",
@@ -251,6 +262,7 @@ ave_hourly <- function(hourly_data){
   averaged_data <- as.data.frame(averaged_data)
 
   return(averaged_data)
+
 }
 
 #' Filter NOAA ISD stations based on "coverage" requirements, and calculate
@@ -294,9 +306,11 @@ ave_hourly <- function(hourly_data){
 #'    variables, such as quality flag data.)
 #'
 #' @importFrom dplyr %>%
-filter_hourly <- function(fips, hourly_data, coverage = NULL){
+filter_hourly <- function(fips,
+                          hourly_data,
+                          coverage = NULL) {
 
-  if(purrr::is_null(coverage)){
+  if (purrr::is_null(coverage)) {
    coverage <- 0
   }
 
@@ -326,8 +340,8 @@ filter_hourly <- function(fips, hourly_data, coverage = NULL){
                     "temperature_dewpoint", "air_pressure")
   flag_vars <- df[!df$key %in% weather_vars, "key"]$key
 
-  if(length(flag_vars) != 0){
-    for(i in 1:length(flag_vars)){
+  if (length(flag_vars) != 0) {
+    for (i in 1:length(flag_vars)) {
       df[which(df$key == flag_vars[i]), ]$standard_dev <- NA
       df[which(df$key == flag_vars[i]), ]$min <- NA
       df[which(df$key == flag_vars[i]), ]$max <- NA
@@ -340,7 +354,7 @@ filter_hourly <- function(fips, hourly_data, coverage = NULL){
   test <- df %>%
     dplyr::filter_(~ calc_coverage >= coverage)
 
-  if(nrow(test) == 0){
+  if (nrow(test) == 0) {
     stop(paste0("Unable to pull weather data for FIPS code ", fips,
                  " for the specified percent coverage, year(s), and/or",
                  " weather variables."))
@@ -413,8 +427,11 @@ filter_hourly <- function(fips, hourly_data, coverage = NULL){
 #' }
 #'
 #' @importFrom dplyr %>%
-hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
-                              point_size = 2, station_label = FALSE){
+hourly_stationmap <- function(fips,
+                              hourly_data,
+                              point_color = "firebrick",
+                              point_size = 2,
+                              station_label = FALSE) {
 
   census_data <- countyweather::county_centers
   row_num <- which(grepl(fips, census_data$fips))
@@ -429,7 +446,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
   shp <- countyweather::county_outlines
   county_shp <- shp[shp$fips == fips, ]
 
-  # convert to raster so that we can add geom_raster() (which gets rid of the
+  # convert to raster so that we can add geom_raster() (which fixes the
   # geom_polygons island problem)
   r <- raster::raster(raster::extent(county_shp))
   raster::res(r) <- 0.001
@@ -445,8 +462,8 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
   # zoom, then accounting for the extra space we want to add around county
   # shapes.
 
-  if(x_range > y_range){
-    if(x_range <= 0.1997){
+  if (x_range > y_range) {
+    if (x_range <= 0.1997) {
 
       zoom <- 12
 
@@ -456,7 +473,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
       ymax <- r@extent[4] + 0.01
     }
 
-    if(x_range <= 0.3894 & x_range > 0.1997){
+    if (x_range <= 0.3894 & x_range > 0.1997) {
 
       zoom <- 11
 
@@ -466,7 +483,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
       ymax <- r@extent[4] + 0.025
     }
 
-    if(x_range <= 0.7989 & x_range > 0.3894){
+    if (x_range <= 0.7989 & x_range > 0.3894) {
 
       zoom <- 10
 
@@ -476,7 +493,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
       ymax <- r@extent[4] + 0.04
     }
 
-    if(x_range <= 1.6378 & x_range > 0.7989){
+    if (x_range <= 1.6378 & x_range > 0.7989) {
 
       zoom <- 9
 
@@ -486,7 +503,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
       ymax <- r@extent[4] + 0.06
     }
 
-    if(x_range <= 3.3556 & x_range > 1.6378){
+    if (x_range <= 3.3556 & x_range > 1.6378) {
 
       zoom <- 8
 
@@ -496,7 +513,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
       ymax <- r@extent[4] + 0.08
     }
 
-    if(x_range <= 6.8313 & x_range > 3.3556){
+    if (x_range <= 6.8313 & x_range > 3.3556) {
 
       zoom <- 7
 
@@ -507,7 +524,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
     }
 
   } else {
-    if(y_range <= 0.1616){
+    if (y_range <= 0.1616) {
 
       zoom <- 12
 
@@ -517,7 +534,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
       ymax <- r@extent[4] + 0.01
     }
 
-    if(y_range <= 0.3135 & y_range > 0.1616){
+    if (y_range <= 0.3135 & y_range > 0.1616) {
 
       zoom <- 11
 
@@ -527,7 +544,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
       ymax <- r@extent[4] + 0.025
     }
 
-    if(y_range <= 0.647 & y_range > 0.3135){
+    if (y_range <= 0.647 & y_range > 0.3135) {
 
       zoom <- 10
 
@@ -537,7 +554,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
       ymax <- r@extent[4] + 0.04
     }
 
-    if(y_range <= 1.3302 & y_range > 0.647){
+    if (y_range <= 1.3302 & y_range > 0.647) {
 
       zoom <- 9
 
@@ -547,7 +564,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
       ymax <- r@extent[4] + 0.06
     }
 
-    if(y_range <= 2.7478 & y_range > 1.3302){
+    if (y_range <= 2.7478 & y_range > 1.3302) {
 
       zoom <- 8
 
@@ -557,7 +574,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
       ymax <- r@extent[4] + 0.08
     }
 
-    if(y_range <= 2.8313 & y_range > 2.7478){
+    if (y_range <= 2.8313 & y_range > 2.7478) {
 
       zoom <- 7
 
@@ -568,25 +585,23 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
     }
   }
 
-  county <- suppressMessages(ggmap::get_map(c(lon_fips,
-                                              lat_fips), zoom = zoom,
-                                            color = "bw"))
+  county <- suppressMessages(ggmap::get_map(c(lon_fips, lat_fips),
+                                            zoom = zoom, color = "bw"))
 
   gg_map <- ggmap::ggmap(county)
 
-  # limits of a ggmap depend on your center lat/lon (this means the limits
+  # limits of a ggmap depend on your center lat/lon (the limits
   # above won't work exactly for every county)
   map_ymin <- gg_map$data$lat[1]
   map_ymax <- gg_map$data$lat[3]
   map_xmin <- gg_map$data$lon[1]
   map_xmax <- gg_map$data$lon[2]
 
-  if((ymin < map_ymin) | (ymax > map_ymax) | (xmin < map_xmin) |
-     (xmax > map_xmax)){
+  if ((ymin < map_ymin) | (ymax > map_ymax) | (xmin < map_xmin) |
+     (xmax > map_xmax)) {
     zoom <- zoom - 1
-    county <- suppressMessages(ggmap::get_map(c(lon_fips,
-                                                lat_fips), zoom = zoom,
-                                              color = "bw"))
+    county <- suppressMessages(ggmap::get_map(c(lon_fips, lat_fips),
+                                              zoom = zoom, color = "bw"))
     gg_map <- ggmap::ggmap(county)
   }
 
@@ -615,7 +630,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
     dplyr::arrange_(~ dplyr::desc(latitude)) %>%
     dplyr::mutate_(station_name = ~ factor(station_name, levels = station_name))
 
-  if(station_label == TRUE){
+  if (station_label == TRUE) {
     map_out <- map + ggplot2::geom_polygon(ggplot2::aes_(~ x_v, ~ y_v),
                                            data = df, inherit.aes = FALSE,
                                            fill = "#9999CC", alpha = 0.25) +
