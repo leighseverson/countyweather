@@ -68,7 +68,7 @@ daily_stations <- function(fips, date_min = NULL, date_max = NULL){
   return(tot_df)
 }
 
-#' Average weather data across multiple stations.
+#' Average daily weather data across multiple stations.
 #'
 #' \code{ave_daily} returns a dataframe with daily weather averaged across
 #'    stations, as well as columns showing the number of stations contributing
