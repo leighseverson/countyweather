@@ -2,8 +2,7 @@
 ^\.Rproj\.user$
 ^data-raw$
 ^README\.Rmd$
-^README-.*\.png$
+^README-.*$
 ^writing$
 ^.Renviron.rtf$
-
 ^\.travis\.yml$
