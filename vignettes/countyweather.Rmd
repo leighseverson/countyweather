@@ -289,7 +289,7 @@ For `hourly_fips()`, `daily_fips()`, and time series functions, the user can cho
 
 In both `daily_fips()` and `hourly_fips()`, the default is to return a single daily average for the county for each day in the timeseries, giving the value averaged across all available stations on that day. However, there is also an option called `average_data` which allows the user to specify whether they would like the weather data returned before it has been averaged across stations. If this argument is set to `FALSE`, the functions will return separate daily data for each station in the county. For our Hurricane Andrew example, we can specify `average_data = FALSE`: 
 
-```{r echo 1:5, eval = FALSE}
+```{r echo = 1:5, eval = FALSE}
 not_averaged <- daily_fips(fips = "12086", 
                            date_min = "1992-08-01", 
                            date_max = "1992-08-31",
