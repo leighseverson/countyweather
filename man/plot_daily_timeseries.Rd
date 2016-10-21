@@ -2,27 +2,31 @@
 % Please edit documentation in R/daily_fips.R
 \name{plot_daily_timeseries}
 \alias{plot_daily_timeseries}
-\title{Write plot files for daily weather timeseries dataframes}
+\title{Write plot files for daily weather timeseries dataframes.}
 \usage{
-plot_daily_timeseries(var, file_directory, plot_directory, date_min, date_max)
+plot_daily_timeseries(var, date_min, date_max, data_directory, plot_directory,
+  data_type = "rds")
 }
 \arguments{
-\item{var}{A character string (all lower-case) specifying which weather
-variable present in the timeseries dataframe you would like to produce
-plots for. For example, var = "prcp".}
-
-\item{file_directory}{The absolute or relative pathname for the directory
-where your daily timeseries dataframes (produced by \code{daily_timeseries})
-are saved.}
-
-\item{plot_directory}{The absolute or relative pathname for the directory
-where you would like the plots to be saved.}
+\item{var}{A character string specifying which weather variable present in
+the timeseries dataframe that you would like to produce plots for.}
 
 \item{date_min}{A character string giving the earliest date present in the
 timeseries dataframe in "yyyy-mm-dd" format.}
 
 \item{date_max}{A character string giving the latest date present in the
 timeseries dataframe in "yyyy-mm-dd" format.}
+
+\item{data_directory}{The absolute or relative pathname for the directory
+where your daily timeseries dataframes (produced by \code{daily_timeseries})
+are saved.}
+
+\item{plot_directory}{The absolute or relative pathname for the directory
+where you would like the plots to be saved.}
+
+\item{data_type}{A character string indicating the type of timeseries files
+you would like to produce plots for (either "rds" or "csv"). This option
+defaults to .rds files.}
 }
 \value{
 Writes out a directory with plots of timeseries data for a given
@@ -31,22 +35,25 @@ weather variable for each file present in the directory specified.
 \description{
 This function writes out a directory with plots for every timeseries file
 present in the specified directory (produced by the \code{daily_timeseries}
-function) for a particular weather variable. These plots are meant to aid in
-initial exploratory analysis.
+function and saved in the "data" subdirectory of the directory given in that
+function's arguments) for a particular weather variable.
 }
 \examples{
 \dontrun{
-plot_daily_timeseries(var = "prcp",
-               file_directory = "~/Desktop/exposure_data/ihapps_timeseries",
-               plot_directory = "~/Desktop/exposure_data/plots_prcp")
+plot_daily_timeseries(var = "prcp", date_min = "1995-01-01",
+                      date_max = "1995-01-31",
+                      data_directory = "~/timeseries/data",
+                      plot_directory = "~/timeseries/plots_prcp")
 
-plot_daily_timeseries(files = files, var = "tmax",
-               file_directory = "~/Desktop/exposure_data/ihapps_timeseries",
-               plot_directory = "~/Desktop/exposure_data/plots_tmax")
+plot_daily_timeseries(var = "tmax", date_min = "1995-01-01",
+                      date_max = "1995-01-31",
+                      data_directory = "~/timeseries/data",
+                      plot_directory = "~/timeseries/plots_tmax")
 
-plot_daily_timeseries(var = "tmin",
-               file_directory = "~/Desktop/exposure_data/ihapps_timeseries",
-               plot_directory = "~/Desktop/exposure_data/plots_tmin")
+plot_daily_timeseries(var = "tmin", date_min = "1995-01-01",
+                     date_max = "1995-01-31",
+                     data_directory = "~/timeseries/data",
+                     plot_directory = "~/timeseries/plots_tmin")
 }
 }
 

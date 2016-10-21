@@ -6,12 +6,11 @@
 stations for a particular county.}
 \usage{
 hourly_fips(fips, year, var = "all", coverage = NULL, average_data = TRUE,
-  station_label = FALSE)
+  station_label = FALSE, verbose = TRUE)
 }
 \arguments{
-\item{fips}{A character string or vector giving the five-digit U.S. FIPS
-county code of the county or counties for which the user wants to pull
-weather data.}
+\item{fips}{A character string of the five-digit U.S. FIPS code of a U.S.
+county.}
 
 \item{year}{a four digit number or vector of numbers indicating the year or
 years for which you want to pull hourly data. Values for \code{year} can
@@ -35,27 +34,33 @@ average daily weather data across multiple monitors.}
 \item{station_label}{TRUE / FALSE to indicate if you want your plot of
 weather station locations to include labels indicating station usaf id
 numbers.}
+
+\item{verbose}{TRUE / FALSE to indicate if you want the function to print
+out the name of the county it's processing.}
 }
 \value{
-A list with four elements. The first element (\code{hourly_data}) is a
+A list with six elements. The first element (\code{hourly_data}) is a
    dataframe of daily weather data averaged across multiple stations, as well
    as columns (\code{"var"_reporting}) for each weather variable showing the
    number of stations contributing to the average for that variable for that
    hour. The second element (\code{station_metadata} is a dataframe of station
-   metadata for stations included in the \code{daily_data} dataframe.
-   The third element (\code{station_map}) is a plot showing points for all
-   weather stations for a particular county satisfying the conditions present
-   in \code{hourly_fips}'s arguments (year, coverage, and/or var).
-   \code{radius} is the calculated radius within which stations were pulled
-   from the county's population-weighted center.
+   metadata for stations included in the \code{daily_data} dataframe, as
+   well as statistical information about the values contriuted to each
+   weather variable by each station. The third element (\code{station_map})
+   is a plot showing points for all weather stations for a particular county
+   satisfying the conditions present in \code{hourly_fips}'s arguments
+   (year, coverage, and/or var). \code{radius} is the calculated radius
+   within which stations were pulled from the county's center. Elements
+   \code{lat_center} and \code{lon_center} are the latitude and longitude of
+   the county's center.
 }
 \description{
 Given a particular county FIPS code, this function returns a list with two
-elements: "data", a dataframe of hourly average weather values, and "plot",
-a plot showing the location of weather stations contributing to the average
-weather in "data".
+elements: \code{data}, a dataframe of hourly average weather values, and
+\code{plot}, a plot showing the location of weather stations contributing to
+the average weather in \code{data}.
 }
 \note{
-: Observation times are vased on Coordinated Universal Time Code (UTC).
+Observation times are vased on Coordinated Universal Time Code (UTC).
 }
 

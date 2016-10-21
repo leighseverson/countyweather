@@ -8,7 +8,7 @@ ave_hourly(hourly_data)
 }
 \arguments{
 \item{hourly_data}{A dataframe with hourly weather observations. This
-dataframe is returned from the "df" element of the function
+dataframe is returned from the \code{df} element of the function
 \code{isd_monitors_data}.}
 }
 \description{

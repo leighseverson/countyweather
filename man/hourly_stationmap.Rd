@@ -2,7 +2,7 @@
 % Please edit documentation in R/hourly_helpers.R
 \name{hourly_stationmap}
 \alias{hourly_stationmap}
-\title{Plot hourly weather stations for a particular county}
+\title{Plot hourly weather stations for a particular county.}
 \usage{
 hourly_stationmap(fips, hourly_data, point_color = "firebrick",
   point_size = 2, station_label = FALSE)
@@ -10,9 +10,7 @@ hourly_stationmap(fips, hourly_data, point_color = "firebrick",
 \arguments{
 \item{fips}{A five-digit FIPS county code.}
 
-\item{hourly_data}{hourly_data A dataframe with hourly weather observations.
-This dataframe is returned from the function \code{isd_monitors_data} (the
-"df" element of a \code{isd_monitors_data} list).}
+\item{hourly_data}{A list returned from the function \code{hourly_df}.}
 
 \item{point_color}{point_color The specified \code{ggplot2} color for each point
 representing the location of a station.}
@@ -26,12 +24,19 @@ monitor on the map. The default is FALSE.}
 \value{
 A plot showing points for all weather stations for a particular
    county satisfying the conditions present in \code{hourly_df}'s
-   arguments (year(s) and/or var).
-   (\code{stationmap_fips} takes the resulting weather dataframe from this
-   function.)
+   arguments (year(s) and/or var). Because hourly data is pulled by radius
+   from each county's population-weighted center, this plot inlcudes the
+   calculated radius from which stations are pulled. This radius is calculated
+   for each county using 2010 U.S. Census Land Area data. 2010 U.S. Census
+   cartographic boundary shapefiles are used to proved county outlines,
+   included on this plot as well. Note: because stations are pulled within
+   a radius from the county's geographic center, depending on the shape of
+   the county, stations from outside of the county's boundaries may sometimes
+   be providing data for that county.
 }
 \description{
-Plot hourly weather stations for a particular county
+This function produces a map with points indicating stations that contribute
+to the weather data in the argument \code{hourly_data}.
 }
 \examples{
 \dontrun{

@@ -2,40 +2,48 @@
 % Please edit documentation in R/hourly_fips.R
 \name{plot_hourly_timeseries}
 \alias{plot_hourly_timeseries}
-\title{Write plot files for hourly weather timeseries dataframes}
+\title{Write plot files for hourly weather time series dataframes.}
 \usage{
-plot_hourly_timeseries(var, year, file_directory, plot_directory)
+plot_hourly_timeseries(var, year, data_directory, plot_directory,
+  data_type = "rds")
 }
 \arguments{
-\item{var}{A character string (all lower-case) specifying which weather
-variable present in the timeseries dataframe you would like to produce
+\item{var}{A character string specifying which weather
+variable present in the time series dataframe you would like to produce
 plots for. For example, var = "wind_speed".}
 
-\item{year}{A year or vecotr of years giving the year(s) present in the
-timeseries dataframe.}
+\item{year}{A year or vector of years giving the year(s) present in the
+time series dataframe.}
 
-\item{file_directory}{The absolute or relative pathname for the directory
-where your daily timeseries dataframes (produced by \code{county_timeseries})
-are saved.}
+\item{data_directory}{The absolute or relative pathname for the directory
+where your daily time series dataframes (produced by
+\code{write_hourly_timeseries}) are saved.}
 
 \item{plot_directory}{The absolute or relative pathname for the directory
 where you would like the plots to be saved.}
+
+\item{data_type}{A character string indicating the type of timeseries files
+you would like to produce plots for (either "rds" or "csv"). This option
+defaults to .rds files.}
 }
 \value{
-Writes out a directory with plots of timeseries data for a given
+Writes out a directory with plots of time series data for a given
 weather variable for each file present in the directory specified.
 }
 \description{
 This function writes out a directory with plots for every timeseries file
-present in the specified directory (produced by the \code{hourly_timeseries}
+present in the specified directory (produced by the \code{write_hourly_timeseries}
 function) for a particular weather variable. These plots are meant to aid in
 initial exploratory analysis.
 }
 \examples{
 \dontrun{
-plot_hourly_timeseries(var = "wind_speed", year = 1992,
-               file_directory = "~/timeseries_hourly",
-               plot_directory = "~/timeseries_plots")
+plot_hourly_timeseries(var = "wind_speed", year = c(1994, 1995),
+                       data_directory = "~/timeseries_hourly/data",
+                       plot_directory = "~/timeseries_hourly/plots_wind_speed")
+plot_hourly_timeseries(var = "temperature", year = c(1994, 1995),
+                       data_directory = "~/timeseries_hourly/data",
+                       plot_directory = "~/timeseries_hourly/plots_temperature")
 }
 }
 
