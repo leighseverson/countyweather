@@ -7,35 +7,34 @@
 #' stations. This radius is estimated from 2010 U.S. Census Land Area data.
 #'
 #' @param fips A five-digit FIPS county code.
-#' @param verbose TRUE / FALSE to indicate if you want the function to print
-#'    out the name of the county it's processing
 #'
 #' @return A list with four elements. The first element, \code{stations}, is a
 #'    dataframe of monitors within a calculated radius of the
-#'    population-weighted center of the county specified by the FIPS code.
+#'    geographic center of the county specified by the FIPS code.
 #'    This will have the same dataframe format as the output from the
 #'    \code{isd_stations_search} function in the \code{rnoaa} package. The
 #'    second element, \code{radius}, gives the radius (in km) within which
-#'    stations were pulled from the county's population-weighted center.
+#'    stations were pulled from the county's geographic center.
 #'    Elements \code{lat_center} and \code{lon_center} are the latitude and
 #'    longitude of the county's population-weighted center.
 #'
 #' @examples
 #' \dontrun{
-#' ids <- isd_fips_stations(fips = "12086")$stations
+#' list <- isd_fips_stations(fips = "12086")
+#' ids <- list$stations
 #' }
-isd_fips_stations <- function(fips, verbose = TRUE){
+isd_fips_stations <- function(fips, verbose = FALSE) {
 
   # population-weighted center for specified county
   census_data <- countyweather::county_centers
   loc_fips <- which(census_data$fips == fips)
-  lat_fips <- census_data[loc_fips, "latitude"]
-  lon_fips <- census_data[loc_fips, "longitude"]
+  lat_fips <- as.numeric(census_data[loc_fips, "latitude"])
+  lon_fips <- as.numeric(census_data[loc_fips, "longitude"])
 
   # radius data for specified county
   radius_data <- countyweather::county_radius
   loc_rad <- which(radius_data == fips)
-  radius <- radius_data[loc_rad, "county_radius"]
+  radius <- as.numeric(radius_data[loc_rad, "county_radius"])
 
   if(verbose) {
     message(paste0("Getting hourly weather monitors for ",
@@ -52,6 +51,7 @@ isd_fips_stations <- function(fips, verbose = TRUE){
                "lon_center" = lon_fips)
 
   return(list)
+
 }
 
 #' Get hourly data for a single monitor.
@@ -63,10 +63,11 @@ isd_fips_stations <- function(fips, verbose = TRUE){
 #' @param wban_code A character string with a five-digit wban code for the
 #'    monitor.
 #' @param year A four-digit numeric giving the year for which to pull data.
-#' @param var A character vector listing the weather variables to pull. Choices
-#'    include "wind_direction", "wind_speed", "ceiling_height",
-#'    "visibility_distance", "temperature", "temperature_dewpoint", and
-#'    "air_pressure."
+#' @param var A character vector listing the weather variables to pull. In
+#'    addition quality flag data, choices for main weather variables to pull
+#'    include \code{wind_direction}, \code{wind_speed},
+#'    \code{ceiling_height}, \code{visibility_distance}, \code{temperature},
+#'    \code{temperature_dewpoint} and \code{air_pressure}.
 #'
 #' @return This function returns the same type of dataframe as that returned
 #'    by the \code{isd} function from the \code{rnoaa} package, but with the
@@ -88,14 +89,14 @@ isd_fips_stations <- function(fips, verbose = TRUE){
 #'                                     year = 1992,
 #'                                     var = c("wind_speed", "temperature"))
 #' }
-int_surface_data <- function(usaf_code, wban_code, year,
-                             var = "all"){
+int_surface_data <- function(usaf_code, wban_code, year, var = "all") {
+
   quiet_isd <- purrr::quietly(rnoaa::isd)
   isd_df <- quiet_isd(usaf = usaf_code, wban = wban_code, year = year)
   isd_df <- isd_df$result
 
     # select variables if `var` isn't "all"
-  if(length(var) == 1 && var == "all"){
+  if (length(var) == 1 && var == "all") {
     w_vars <- colnames(isd_df)
     var <- w_vars[9:length(w_vars)]
   }
@@ -110,19 +111,21 @@ int_surface_data <- function(usaf_code, wban_code, year,
   isd_df <- dplyr::select_(isd_df, .dots = subset_vars)
 
   na_code_vars <- colnames(isd_df)[apply(isd_df, 2, max) %in%
-                                     c(99.9, 999, 999.9, 9999, 9999.9, 99999, 999999)]
+                                     c(99.9, 999, 999.9, 9999, 9999.9, 99999,
+                                       999999)]
 
-  for(na_var in na_code_vars){
+  for (na_var in na_code_vars) {
     isd_df[[na_var]] <- as.numeric(isd_df[[na_var]])
   }
 
-  if(length(na_code_vars) > 0){
-    for(na_var in na_code_vars){
+  if (length(na_code_vars) > 0) {
+    for (na_var in na_code_vars) {
       isd_df[isd_df[ , na_var] == max(isd_df[ , na_var]), na_var] <- NA
     }
   }
 
   return(isd_df)
+
 }
 
 #' Pull hourly data for multiple monitors.
@@ -143,19 +146,20 @@ int_surface_data <- function(usaf_code, wban_code, year,
 #'    metadata for all avaiable stations in the given fips code. \code{df} is a
 #'    data frame with hourly weather data for the given variable(s) and date
 #'    range. \code{radius} is the calculated radius within which stations
-#'    were pulled from the county's population-weighted center. Elements
+#'    were pulled from the county's geographic center. Elements
 #'    \code{lat_center} and \code{lon_center} are the latitude and longitude
-#'    of the county's population-weighted center.
+#'    of the county's geographic center.
 #'
 #' @examples
 #' \dontrun{
-#' stationdata <- isd_monitors_data(fips = "12086", year = 1992,
-#'                                  var = c("wind_speed", "temperature"))$df
+#' list <- isd_monitors_data(fips = "12086", year = 1992,
+#'                           var = c("wind_speed", "temperature"))
+#' stationdata <- list$df
 #' ggplot(stationdata, aes(x = date_time, y = wind_speed)) +
 #'    geom_point(alpha = 0.5, size = 0.2) +
 #'    facet_wrap(~ usaf_station, ncol = 1)
 #' }
-isd_monitors_data <- function(fips, year, var = "all"){
+isd_monitors_data <- function(fips, year, var = "all") {
 
   list <- isd_fips_stations(fips)
   ids <- list$stations
@@ -169,7 +173,7 @@ isd_monitors_data <- function(fips, year, var = "all"){
                           year = year, var = list(var = var))
 
   good_st <- sapply(mult_stations, function(x) !is.null(dim(x)))
-  if(sum(good_st) > 0){
+  if (sum(good_st) > 0) {
     st_out_list <- lapply(which(good_st), function(x) mult_stations[[x]])
     st_out_list <- lapply(st_out_list, function(x){
       x$usaf_station <- as.numeric(x$usaf_station)
@@ -177,38 +181,36 @@ isd_monitors_data <- function(fips, year, var = "all"){
 
       cols <- colnames(st_out_list[[1]])
 
-      if("wind_direction" %in% cols){
+      if ("wind_direction" %in% cols) {
         x$wind_direction <- as.numeric(x$wind_direction)
       }
-      if("ceiling_height" %in% cols){
+      if ("ceiling_height" %in% cols) {
         x$ceiling_height <- as.numeric(x$ceiling_height)
       }
-      if("visibility_distance" %in% cols){
+      if ("visibility_distance" %in% cols) {
         x$visibility_distance <- as.numeric(x$visibility_distance)
       }
-      if("temperature" %in% cols){
+      if ("temperature" %in% cols) {
         x$temperature <- as.numeric(x$temperature)
       }
-      if("temperature_dewpoint" %in% cols){
+      if ("temperature_dewpoint" %in% cols) {
         x$temperature_dewpoint <- as.numeric(x$temperature_dewpoint)
       }
-      if("air_pressure" %in% cols){
+      if ("air_pressure" %in% cols) {
         x$air_pressure <- as.numeric(x$air_pressure)
       }
-      if("GF1_lowest_cloud_base_height" %in% cols){
+      if ("GF1_lowest_cloud_base_height" %in% cols) {
         x$GF1_lowest_cloud_base_height <- as.numeric(x$GF1_lowest_cloud_base_height)
       }
 
       return(x)
-    })
-    st_out_df <- dplyr::bind_rows(st_out_list)
-  } else(
-    stop("None of the stations had available data.")
-  )
+    }
+    )
 
-  # filter so ids stations match with filtered df's stations
-  # out = list: data and stations
-  # want to be able to access station metadata later for mapping, etc.
+    st_out_df <- dplyr::bind_rows(st_out_list)
+  } else {
+    stop("None of the stations had available data.")
+  }
 
   list <- list("df" = st_out_df,
                "ids" = ids,
@@ -225,11 +227,11 @@ isd_monitors_data <- function(fips, year, var = "all"){
 #' average for each variable and each hour.
 #'
 #' @param hourly_data A dataframe with hourly weather observations. This
-#'    dataframe is returned from the "df" element of the function
+#'    dataframe is returned from the \code{df} element of the function
 #'    \code{isd_monitors_data}.
 #'
 #' @importFrom dplyr %>%
-ave_hourly <- function(hourly_data){
+ave_hourly <- function(hourly_data) {
 
   df <- dplyr::mutate_(hourly_data, id = ~ paste0(usaf_station, wban_station))
   df <- dplyr::select_(df, .dots = c("-usaf_station", "-wban_station",
@@ -259,48 +261,53 @@ ave_hourly <- function(hourly_data){
   averaged_data <- as.data.frame(averaged_data)
 
   return(averaged_data)
+
 }
 
-#' Filter NOAA ISD stations based on "coverage" requirements.
+#' Filter NOAA ISD stations based on "coverage" requirements, and calculate
+#' coverage and statistical information for each station-variable combination.
 #'
 #' \code{filter_hourly} filters available weather variables based on a specified
 #' minimum coverage (i.e., percent non-missing hourly observations).
 #'
-#' @param fips A character string or vector giving the five-digit U.S. FIPS
-#'    county code of the county or counties for which the user wants to pull
-#'    weather data.
+#' @param fips A character string giving the five-digit U.S. FIPS
+#'    county code of the county for which the user wants to pull weather data.
 #' @param hourly_data A \code{isd_monitors_data} dataframe (The "df" element of
 #'    a \code{isd_monitors_data} list)
 #' @param coverage A numeric value in the range of 0 to 1 that specifies the
 #'    desired percentage coverage for each weather variable (i.e., what percent
 #'    of each weather variable must be non-missing to include the data from a
 #'    station when calculating hourly values averaged across stations).
-#' @param var A character vector specifying desired weather variables. For
-#'    example, var = c("wind_speed", "temperature"). The core available weather
-#'    variables include \code{wind_direction}, \code{wind_speed},
-#'    \code{ceiling_height}, \code{visibility_distance}, \code{temperature},
-#'    \code{temperature_dewpoint} and \code{air_pressure}. Alternatively,
-#'    you can specify var = "all" to include additional flag and quality codes.
 #'
-#' @return A list with two elements: \code{stations} is a dataframe giving
-#'    statistical information for stations that meet the specified coverage
+#' @return A list with two elements: \code{df} and \code{stations}. \code{df} is
+#'    a dataframe of hourly weather data filtered based on the specfified
+#'    coverage, as well as columns (\code{"var"_reporting}) for each weather
+#'    variable showing the number of stations contributing to the average for that
+#'    variable for each hour. The second element, \code{stations}, is a dataframe
+#'    giving statistical information for stations that meet the specified coverage
 #'    requirements. The column \code{station} gives the station id (usaf and
 #'    wban identification numbers pasted together, separated by "-"). Note: one
-#'    of these identification ids is sometimes missing. For example, value in
+#'    of these identification ids is sometimes missing. For example, a value in
 #'    \code{station} might be \code{722029-NA}. The column \code{var}
 #'    gives the weather variable associated with the row of statistical values
 #'    for each station and variable combination. \code{calc_covearge} gives the
-#'    percentage coverage for each weather variable and station. These values
-#'    will all be greater than or equal to the specified \code{coverage} value.
-#'    \code{standard_dev} gives the standard deviation of values for each station
-#'    and weather variable. \code{max} and \code{min} give the minimum and
-#'    maximum values for the values in each station and weather variable.
+#'    percentage coverage for each station-weather variable combination. These
+#'    values will all be greater than or equal to the specified \code{coverage}
+#'    value. \code{standard_dev} gives the standard deviation of values for each
+#'    station-weather variable combination. \code{max} and \code{min} give the
+#'    minimum and maximum values, and \code{range} gives the range of values in
+#'    each station-weather variable combination. These last four statistical
+#'    calculations (\code{standard_dev}, \code{max}, \code{min}, and
+#'    \code{range}) are only included for the seven core hourly weather variables,
+#'    which include "wind_direction", "wind_speed", "ceiling_height",
+#'    "visibility_distance", "temperature", "temperature_dewpoint", and
+#'    "air_pressure." (The values of these columns are set to "NA" for other
+#'    variables, such as quality flag data.)
 #'
 #' @importFrom dplyr %>%
-filter_hourly <- function(fips, hourly_data, coverage = NULL,
-                          var = "all"){
+filter_hourly <- function(fips, hourly_data, coverage = NULL) {
 
-  if(purrr::is_null(coverage)){
+  if (purrr::is_null(coverage)) {
    coverage <- 0
   }
 
@@ -310,9 +317,9 @@ filter_hourly <- function(fips, hourly_data, coverage = NULL,
   g_cols <- all_cols[!all_cols %in% not_vars]
   group_cols <- c("station", "key")
 
-  # calc_coverage for each station (combination of usaf and wban ids)
+  # suppressing "NAs introduced by coercion" warning message
 
-  df <- hourly_data %>%
+  df <- suppressWarnings(hourly_data %>%
     tidyr::unite_(col = "station", from = c("usaf_station", "wban_station"),
                   sep = "-") %>%
     dplyr::select_(quote(-date_time), quote(-latitude), quote(-longitude)) %>%
@@ -323,14 +330,28 @@ filter_hourly <- function(fips, hourly_data, coverage = NULL,
                       standard_dev = ~ sd(value, na.rm = TRUE),
                       min = ~ min(value, na.rm = TRUE),
                       max = ~ max(value, na.rm = TRUE),
-                      range = ~ max - min)
+                      range = ~ max - min))
+
+  weather_vars <- c("wind_direction", "wind_speed", "ceiling_height",
+                    "visibility_distance", "temperature",
+                    "temperature_dewpoint", "air_pressure")
+  flag_vars <- df[!df$key %in% weather_vars, "key"]$key
+
+  if (length(flag_vars) != 0) {
+    for (i in 1:length(flag_vars)) {
+      df[which(df$key == flag_vars[i]), ]$standard_dev <- NA
+      df[which(df$key == flag_vars[i]), ]$min <- NA
+      df[which(df$key == flag_vars[i]), ]$max <- NA
+      df[which(df$key == flag_vars[i]), ]$range <- NA
+    }
+  }
 
   group_cols <- c("date_time", "key")
 
   test <- df %>%
     dplyr::filter_(~ calc_coverage >= coverage)
 
-  if(nrow(test) == 0){
+  if (nrow(test) == 0) {
     stop(paste0("Unable to pull weather data for FIPS code ", fips,
                  " for the specified percent coverage, year(s), and/or",
                  " weather variables."))
@@ -391,9 +412,9 @@ filter_hourly <- function(fips, hourly_data, coverage = NULL,
 #'    for each county using 2010 U.S. Census Land Area data. 2010 U.S. Census
 #'    cartographic boundary shapefiles are used to proved county outlines,
 #'    included on this plot as well. Note: because stations are pulled within
-#'    a radius from the county's population-weighted center, stations from
-#'    outside of the county's boundaries may sometimes be providing data for that
-#'    county.
+#'    a radius from the county's geographic center, depending on the shape of
+#'    the county, stations from outside of the county's boundaries may sometimes
+#'    be providing data for that county.
 #'
 #' @examples
 #' \dontrun{
@@ -404,22 +425,22 @@ filter_hourly <- function(fips, hourly_data, coverage = NULL,
 #'
 #' @importFrom dplyr %>%
 hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
-                              point_size = 2, station_label = FALSE){
+                              point_size = 2, station_label = FALSE) {
 
   census_data <- countyweather::county_centers
   row_num <- which(grepl(fips, census_data$fips))
-  title <- census_data[row_num, "name"]
+  title <- as.character(census_data[row_num, "name"])
 
   # for ggmap lat/lon
   loc_fips <- which(census_data$fips == fips)
-  lat_fips <- census_data[loc_fips, "latitude"]
-  lon_fips <- census_data[loc_fips, "longitude"]
+  lat_fips <- as.numeric(census_data[loc_fips, "latitude"])
+  lon_fips <- as.numeric(census_data[loc_fips, "longitude"])
 
   # filter county's shapefile
   shp <- countyweather::county_outlines
   county_shp <- shp[shp$fips == fips, ]
 
-  # convert to raster so that we can add geom_raster() (which gets rid of the
+  # convert to raster so that we can add geom_raster() (which fixes the
   # geom_polygons island problem)
   r <- raster::raster(raster::extent(county_shp))
   raster::res(r) <- 0.001
@@ -435,8 +456,8 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
   # zoom, then accounting for the extra space we want to add around county
   # shapes.
 
-  if(x_range > y_range){
-    if(x_range <= 0.1997){
+  if (x_range > y_range) {
+    if (x_range <= 0.1997) {
 
       zoom <- 12
 
@@ -446,7 +467,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
       ymax <- r@extent[4] + 0.01
     }
 
-    if(x_range <= 0.3894 & x_range > 0.1997){
+    if (x_range <= 0.3894 & x_range > 0.1997) {
 
       zoom <- 11
 
@@ -456,7 +477,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
       ymax <- r@extent[4] + 0.025
     }
 
-    if(x_range <= 0.7989 & x_range > 0.3894){
+    if (x_range <= 0.7989 & x_range > 0.3894) {
 
       zoom <- 10
 
@@ -466,7 +487,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
       ymax <- r@extent[4] + 0.04
     }
 
-    if(x_range <= 1.6378 & x_range > 0.7989){
+    if (x_range <= 1.6378 & x_range > 0.7989) {
 
       zoom <- 9
 
@@ -476,7 +497,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
       ymax <- r@extent[4] + 0.06
     }
 
-    if(x_range <= 3.3556 & x_range > 1.6378){
+    if (x_range <= 3.3556 & x_range > 1.6378) {
 
       zoom <- 8
 
@@ -486,7 +507,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
       ymax <- r@extent[4] + 0.08
     }
 
-    if(x_range <= 6.8313 & x_range > 3.3556){
+    if (x_range <= 6.8313 & x_range > 3.3556) {
 
       zoom <- 7
 
@@ -497,7 +518,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
     }
 
   } else {
-    if(y_range <= 0.1616){
+    if (y_range <= 0.1616) {
 
       zoom <- 12
 
@@ -507,7 +528,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
       ymax <- r@extent[4] + 0.01
     }
 
-    if(y_range <= 0.3135 & y_range > 0.1616){
+    if (y_range <= 0.3135 & y_range > 0.1616) {
 
       zoom <- 11
 
@@ -517,7 +538,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
       ymax <- r@extent[4] + 0.025
     }
 
-    if(y_range <= 0.647 & y_range > 0.3135){
+    if (y_range <= 0.647 & y_range > 0.3135) {
 
       zoom <- 10
 
@@ -527,7 +548,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
       ymax <- r@extent[4] + 0.04
     }
 
-    if(y_range <= 1.3302 & y_range > 0.647){
+    if (y_range <= 1.3302 & y_range > 0.647) {
 
       zoom <- 9
 
@@ -537,7 +558,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
       ymax <- r@extent[4] + 0.06
     }
 
-    if(y_range <= 2.7478 & y_range > 1.3302){
+    if (y_range <= 2.7478 & y_range > 1.3302) {
 
       zoom <- 8
 
@@ -547,7 +568,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
       ymax <- r@extent[4] + 0.08
     }
 
-    if(y_range <= 2.8313 & y_range > 2.7478){
+    if (y_range <= 2.8313 & y_range > 2.7478) {
 
       zoom <- 7
 
@@ -558,25 +579,23 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
     }
   }
 
-  county <- suppressMessages(ggmap::get_map(c(lon_fips,
-                                              lat_fips), zoom = zoom,
-                                            color = "bw"))
+  county <- suppressMessages(ggmap::get_map(c(lon_fips, lat_fips),
+                                            zoom = zoom, color = "bw"))
 
   gg_map <- ggmap::ggmap(county)
 
-  # limits of a ggmap depend on your center lat/lon (this means the limits
+  # limits of a ggmap depend on your center lat/lon (the limits
   # above won't work exactly for every county)
   map_ymin <- gg_map$data$lat[1]
   map_ymax <- gg_map$data$lat[3]
   map_xmin <- gg_map$data$lon[1]
   map_xmax <- gg_map$data$lon[2]
 
-  if((ymin < map_ymin) | (ymax > map_ymax) | (xmin < map_xmin) |
-     (xmax > map_xmax)){
+  if ((ymin < map_ymin) | (ymax > map_ymax) | (xmin < map_xmin) |
+     (xmax > map_xmax)) {
     zoom <- zoom - 1
-    county <- suppressMessages(ggmap::get_map(c(lon_fips,
-                                                lat_fips), zoom = zoom,
-                                              color = "bw"))
+    county <- suppressMessages(ggmap::get_map(c(lon_fips, lat_fips),
+                                              zoom = zoom, color = "bw"))
     gg_map <- ggmap::ggmap(county)
   }
 
@@ -605,7 +624,7 @@ hourly_stationmap <- function(fips, hourly_data, point_color = "firebrick",
     dplyr::arrange_(~ dplyr::desc(latitude)) %>%
     dplyr::mutate_(station_name = ~ factor(station_name, levels = station_name))
 
-  if(station_label == TRUE){
+  if (station_label == TRUE) {
     map_out <- map + ggplot2::geom_polygon(ggplot2::aes_(~ x_v, ~ y_v),
                                            data = df, inherit.aes = FALSE,
                                            fill = "#9999CC", alpha = 0.25) +

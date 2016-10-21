@@ -1,18 +1,23 @@
 #' County latitude and longitude designations.
 #'
-#' A dataframe containing latitude, longitude, FIPS code, name, and region code
-#' for each U.S. county. This dataset was put together using a dataframe from the U.S.
-#' Census Bureau, which was pulled from the website listed in "Source."
+#' A dataframe containing state, FIPS code, name, geographic latitude and
+#' longitude, and region code for each U.S. county as of the 2010 census. This
+#' dataset was put together using a dataframe from the U.S. Census Bureau, which
+#' was pulled from the website listed in "Source." (Note: the names (in county,
+#' state format) for each county were pulled from the 2010 U.S. Census file found here:
+#' \url{http://www2.census.gov/geo/docs/reference/cenpop2010/county/CenPop2010_Mean_CO.txt}.)
 #'
 #' @format A dataframe with 3,143 rows and 5 variables:
 #' \describe{
-#'    \item{latitude}{A numeric vector giving the latutude at the center of each
-#'                    county}
-#'    \item{longitude}{A numeric vector giving the longitude at the center of
-#'                     each county}
+#'    \item{state}{A character vector giving the two-letter abbreviation for
+#'                 the state of each county}
 #'    \item{fips}{A numeric vector giving the county's five-digit Federal
 #'                Information Processing Standard (FIPS) code}
 #'    \item{name}{A character vector giving the name and state for each county}
+#'    \item{latitude}{A numeric vector giving the latutude at the geographic
+#'                    center of each county}
+#'    \item{longitude}{A numeric vector giving the longitude at the geographic
+#'                     center of each county}
 #'    \item{region}{A numeric vector giving the four-digit or five-digit Federal
 #'                  Information Processing Standard (FIPS) code (values in this
 #'                  column are identical to those in the "fips" column, but do
@@ -21,12 +26,12 @@
 #'
 #' @source
 #'
-#' \url{http://www2.census.gov/geo/docs/reference/cenpop2010/county/CenPop2010_Mean_CO.txt}
+#' \url{https://www.census.gov/geo/maps-data/data/gazetteer2010.html}
 "county_centers"
 
 #' County land area data.
 #'
-#' A dataframe containing FIPS code and an estimate for county radius in km for
+#' A dataframe containing the FIPS code and an estimate for radius in km for
 #' each U.S. county. This dataset was put together using a dataset from the U.S.
 #' Census American FactFinder data dissemination tool. This dataset was downloaded
 #' from the geographic identifiers 'G001' option for the 2010 Summary File1
@@ -36,8 +41,10 @@
 #'
 #' @format A dataframe with 3,143 rows and 2 variables:
 #' \describe{
+#'
 #'    \item{fips}{A character vector giving the county's five-digit Federal
 #'                Information Processing Standard (FIPS) code}
+#'
 #'    \item{county_radius}{A numeric vector giving an estimate for each
 #'                         county's radius from its center, in km. This value
 #'                         was calculated by dividing the U.S. Census Land Area
@@ -57,7 +64,7 @@
 #'
 #' A "SpatialPolygonsDataFrame" object. This shapefile downloaded from the U.S.
 #' Census 2010 Cartographic Boundary Shapefiles for counties. The
-#' cb_2015_us_county_500k zip file was downloaded from the website listed in
+#' gz_2010_us_050_00_500k zip file was downloaded from the website listed in
 #' "Source."
 #'
 #' @format A "SpatialPolygonsDataFrame" object

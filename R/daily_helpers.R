@@ -20,35 +20,22 @@
 #' @param date_max A string with the desired ending date in character, ISO
 #'    format ("yyyy-mm-dd"). The dataframe returned will include only stations
 #'    that have data for dates up to and including the specified date.
-#' @param verbose TRUE / FALSE to indicate if you want the function to print
-#'    out the name of the county it's processing.
 #'
 #' @examples
 #' \dontrun{
 #' ex <- daily_stations("36005")
-#' ex2 <- daily_stations("12086", date_min = "1999-01-01",
-#'                               date_max = "2012-12-31")
+#' ex2 <- daily_stations("12086", date_min = "1999-01-01", date_max = "2012-12-31")
 #' }
 #'
 #' @importFrom dplyr %>%
-#' @export
-daily_stations <- function(fips, date_min = NULL, date_max = NULL,
-                          verbose = TRUE){
-
-  census_data <- countyweather::county_centers
-  loc_fips <- which(census_data$fips == fips)
-
-  if(verbose) {
-    message(paste0("Getting daily weather stations for ",
-                 census_data[loc_fips, "name"]))
-  }
+daily_stations <- function(fips, date_min = NULL, date_max = NULL) {
 
   FIPS <- paste0('FIPS:', fips)
   station_ids <- rnoaa::ncdc_stations(datasetid = 'GHCND', locationid = FIPS,
                                       limit = 10)
 
   station_df <- station_ids$data
-  if(station_ids$meta$totalCount > 10){
+  if (station_ids$meta$totalCount > 10) {
     how_many_more <- station_ids$meta$totalCount - 10
     more_stations <- rnoaa::ncdc_stations(datasetid = 'GHCND',
                                           locationid = FIPS,
@@ -59,10 +46,10 @@ daily_stations <- function(fips, date_min = NULL, date_max = NULL,
 
   # If either `min_date` or `max_date` option was null, set to a date that
   # will keep all monitors in the filtering.
-  if(is.null(date_max)){
+  if (is.null(date_max)) {
     date_max <- min(station_df$maxdate)
   }
-  if(is.null(date_min)){
+  if (is.null(date_min)) {
     date_min <- max(station_df$mindate)
   }
 
@@ -79,9 +66,9 @@ daily_stations <- function(fips, date_min = NULL, date_max = NULL,
   return(tot_df)
 }
 
-#' Average weather data across multiple stations.
+#' Average daily weather data across multiple stations.
 #'
-#' \code{ave_weather} returns a dataframe with daily weather averaged across
+#' \code{ave_daily} returns a dataframe with daily weather averaged across
 #'    stations, as well as columns showing the number of stations contributing
 #'    to the average for each variable and each day.
 #'
@@ -90,8 +77,7 @@ daily_stations <- function(fips, date_min = NULL, date_max = NULL,
 #'    \code{meteo_pull_monitors}.
 #'
 #' @importFrom dplyr %>%
-#'
-ave_weather <- function(weather_data){
+ave_daily <- function(weather_data) {
 
   all_cols <- colnames(weather_data)
   not_vars <- c("id", "date")
@@ -136,10 +122,9 @@ ave_weather <- function(weather_data){
 #'    this function's arguments.
 #'
 #' @importFrom dplyr %>%
-#'
-filter_coverage <- function(coverage_df, coverage = NULL){
+filter_coverage <- function(coverage_df, coverage = NULL) {
 
-  if (is.null(coverage)){
+  if (is.null(coverage)) {
     coverage <- 0
   }
 
@@ -182,7 +167,7 @@ filter_coverage <- function(coverage_df, coverage = NULL){
 #' @return A plot showing points for all weather stations for a particular
 #'    county satisfying the conditions present in \code{daily_df}'s
 #'    arguments (date range and/or var). 2010 U.S. Census cartographic boundary
-#'    shapefiles are used to proved county outlines.
+#'    shapefiles are used to provide county outlines.
 #'
 #' @examples
 #' \dontrun{
@@ -196,17 +181,17 @@ filter_coverage <- function(coverage_df, coverage = NULL){
 #'
 #' @importFrom dplyr %>%
 daily_stationmap <- function(fips, daily_data, point_color = "firebrick",
-                              point_size = 2, station_label = FALSE){
+                             point_size = 2, station_label = FALSE) {
 
   # for plot title
   census_data <- countyweather::county_centers
   row_num <- which(grepl(fips, census_data$fips))
-  title <- census_data[row_num, "name"]
+  title <- as.character(census_data[row_num, "name"])
 
   # for ggmap lat/lon
   loc_fips <- which(census_data$fips == fips)
-  lat_fips <- census_data[loc_fips, "latitude"]
-  lon_fips <- census_data[loc_fips, "longitude"]
+  lat_fips <- as.numeric(census_data[loc_fips, "latitude"])
+  lon_fips <- as.numeric(census_data[loc_fips, "longitude"])
 
   # filter county's shapefile
   shp <- countyweather::county_outlines
@@ -228,8 +213,8 @@ daily_stationmap <- function(fips, daily_data, point_color = "firebrick",
   # zoom, then accounting for the extra space we want to add around county
   # shapes.
 
-  if(x_range > y_range){
-    if(x_range <= 0.1997){
+  if (x_range > y_range) {
+    if (x_range <= 0.1997) {
 
       zoom <- 12
 
@@ -239,7 +224,7 @@ daily_stationmap <- function(fips, daily_data, point_color = "firebrick",
       ymax <- r@extent[4] + 0.01
     }
 
-    if(x_range <= 0.3894 & x_range > 0.1997){
+    if (x_range <= 0.3894 & x_range > 0.1997) {
 
       zoom <- 11
 
@@ -249,7 +234,7 @@ daily_stationmap <- function(fips, daily_data, point_color = "firebrick",
       ymax <- r@extent[4] + 0.025
     }
 
-    if(x_range <= 0.7989 & x_range > 0.3894){
+    if(x_range <= 0.7989 & x_range > 0.3894) {
 
       zoom <- 10
 
@@ -259,7 +244,7 @@ daily_stationmap <- function(fips, daily_data, point_color = "firebrick",
       ymax <- r@extent[4] + 0.04
     }
 
-    if(x_range <= 1.6378 & x_range > 0.7989){
+    if (x_range <= 1.6378 & x_range > 0.7989) {
 
       zoom <- 9
 
@@ -269,7 +254,7 @@ daily_stationmap <- function(fips, daily_data, point_color = "firebrick",
       ymax <- r@extent[4] + 0.06
     }
 
-    if(x_range <= 3.3556 & x_range > 1.6378){
+    if (x_range <= 3.3556 & x_range > 1.6378) {
 
       zoom <- 8
 
@@ -279,7 +264,7 @@ daily_stationmap <- function(fips, daily_data, point_color = "firebrick",
       ymax <- r@extent[4] + 0.08
     }
 
-    if(x_range <= 6.8313 & x_range > 3.3556){
+    if (x_range <= 6.8313 & x_range > 3.3556) {
 
       zoom <- 7
 
@@ -290,7 +275,7 @@ daily_stationmap <- function(fips, daily_data, point_color = "firebrick",
     }
 
   } else {
-    if(y_range <= 0.1616){
+    if(y_range <= 0.1616) {
 
       zoom <- 12
 
@@ -300,7 +285,7 @@ daily_stationmap <- function(fips, daily_data, point_color = "firebrick",
       ymax <- r@extent[4] + 0.01
     }
 
-    if(y_range <= 0.3135 & y_range > 0.1616){
+    if (y_range <= 0.3135 & y_range > 0.1616) {
 
       zoom <- 11
 
@@ -310,7 +295,7 @@ daily_stationmap <- function(fips, daily_data, point_color = "firebrick",
       ymax <- r@extent[4] + 0.025
     }
 
-    if(y_range <= 0.647 & y_range > 0.3135){
+    if (y_range <= 0.647 & y_range > 0.3135) {
 
       zoom <- 10
 
@@ -320,7 +305,7 @@ daily_stationmap <- function(fips, daily_data, point_color = "firebrick",
       ymax <- r@extent[4] + 0.04
     }
 
-    if(y_range <= 1.3302 & y_range > 0.647){
+    if (y_range <= 1.3302 & y_range > 0.647) {
 
       zoom <- 9
 
@@ -330,7 +315,7 @@ daily_stationmap <- function(fips, daily_data, point_color = "firebrick",
       ymax <- r@extent[4] + 0.06
     }
 
-    if(y_range <= 2.7478 & y_range > 1.3302){
+    if (y_range <= 2.7478 & y_range > 1.3302) {
 
       zoom <- 8
 
@@ -340,7 +325,7 @@ daily_stationmap <- function(fips, daily_data, point_color = "firebrick",
       ymax <- r@extent[4] + 0.08
     }
 
-    if(y_range <= 2.8313 & y_range > 2.7478){
+    if (y_range <= 2.8313 & y_range > 2.7478) {
 
       zoom <- 7
 
@@ -364,12 +349,11 @@ daily_stationmap <- function(fips, daily_data, point_color = "firebrick",
   map_xmin <- gg_map$data$lon[1]
   map_xmax <- gg_map$data$lon[2]
 
-  if((ymin < map_ymin) | (ymax > map_ymax) | (xmin < map_xmin) |
-     (xmax > map_xmax)){
+  if ((ymin < map_ymin) | (ymax > map_ymax) | (xmin < map_xmin) |
+     (xmax > map_xmax)) {
     zoom <- zoom - 1
-    county <- suppressMessages(ggmap::get_map(c(lon_fips,
-                                                lat_fips), zoom = zoom,
-                                              color = "bw"))
+    county <- suppressMessages(ggmap::get_map(c(lon_fips, lat_fips),
+                                              zoom = zoom, color = "bw"))
     gg_map <- ggmap::ggmap(county)
   }
 
@@ -388,7 +372,7 @@ daily_stationmap <- function(fips, daily_data, point_color = "firebrick",
     dplyr::arrange_(~ dplyr::desc(latitude)) %>%
     dplyr::mutate_(name = ~ factor(name, levels = name))
 
-  if(station_label == TRUE){
+  if (station_label == TRUE) {
     map_out <- map +
       ggplot2::geom_point(data = station_df,
                           ggplot2::aes_(~ longitude, ~ latitude,
