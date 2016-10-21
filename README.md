@@ -130,6 +130,7 @@ Here is an example of pulling hourly data for Miami-Dade, for the year of Hurric
 ``` r
 andrew_hourly <- hourly_fips(fips = "12086", year = 1992,
                            var = c("wind_speed", "temperature"))
+#> This function can take a while to run.
 #> [1] "Getting hourly weather monitors for Miami-Dade County, Florida"
 ```
 
@@ -254,6 +255,7 @@ not_averaged <- daily_fips(fips = "12086",
                            date_max = "1992-08-31",
                            var = "prcp", average_data = FALSE, 
                            station_label = TRUE)
+#> This function can take a while to run.
 not_averaged_data <- not_averaged$daily_data
 head(not_averaged_data)
 #> # A tibble: 6 × 3
@@ -350,6 +352,7 @@ Because it makes no sense to average these codes across monitors, the codes shou
 ``` r
 ex <- hourly_fips("12086", 1992, var = c("wind_speed", "wind_speed_quality"), 
                   average_data = FALSE)
+#> This function can take a while to run.
 #> [1] "Getting hourly weather monitors for Miami-Dade County, Florida"
 ex_data <- ex$hourly_data
 head(ex_data)
