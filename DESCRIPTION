@@ -32,7 +32,7 @@ Imports:
     tidyr (>= 0.3.1)
 RoxygenNote: 5.0.1
 Depends:
-    R (>= 3.2.3)
+    R (>= 3.3.0)
 Suggests: 
     countytimezones (>= 0.1.0),
     knitr (>= 1.14.0),
