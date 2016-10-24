@@ -48,6 +48,9 @@ files, in which case a list of four elements is saved
 \item{average_data}{TRUE / FALSE to indicate if you want the function to
 average daily weather data across multiple monitors.}
 
+\item{station_label}{TRUE / FALSE to indicate whether to include station
+labels in the station map.}
+
 \item{keep_map}{TRUE / FALSE indicating if a map of the stations should
 be included. The map can substantially increase the size of the files. If
 FALSE, the "maps" subdirectory will not be created.}
@@ -85,5 +88,12 @@ additional columns.
 If the function is unable to pull weather data for a particular county
    given the specified percent coverage, date range, and/or weather variables,
    \code{write_hourly_timeseries} will not produce a file for that county.
+}
+\examples{
+\dontrun{
+write_hourly_timeseries(fips = c("08031", "12086"), year = c(1994, 1995),
+                        coverage = 0.90, var = c("wind_speed", "temperature"),
+                        out_directory = "~/timeseries_hourly")
+}
 }
 
