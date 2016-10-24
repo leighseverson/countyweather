@@ -2,7 +2,7 @@ Package: countyweather
 Type: Package
 Title: Compiles Meterologic Data for U.S. Counties
 Version: 0.0.9000
-Date: 2016-02-22
+Date: 2016-10-24
 Authors@R: c(person("Rachel", "Severson",
                   email = "rachel.severson@colostate.edu",
                   role = c("aut", "cre")),
