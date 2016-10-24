@@ -2,7 +2,7 @@
 % Please edit documentation in R/hourly_helpers.R
 \name{int_surface_data}
 \alias{int_surface_data}
-\title{Get hourly data for a single monitor}
+\title{Get hourly data for a single monitor.}
 \usage{
 int_surface_data(usaf_code, wban_code, year, var = "all")
 }
@@ -15,10 +15,11 @@ monitor.}
 
 \item{year}{A four-digit numeric giving the year for which to pull data.}
 
-\item{var}{A character vector listing the weather variables to pull. Choices
-include "wind_direction", "wind_speed", "ceiling_height",
-"visibility_distance", "temperature", "temperature_dewpoint", and
-"air_pressure."}
+\item{var}{A character vector listing the weather variables to pull. In
+addition quality flag data, choices for main weather variables to pull
+include \code{wind_direction}, \code{wind_speed},
+\code{ceiling_height}, \code{visibility_distance}, \code{temperature},
+\code{temperature_dewpoint} and \code{air_pressure}.}
 }
 \value{
 This function returns the same type of dataframe as that returned

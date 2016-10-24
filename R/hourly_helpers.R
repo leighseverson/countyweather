@@ -7,6 +7,7 @@
 #' stations. This radius is estimated from 2010 U.S. Census Land Area data.
 #'
 #' @param fips A five-digit FIPS county code.
+#' @inheritParams write_daily_timeseries
 #'
 #' @return A list with four elements. The first element, \code{stations}, is a
 #'    dataframe of monitors within a calculated radius of the
@@ -23,7 +24,7 @@
 #' list <- isd_fips_stations(fips = "12086")
 #' ids <- list$stations
 #' }
-isd_fips_stations <- function(fips, verbose = TRUE) {
+isd_fips_stations <- function(fips, verbose = FALSE) {
 
   # population-weighted center for specified county
   census_data <- countyweather::county_centers
@@ -35,6 +36,11 @@ isd_fips_stations <- function(fips, verbose = TRUE) {
   radius_data <- countyweather::county_radius
   loc_rad <- which(radius_data == fips)
   radius <- as.numeric(radius_data[loc_rad, "county_radius"])
+
+  if(verbose) {
+    message(paste0("Getting hourly weather monitors for ",
+                 census_data[loc_fips, "name"]))
+  }
 
   quiet_station_search <- purrr::quietly(rnoaa::isd_stations_search)
   stations <- quiet_station_search(lat = lat_fips, lon = lon_fips,

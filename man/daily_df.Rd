@@ -9,24 +9,24 @@ daily_df(stations, coverage = NULL, var = "all", date_min = NULL,
 }
 \arguments{
 \item{stations}{A dataframe containing station metadata, returned from
-the function \code{fips_stations}.}
+the function \code{daily_stations}.}
 
 \item{coverage}{A numeric value in the range of 0 to 1 that specifies
 the desired percentage coverage for the weather variable (i.e., what
 percent of each weather variable must be non-missing to include data from
 a monitor when calculating daily values averaged across monitors. The
 default is to include all monitors with any available data (i.e.,
-\code{coverage = 0}).}
+\code{coverage = 0}).)}
 
 \item{var}{A character vector specifying desired weather variables. For
-example, var = c("tmin", "tmax", "prco"). The default is \code{"all"},
+example, var = c("tmin", "tmax", "prcp"). The default is \code{"all"},
 which includes all available weather variables. For a full list of all
 possible variable names, see NOAA's README file for the Daily Global
 Historical Climatology Network (GHCN-Daily) at
 \url{http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt}. Many of
 the weather variables are available for some, but not all, monitors, so
 your output from this function may not include all the variables
-specified using this argument; if you specify a variable here but it is
+specified using this argument. If you specify a variable here but it is
 not included in the output dataset, it means that it was not available in
 the time range for any monitor in the county.}
 
@@ -50,17 +50,31 @@ A list with two elements. \code{daily_data} is a dataframe of daily
    weather data averaged across multiple monitors, as well as columns
    (\code{"var"_reporting}) for each weather variable showing the number of
    stations contributing to the average for that variable on that day.
-   The element \code{station_df} is a vector of weather stations contributing
-   to the average value in the \code{daily_data} dataframe.
+   The element \code{station_df} is a dataframe of station metadata for each
+   station contributing weather data. A weather station will have one row per
+   weather variable it contributes data to. In addition to information such
+   as station id, name, latitude, and longitude, this dataframe includes
+   statistical information about weather values contributed by each station
+   for each weather variable. These statistics include \code{calc_coverage}
+   (the percent of non-missing values for each station-weather variable
+   combination for the specified date range), \code{standard_dev}
+   (standard deviation), \code{max}, and \code{min}, (giving the minimum and
+   maximum values), and \code{range}, giving the range of values in each
+   station-weather variable combination. The element \code{radius} is the
+   calculated radius within which stations were pulled from the county's
+   center. Elements \code{lat_center} and \code{lon_center} are the latitude
+   and longitude of the county's center.
 }
 \description{
 \code{daily_df} returns a list of two elements. The element
 \code{averaged} is a dataframe of average daily weather values for a
 particular county, date range, and/or specified "coverage." The element
 \code{stations} is a dataframe containing metadata about stations
-contributing to the average weather values in the \code{averaged} dataframe.
-Columns in the \code{stations} dataframe include each station's latitude,
-longitude, id, and name.
+contributing to the average weather values in the \code{averaged} dataframe,
+as well as statistical information about the values for each station-weather
+variable combination. Columns in the \code{stations} dataframe include each
+station's id, key (indicating the weather variable that station is contributing
+data for), latitude, longitude, id, and name.
 }
 \details{
 This function serves as a wrapper to several functions from the \code{rnoaa}
@@ -70,7 +84,7 @@ coverage specifications for weather monitors.
 }
 \note{
 Because this function uses the NOAA API to identify the weather
-   monitors within a US county, you will need to get an access token from
+   monitors within a U.S. county, you will need to get an access token from
    NOAA to use this function. Visit NOAA's token request page
    (\url{http://www.ncdc.noaa.gov/cdo-web/token}) to request a token by
    email. You then need to set that API code in your R session (e.g., using
@@ -79,11 +93,11 @@ Because this function uses the NOAA API to identify the weather
 }
 \examples{
 \dontrun{
-stations <- fips_stations(fips = "12086", date_min = "2010-01-01",
-                          date_max = "2010-02-01")
+stations <- daily_stations(fips = "12086", date_min = "2010-01-01",
+                           date_max = "2010-02-01")
 list <- daily_df(stations = stations, coverage = 0.90,
-                      var = c("tmax", "tmin", "prcp"),
-                      date_min = "2010-01-01", date_max = "2010-02-01")
+                 var = c("tmax", "tmin", "prcp"),
+                 date_min = "2010-01-01", date_max = "2010-02-01")
 averaged_data <- list$daily_data
 station_info <- list$stations
 }

@@ -2,10 +2,11 @@
 % Please edit documentation in R/daily_fips.R
 \name{daily_fips}
 \alias{daily_fips}
-\title{Pull average daily weather data by US county}
+\title{Pull average daily weather data by U.S. county.}
 \usage{
 daily_fips(fips, coverage = NULL, date_min = NULL, date_max = NULL,
-  var = "all", average_data = TRUE, station_label = FALSE)
+  var = "all", average_data = TRUE, station_label = FALSE,
+  verbose = TRUE)
 }
 \arguments{
 \item{fips}{A string with the five-digit U.S. FIPS code of a county
@@ -16,7 +17,7 @@ the desired percentage coverage for the weather variable (i.e., what
 percent of each weather variable must be non-missing to include data from
 a monitor when calculating daily values averaged across monitors. The
 default is to include all monitors with any available data (i.e.,
-\code{coverage = 0}).}
+\code{coverage = 0}).)}
 
 \item{date_min}{A string with the desired starting date in character, ISO
 format ("yyyy-mm-dd"). The dataframe returned will include only stations
@@ -27,14 +28,14 @@ format ("yyyy-mm-dd"). The dataframe returned will include only stations
 that have data for dates up to and including the specified date.}
 
 \item{var}{A character vector specifying desired weather variables. For
-example, var = c("tmin", "tmax", "prco"). The default is \code{"all"},
+example, var = c("tmin", "tmax", "prcp"). The default is \code{"all"},
 which includes all available weather variables. For a full list of all
 possible variable names, see NOAA's README file for the Daily Global
 Historical Climatology Network (GHCN-Daily) at
 \url{http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt}. Many of
 the weather variables are available for some, but not all, monitors, so
 your output from this function may not include all the variables
-specified using this argument; if you specify a variable here but it is
+specified using this argument. If you specify a variable here but it is
 not included in the output dataset, it means that it was not available in
 the time range for any monitor in the county.}
 
@@ -47,6 +48,9 @@ metric across all available monitors in the county that day.}
 
 \item{station_label}{TRUE / FALSE to indicate if you want your plot of
 weather station locations to include labels indicating station ids.}
+
+\item{verbose}{TRUE / FALSE to indicate if you want the function to print
+out the name of the county it's processing.}
 }
 \value{
 A list with three elements. The first element (\code{daily_data}) is a
@@ -54,21 +58,22 @@ A list with three elements. The first element (\code{daily_data}) is a
    as columns (\code{"var"_reporting}) for each weather variable showing the
    number of stations contributing to the average for that variable on that
    day. The second element (\code{station_metadata} is a dataframe of station
-   metadata for stations included in the \code{daily_data} dataframe. Columns
-   include station id, latitude, longitude, and name. The third element
-   (\code{station_map}) is a plot showing points for all weather stations for
-   a particular county satisfying the conditions present in
-   \code{daily_fips}'s arguments (\code{coverage}, \code{date_min},
-   \code{date_max}, and/or \code{var}).
+   metadata for stations included in the \code{daily_data} dataframe, as well
+   as statistical information about these values. Columns
+   include station id, name, var, latitude, longitude, calc_coverage,
+   standard_dev, min, max, and range. The third element (\code{station_map})
+   is a plot showing points for all weather stations for a particular county
+   satisfying the conditions present in \code{daily_fips}'s arguments
+   (\code{coverage}, \code{date_min}, \code{date_max}, and/or \code{var}).
 }
 \description{
 Given a particular county FIPS code, this function returns data and meta-data
 for weather data, either for all available dates or for dates within a
-requested time interval.
+requested date range.
 }
 \note{
 Because this function uses the NOAA API to identify the weather
-   monitors within a US county, you will need to get an access token from
+   monitors within a U.S. county, you will need to get an access token from
    NOAA to use this function. Visit NOAA's token request page
    (\url{http://www.ncdc.noaa.gov/cdo-web/token}) to request a token by
    email. You then need to set that API code in your R session (e.g., using
@@ -77,20 +82,18 @@ Because this function uses the NOAA API to identify the weather
 }
 \examples{
 \dontrun{
-ex <- daily_fips("08031", coverage = 0.90,
-                   date_min = "2010-01-01", date_max = "2010-02-01",
-                   var = "prcp")
+ex <- daily_fips("08031", coverage = 0.90, date_min = "2010-01-01",
+                 date_max = "2010-02-01", var = "prcp")
 
 weather_data <- ex$daily_data
 station_map <- ex$station_map
 
-mobile_ex <- daily_fips("01097", coverage = 0,
-                          date_min = "1997-07-13",
-                          date_max = "1997-07-25",
-                          var = "prcp", average_data = FALSE)
+mobile_ex <- daily_fips("01097", date_min = "1997-07-13",
+                        date_max = "1997-07-25", var = "prcp",
+                        average_data = FALSE)
 library(ggplot2)
 ggplot(mobile_ex$daily_weather, aes(x = date, y = prcp, color = id)) +
-       geom_line()
+   geom_line()
 }
 }
 

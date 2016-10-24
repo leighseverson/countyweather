@@ -2,11 +2,15 @@
 % Please edit documentation in R/hourly_helpers.R
 \name{filter_hourly}
 \alias{filter_hourly}
-\title{Filter NOAA ISD stations based on "coverage" requirements.}
+\title{Filter NOAA ISD stations based on "coverage" requirements, and calculate
+coverage and statistical information for each station-variable combination.}
 \usage{
-filter_hourly(hourly_data, coverage, var = "all")
+filter_hourly(fips, hourly_data, coverage = NULL)
 }
 \arguments{
+\item{fips}{A character string giving the five-digit U.S. FIPS
+county code of the county for which the user wants to pull weather data.}
+
 \item{hourly_data}{A \code{isd_monitors_data} dataframe (The "df" element of
 a \code{isd_monitors_data} list)}
 
@@ -14,19 +18,32 @@ a \code{isd_monitors_data} list)}
 desired percentage coverage for each weather variable (i.e., what percent
 of each weather variable must be non-missing to include the data from a
 station when calculating hourly values averaged across stations).}
-
-\item{var}{A character vector specifying desired weather variables. For
-example, var = c("wind_speed", "temperature"). The core avaialbe weather
-variables include \code{c("wind_direction", "wind_speed", "ceiling_height",
-"visibility_distance", "temperature", "temperature_dewpoint",
-"air_pressure")}. Alternatively, you can specify var = "all" to include
-additional flag and quality codes.}
 }
 \value{
-A list with two elements: \code{stations} is a vector of station ids
-   (usaf and wban identification numbers pasted together, separated by "-")
-   that meet the specified coverage requirements. \code{df} is a dataframe
-   with weather data from stations that meet the coverage requirements.
+A list with two elements: \code{df} and \code{stations}. \code{df} is
+   a dataframe of hourly weather data filtered based on the specfified
+   coverage, as well as columns (\code{"var"_reporting}) for each weather
+   variable showing the number of stations contributing to the average for that
+   variable for each hour. The second element, \code{stations}, is a dataframe
+   giving statistical information for stations that meet the specified coverage
+   requirements. The column \code{station} gives the station id (usaf and
+   wban identification numbers pasted together, separated by "-"). Note: one
+   of these identification ids is sometimes missing. For example, a value in
+   \code{station} might be \code{722029-NA}. The column \code{var}
+   gives the weather variable associated with the row of statistical values
+   for each station and variable combination. \code{calc_covearge} gives the
+   percentage coverage for each station-weather variable combination. These
+   values will all be greater than or equal to the specified \code{coverage}
+   value. \code{standard_dev} gives the standard deviation of values for each
+   station-weather variable combination. \code{max} and \code{min} give the
+   minimum and maximum values, and \code{range} gives the range of values in
+   each station-weather variable combination. These last four statistical
+   calculations (\code{standard_dev}, \code{max}, \code{min}, and
+   \code{range}) are only included for the seven core hourly weather variables,
+   which include "wind_direction", "wind_speed", "ceiling_height",
+   "visibility_distance", "temperature", "temperature_dewpoint", and
+   "air_pressure." (The values of these columns are set to "NA" for other
+   variables, such as quality flag data.)
 }
 \description{
 \code{filter_hourly} filters available weather variables based on a specified

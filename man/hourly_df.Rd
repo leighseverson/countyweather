@@ -7,9 +7,8 @@
 hourly_df(fips, year, var = "all", average_data = TRUE, coverage = NULL)
 }
 \arguments{
-\item{fips}{A character string or vector giving the five-digit U.S. FIPS
-county code of the county or counties for which the user wants to pull
-weather data.}
+\item{fips}{A character string of the five-digit U.S. FIPS code of a U.S.
+county.}
 
 \item{year}{a four digit number or vector of numbers indicating the year or
 years for which you want to pull hourly data. Values for \code{year} can
@@ -31,14 +30,24 @@ percent of each weather variable must be non-missing to include data from
 a monitor when calculating daily values averaged across monitors.)}
 }
 \value{
-A list with three elements. The first element, \code{hourly_data}, is
+A list with five elements. The first element, \code{hourly_data}, is
    a dataframe of hourly weather data averaged across multiple stations,
    as well as columns (\code{"var"_reporting}) for each weather variable
    showing the number of stations contributing to the average for that
    variable for each hour. \code{station_df} is a dataframe of station
-   metadata for each station contributing weather data. \code{radius} is the
-   calculated radius within which stations were pulled from the county's
-   population-weighted center.
+   metadata for each station contributing weather data. A weather station
+   will have one row per weather variable it contributes data to. In addition
+   to information such as usaf and wban ids and station names, this
+   dataframe includes statistical information about weather values
+   contributed by each station for each weather variable. These statistics
+   include calculated coverage (\code{calc_coverage}), which is the percent
+   of non-missing values for each station and variable for the specified
+   date range, \code{standard_dev} (standard deviation), \code{max},
+   \code{min}, and \code{range} values for each station-weather variable
+   combination. The element \code{radius} is the calculated radius within
+   which stations were pulled from the county's center. Elements
+   \code{lat_center} and \code{lon_center} are the latitude and longitude of
+   the county's center.
 }
 \description{
 \code{hourly_df} returns a dataframe of average daily weather values
@@ -51,12 +60,12 @@ This function filters and averages across NOAA ISD/ISH stations based on
 user-specified coverage specifications.
 }
 \note{
-: Observation times are vased on Coordinated Universal Time Code (UTC).
+Observation times are vased on Coordinated Universal Time Code (UTC).
 }
 \examples{
 \dontrun{
 df <- hourly_df(fips = "12086", year = 1992, var = c("wind_speed",
-                     "temperature"))
+                                                     "temperature"))
 data <- df$hourly_data
 station_info <- df$station_df
 radius <- df$radius

@@ -3,14 +3,16 @@
 \docType{data}
 \name{county_radius}
 \alias{county_radius}
-\title{County land area data}
+\title{County land area data.}
 \format{A dataframe with 3,143 rows and 2 variables:
 \describe{
+
    \item{fips}{A character vector giving the county's five-digit Federal
                Information Processing Standard (FIPS) code}
-        {county_radius}{A numeric vector giving an estimate for each
+
+   \item{county_radius}{A numeric vector giving an estimate for each
                         county's radius from its center, in km. This value
-                        was calculated by dividing the US Census Land Area
+                        was calculated by dividing the U.S. Census Land Area
                         estimates (which are in square meters) by 1,000,000,
                         and then taking the square root of each area and
                         dividing by pi. Each county was estimated to be
@@ -24,13 +26,13 @@
 county_radius
 }
 \description{
-A dataframe containing FIPS code and an estimate for county radius in km for
-each US county. This dataset was put together using a dataset from the US
+A dataframe containing the FIPS code and an estimate for radius in km for
+each U.S. county. This dataset was put together using a dataset from the U.S.
 Census American FactFinder data dissemination tool. This dataset was downloaded
 from the geographic identifiers 'G001' option for the 2010 Summary File1
 (SF1). The file was found by following the instructions recommended by the
-US census here: \url{https://ask.census.gov/faq.php?id=5000&faqId=7825}. The
-website listed in "Sources" gives more information about this dataset.
+U.S. census here: \url{https://ask.census.gov/faq.php?id=5000&faqId=7825}. The
+website listed in "Source" gives more information about this dataset.
 }
 \keyword{datasets}
 

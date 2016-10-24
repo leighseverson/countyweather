@@ -40,6 +40,7 @@
 #' data <- ex$hourly_data
 #' station_data <- ex$station_metadata
 #' station_map <- ex$station_map
+#' }
 #' @export
 hourly_fips <- function(fips, year, var = "all", coverage = NULL,
                         average_data = TRUE, station_label = FALSE,
@@ -242,6 +243,7 @@ hourly_df <- function(fips, year, var = "all", average_data = TRUE,
 #' \code{metadata_type}, respectively. Maps are saved as .png files.
 #'
 #' @inheritParams hourly_df
+#' @inheritParams write_daily_timeseries
 #' @param out_directory The absolute or relative pathname for the directory
 #'    where you would like the time series files to be saved.
 #' @param data_type A character strign indicating that you would like either
@@ -267,10 +269,9 @@ hourly_df <- function(fips, year, var = "all", average_data = TRUE,
 #'
 #' @examples
 #' \dontrun{
-#' write_hourly_timeseries(fips = c("08031", "12086"), year = c("1994, 1995),
+#' write_hourly_timeseries(fips = c("08031", "12086"), year = c(1994, 1995),
 #'                         coverage = 0.90, var = c("wind_speed", "temperature"),
 #'                         out_directory = "~/timeseries_hourly")
-#'
 #' }
 #' @export
 write_hourly_timeseries <- function(fips, year, coverage = NULL, var = "all",

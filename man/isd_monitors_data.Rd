@@ -2,7 +2,7 @@
 % Please edit documentation in R/hourly_helpers.R
 \name{isd_monitors_data}
 \alias{isd_monitors_data}
-\title{Pull hourly data for multiple monitors}
+\title{Pull hourly data for multiple monitors.}
 \usage{
 isd_monitors_data(fips, year, var = "all")
 }
@@ -12,27 +12,30 @@ isd_monitors_data(fips, year, var = "all")
 \item{year}{A four-digit numeric giving the year for which to pull data.}
 
 \item{var}{A character vector listing the weather variables to pull. The main
-available weather variables include "wind_direction", "wind_speed",
-"ceiling_height", "visibility_distance", "temperature",
-"temperature_dewpoint", and "air_pressure."}
+available weather variables include \code{wind_direction}, \code{wind_speed},
+\code{ceiling_height}, \code{visibility_distance}, \code{temperature},
+\code{temperature_dewpoint} and \code{air_pressure}.}
 }
 \value{
-A list with three elements: \code{ids} is a dataframe of station
+A list with five elements: \code{ids} is a dataframe of station
    metadata for all avaiable stations in the given fips code. \code{df} is a
    data frame with hourly weather data for the given variable(s) and date
    range. \code{radius} is the calculated radius within which stations
-   were pulled from the county's population-weighted center.
+   were pulled from the county's geographic center. Elements
+   \code{lat_center} and \code{lon_center} are the latitude and longitude
+   of the county's geographic center.
 }
 \description{
 Pull all available data for all weather monitors within a calculated radius of
-the population-weighted center of a US county, based on the county's FIPS
-code. The radius for each county is calculated using 2010 US Census Land Area
+the population-weighted center of a U.S. county, based on the county's FIPS
+code. The radius for each county is calculated using 2010 U.S. Census Land Area
 data.
 }
 \examples{
 \dontrun{
-stationdata <- isd_monitors_data(fips = "12086", year = 1992,
-                                 var = c("wind_speed", "temperature"))$df
+list <- isd_monitors_data(fips = "12086", year = 1992,
+                          var = c("wind_speed", "temperature"))
+stationdata <- list$df
 ggplot(stationdata, aes(x = date_time, y = wind_speed)) +
    geom_point(alpha = 0.5, size = 0.2) +
    facet_wrap(~ usaf_station, ncol = 1)

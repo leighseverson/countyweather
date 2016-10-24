@@ -49,10 +49,10 @@
 #'    geom_line()
 #' }
 #' @export
+
 daily_fips <- function(fips, coverage = NULL, date_min = NULL, date_max = NULL,
                        var = "all", average_data = TRUE, station_label = FALSE,
                        verbose = TRUE) {
-
   census_data <- countyweather::county_centers
   loc_fips <- which(census_data$fips == fips)
 
@@ -304,6 +304,8 @@ daily_df <- function(stations, coverage = NULL, var = "all", date_min = NULL,
 #'    FALSE, the "maps" subdirectory will not be created.
 #' @param verbose TRUE / FALSE to indicate if you want the function to print
 #'    out the county or vector of counties it's saving files for.
+#' @param station_label TRUE / FALSE to indicate whether to include station
+#'    labels in the station map.
 #'
 #' @note If the function is unable to pull weather data for a particular county
 #'    given the specified percent coverage, date range, and/or weather variables,
