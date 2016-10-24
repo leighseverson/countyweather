@@ -7,6 +7,7 @@
 #' stations. This radius is estimated from 2010 U.S. Census Land Area data.
 #'
 #' @param fips A five-digit FIPS county code.
+#' @inheritParams write_daily_timeseries
 #'
 #' @return A list with four elements. The first element, \code{stations}, is a
 #'    dataframe of monitors within a calculated radius of the

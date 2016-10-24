@@ -63,4 +63,15 @@ the average weather in \code{data}.
 \note{
 Observation times are vased on Coordinated Universal Time Code (UTC).
 }
+\examples{
+\dontrun{
+
+ex <- hourly_fips("12086", coverage = 0.90, year = c(1994, 1995),
+                   var = "temperature")
+
+data <- ex$hourly_data
+station_data <- ex$station_metadata
+station_map <- ex$station_map
+}
+}
 

@@ -8,6 +8,9 @@ isd_fips_stations(fips, verbose = FALSE)
 }
 \arguments{
 \item{fips}{A five-digit FIPS county code.}
+
+\item{verbose}{TRUE / FALSE to indicate if you want the function to print
+out the county or vector of counties it's saving files for.}
 }
 \value{
 A list with four elements. The first element, \code{stations}, is a

@@ -59,6 +59,9 @@ each monitor, while TRUE (the default) outputs a single estimate
 for each day in the dataset, giving the average value of the weather
 metric across all available monitors in the county that day.}
 
+\item{station_label}{TRUE / FALSE to indicate whether to include station
+labels in the station map.}
+
 \item{keep_map}{TRUE / FALSE indicating if a map of the stations should
 be included. The map can substantially increase the size of the files. If
 FALSE, the "maps" subdirectory will not be created.}
