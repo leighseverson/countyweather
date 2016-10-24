@@ -36,5 +36,6 @@ Depends:
 Suggests: 
     countytimezones (>= 0.1.0),
     knitr (>= 1.14.0),
+    pander(>= 0.6.0),
     rmarkdown (>= 1.1.0)
 VignetteBuilder: knitr
