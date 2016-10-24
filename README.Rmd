@@ -28,7 +28,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-While data from weather stations is available at the specific location of the weather station, it is often useful to have estimates of daily or hourly weather aggregated on a larger spatial level. For U.S.-based studies, it can be particularly userful to be able to pull time series of weather by county. For example, the health data used in environmental epidemiology studies is often aggregated at the county level for U.S. studies, making it very useful for environmental epidemiology applications to be able to create weather datasets by county.
+While data from weather stations is available at the specific location of the weather station, it is often useful to have estimates of daily or hourly weather aggregated on a larger spatial level. For U.S.-based studies, it can be particularly useful to be able to pull time series of weather by county. For example, the health data used in environmental epidemiology studies is often aggregated at the county level for U.S. studies, making it very useful for environmental epidemiology applications to be able to create weather datasets by county.
 
 This package builds on functions from the `rnoaa` package to identify weather stations within a county based on its FIPS code and then pull weather data for a specified date range from those weather stations. It then does some additional cleaning and aggregating to produce a single, county-level weather dataset. Further, it maps the weather stations used for that county and date range and allows you to create and write datasets for many different counties using a single function call.
 
@@ -79,7 +79,7 @@ This will pull your NOAA API key from the `.Renviron` file and save it as the ob
 
 ## Basic examples of using the package
 
-Weather data is collected at weather station, and there are often multiple weather stations within a county. The `countyweather` package allows you to pull weather data from all stations in a specified county over a specified date range. The two main functions in the countyweather package are `daily_fips` and `hourly_fips`, which pull daily and hourly weather data, respectively. By default, these values pulled from all weather stations in a county will then be averaged for each time point to create an average time series of daily or hourly measurements for that county. There is also an option that allows the user to opt out of the default aggregation across weather stations, and instead pull separate time series for each weather station in the county. This option is explained in more detail later in this document. Opting out of the default aggregation can be useful if you would like to use a method other than a simple average to aggregate across weather stations within a county.
+Weather data is collected at weather station, and there are often multiple weather stations within a county. The `countyweather` package allows you to pull weather data from all stations in a specified county over a specified date range. The two main functions in the countyweather package are `daily_fips` and `hourly_fips`, which pull daily and hourly weather data, respectively. By default, the weather data pulled from all weather stations in a county will then be averaged for each time point to create an average time series of daily or hourly measurements for that county. There is also an option that allows the user to opt out of the default aggregation across weather stations, and instead pull separate time series for each weather station in the county. This option is explained in more detail later in this document. Opting out of the default aggregation can be useful if you would like to use a method other than a simple average to aggregate across weather stations within a county.
 
 Throughout, functions in this package identify a county using the county's Federal Information Processing Standard (FIPS) code. FIPS codes are 5-digit codes that uniquely identify every U.S. county. The first two digits of a county FIPS code specify state and the last three specify the county within the state. This package pulls data based on FIPS designations as of the 2010 Census. Users will not be able to pull data for the few FIPS codes that have undergone substantial changes since 2010 - for a list of those codes see the Census Bureau's [summary](https://www.census.gov/geo/reference/county-changes.html) of these counties for the 2010s. 
 
@@ -130,13 +130,13 @@ A map is also included in the output of `daily_fips` with the weather stations u
 andrew_precip$station_map
 ```
 
-This map uses functions from the `choroplethr` package to overlay weather station locations on a shaded map showing the county's boundaries. According to the `choroplethrMaps` [reference manual](https://cran.r-project.org/web/packages/choroplethrMaps/choroplethrMaps.pdf), the `choroplethr` package took these county shapefiles from the U.S. Census 2010 [Cartographic Boundary shapefiles page](https://www.census.gov/geo/mapsdata/data/tiger-cart-boundary.html) in May 2014.
+The county boundaries are based on county shapefiles from the U.S. Census 2010 [Cartographic Boundary shapefiles page](https://www.census.gov/geo/mapsdata/data/tiger-cart-boundary.html).
 
 ### Pulling hourly data
 
-You can also use functions in the `countyweather` package to pull hourly wind speed and temperature data by county from NOAA's Integrated Surface Data (ISD) weather dataset. In this case, NOAA's web services will not identify weather stations by FIPS, so instead this function will pull all weather stations within a certain radius of the county's population mean center to represent weather within that county. 
+You can also use functions in the `countyweather` package to pull hourly weather data by county from NOAA's Integrated Surface Data (ISD) weather dataset. In this case, NOAA's web services will not identify weather stations by FIPS, so instead this function will pull all weather stations within a certain radius of the county's population mean center to represent weather within that county. 
 
-An estimated radius is calculated for each county using 2010 U.S. Census Land Area data - each county is assumed to be roughly ciruclar. The calculated radius (in km), as well as the longitude and latitude of the population-weighted center for each county are included as elements in the list returned from `hourly_fips`. 
+An estimated radius is calculated for each county using 2010 U.S. Census Land Area data - each county is assumed to be roughly ciruclar. The calculated radius (in km; e.g., `andrew_hourly$radius`), as well as the longitude and latitude of the geographic center for each county (e.g., `andrew_hourly$lat_center`, `andrew_hourly$lon_center`) are included as elements in the list returned from `hourly_fips`. 
 
 Here is an example of pulling hourly data for Miami-Dade, for the year of Hurricane Andrew. While daily weather data can be pulled using a date range specified to the day, hourly data can only be pulled by year (for one or multiple years) using the `year` argument:
 
@@ -202,9 +202,9 @@ write_daily_timeseries(fips = fl_counties, date_min = "1992-08-01",
                        out_directory = "~/Documents/andrew_data")
 ```
 
-The `write_daily_timeseries` function saves each county's time series as a separate .rds file in the directory specified in the `out_directory` option. Each .rds file is a list including `daily_data`, which is the dataframe of daily weather data, `station_df`, which is the dataframe of station metadata, and `station_map`, which is a plot of the county showing locations of weather stations contributing to the weather data. At this stage, if you were to include a county in the `fips` argument without available data, a file would not be created for that county. 
+The `write_daily_timeseries` function saves each county's time series as a separate .rds file in a `data` subdirectory within the directory specified with the `out_directory` argument. The output directory will also include subdirectories with weather station metadata (`metadata`) and with png station maps (`maps`). At this stage, if you were to include a county in the `fips` argument without available data, a file would not be created for that county. 
 
-The function `plot_daily_timeseries` creates and saves plots for each of these .rds files. 
+The function `plot_daily_timeseries` creates and saves plots for each of the .rds files in the `data` subdirectory. 
 
 ```{r eval = FALSE}
 plot_daily_timeseries("prcp", data_directory = "~/Documents/andrew_data/data", 
@@ -256,7 +256,7 @@ For `hourly_fips()` and `daily_fips()`, and time series functions, the user can 
 
 ### `average_data` 
 
-In both `daily_fips()` and `hourly_fips()`, the default ise to return a single daily average for the county for each day in the time series, giving the value averaged across all available weather stations on that day. However, there is also an option called `average_data` which allows the user to specify whether they would like the weather data returned before it has been averaged across weather stations. If this argument is set to `FALSE`, the functions will return separate daily data for each weather station in the county. For our Hurricane Andrew example, if we specify `average_data = FALSE`: 
+In both `daily_fips()` and `hourly_fips()`, the default is to return a single daily average for the county for each day in the time series, giving the value averaged across all available weather stations on that day. However, there is also an option called `average_data` which allows the user to specify whether they would like the weather data returned before it has been averaged across weather stations. If this argument is set to `FALSE`, the functions will return separate daily data for each weather station in the county. For our Hurricane Andrew example, if we specify `average_data = FALSE`: 
 
 ```{r}
 not_averaged <- daily_fips(fips = "12086", 
@@ -279,7 +279,7 @@ ggplot(not_averaged_data, aes(x = date, y = prcp,
   theme_minimal() 
 ```
 
-It might be interesting here to compare this plot with the station map, this time with station labels included:  
+It might be interesting here to compare this plot with the station map, this time with station labels included (done using `station_label = TRUE` when we pulled this data using `daily_fips`):  
 
 ```{r warning = FALSE, message = FALSE, fig.width = 7}
 not_averaged$station_map
@@ -315,7 +315,7 @@ ex_data$wind_speed[ex_data$wind_speed_quality %in% c(2, 3, 6, 7)] <- NA
 
 ### Daily weather data 
 
-Functions in this package that pull daily weather values (`daily_fips()`, for example) are pulling data from the Daily Global Historical Climatology Network (GHCN-Daily) through NOAA's FTP server. 
+Functions in this package that pull daily weather values (`daily_fips`, for example) are pulling data from the Daily Global Historical Climatology Network (GHCN-Daily) through NOAA's FTP server. 
 
 Users can specify which weather variables they would like to pull. The five core daily weather variables are precipitation (`prcp`), snowfall (`snow`), snow depth (`snwd`), maximum temperature (`tmax`) and minimum temperature (`tmin`). The daily weather data is filtered so that included weather variables fall within a range of possible values. These ranges were chosen to include national maximum recorded values.
 
@@ -325,12 +325,14 @@ daily_vars <- data.frame(variables = c("prcp", "snow", "snwd", "tmax", "tmin"),
                          units = c("mm", "mm", "mm", "degrees Celsius", "degrees Celsius"), 
                          most_extreme_value = c("1100 mm", "1600 mm", "11500 mm", "57 degrees C", "-62 degrees C"))
 library(knitr)
-kable(daily_vars, format = "markdown")
+kable(daily_vars, format = "markdown", col.names = c("Variable", "Description",
+                                                     "Units",
+                                                     "Most extreme value"))
 ```
 
 `tmax`, `tmin`, and `prcp` were originally recorded in tenths of units, and are listed as such in NOAA documentation. These values are converted to standard units (degrees Celsius and mm, respectively) in `countyweather` output. 
 
-The daily weather function \code{weather_fips} defaults to pull these five core weather variables. However, there are several additional, non-core variables available. For example, `acmc` gives the "average cloudiness midnight to midnight from 30-second ceilometer data (percent)." The complete list of available weather variables can be found under 'element' from the GHCND's [readme file](http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt). 
+There are several additional, non-core variables available. For example, `acmc` gives the "average cloudiness midnight to midnight from 30-second ceilometer data (percent)." The complete list of available weather variables can be found under 'element' from the GHCND's [readme file](http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt). 
 
 While the datasets resulting from functions in this package return a cleaned and aggregated dataset, Menne et al. (2012) give more information aboout the raw data in the GHCND database.
 
@@ -341,22 +343,22 @@ Hourly weather data in this package is pulled from NOAA's Integrated Surface Dat
 The seven core hourly weather variables include `wind_direction`, `wind_speed`, `ceiling_height`, `visibility_distance`, `temperature`, `temperature_dewpoint`, and `air_pressure`. Values in this table were pulled from the [ISD documentation file](ftp://ftp.ncdc.noaa.gov/pub/data/noaa/ish-format-document.pdf).
 
 ```{r echo = FALSE}
-hourly_vars <- data.frame(variable = c("wind_direction", "wind_speed", 
+hourly_vars <- data.frame(Variable = c("wind_direction", "wind_speed", 
                                         "ceiling_height", "visibility_distance", 
                                         "temperature", "temperature_dewpoint", 
                                         "air_pressure"), 
-                          description = c("The angle, measured in a clockwise direction, between true north and the direction from which the wind is blowing", 
+                          Description = c("The angle, measured in a clockwise direction, between true north and the direction from which the wind is blowing", 
                                           "The rate of horizontal travel of air past a fixed point", 
                                           "The height above ground level of the lowest cloud or obscuring phenomena layer aloft with 5/8 or more summation total sky cover, which may be predominately opaque, or the vertical visibility into a surface-based obstruction", 
                                           "The horizontal distance at which an object can be seen and identified", 
                                           "The temperature of the air", 
                                           "The temperature to which a given parcel of air must be cooled at constant pressure and water vapor content in order for saturation to occur", 
                                           "The air pressure relative to Mean Sea Level"), 
-                          units = c("Angular Degrees", "Meters per Second",
+                          Units = c("Angular Degrees", "Meters per Second",
                                     "Meters", "Meters", "Degrees Celsuis", 
                                     "Degrees Celsius", "Hectopascals"), 
-                          minimum = c("1", "0", "0", "0", "-93.2", "-98.2", "860"), 
-                          maximum = c("360", "90", "22000 (indicates 'Unlimited')", "160000", "61.8", 
+                          Minimum = c("1", "0", "0", "0", "-93.2", "-98.2", "860"), 
+                          Maximum = c("360", "90", "22000 (indicates 'Unlimited')", "160000", "61.8", 
                                       "36.8", "1090"))
 ```
 
@@ -365,7 +367,7 @@ library(knitr)
 kable(hourly_vars, format = "markdown")
 ```
 
-There are other columns available in addition to these weather variables such as quality codes. For example, `wind_direction_quality` - each of the main weather variables has a corresponding quality code that can be pulled by adding `_quality` to the end of the variable name. 
+There are other columns available in addition to these weather variables, such as quality codes (e.g., `wind_direction_quality` --- each of the main weather variables has a corresponding quality code that can be pulled by adding `_quality` to the end of the variable name). 
 
 For more information about the weather variables described in the above table and other available columns, see the [ISD documentation file](ftp://ftp.ncdc.noaa.gov/pub/data/noaa/ish-format-document.pdf). 
 
@@ -382,14 +384,14 @@ In rnoaa::meteo_pull_monitors(monitors = stations, keep_flags = FALSE,  :
  Any other monitors were successfully pulled from GHCN.
 ```
  
-This error message will come up after running functions pulling hourly data (`hourly_fips()`) if there isn't available data for any of the weather stations in your specified county. Note: some weather variables tend to be missing more often than others. 
+The following error message will come up after running functions pulling hourly data (`hourly_fips()`) if there isn't available data for any of the weather stations in your specified county. Note: some weather variables tend to be missing more often than others. 
 
 ```{r eval = FALSE}
 Error in isd_monitors_data(fips = fips, year = x, var = var, radius = radius) : 
   None of the stations had available data.
 ```
 
-This error message will come up after running \code{daily_timeseries} or \code{hourly_timeseries} if the function is unable to pull data for a particular fips code in your `fips` vector: 
+The following error message will come up after running `daily_timeseries` or `hourly_timeseries` if the function is unable to pull data for a particular fips code in your `fips` vector: 
 
 ```{r eval = FALSE}
 Unable to pull weather data for FIPS code "12086" for the specified percent coverage, year(s), and/or weather variables.
