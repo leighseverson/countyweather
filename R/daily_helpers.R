@@ -193,9 +193,11 @@ daily_stationmap <- function(fips, daily_data, point_color = "firebrick",
   lat_fips <- as.numeric(census_data[loc_fips, "latitude"])
   lon_fips <- as.numeric(census_data[loc_fips, "longitude"])
 
-  # filter county's shapefile
-  shp <- countyweather::county_outlines
-  county_shp <- shp[shp$fips == fips, ]
+  state <- stringi::stri_sub(fips, 1, 2)
+  county <- stringi::stri_sub(fips, 3)
+
+  shp <- tigris::counties(state, cb = TRUE)
+  county_shp <- shp[shp$COUNTYFP == county, ]
 
   # convert to raster so that we can add geom_raster() (which gets rid of the
   # geom_polygons island problem)
