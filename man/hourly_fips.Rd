@@ -5,28 +5,29 @@
 \title{Return average hourly weather data and a plot showing the location of weather
 stations for a particular county.}
 \usage{
-hourly_fips(fips, year, var = "all", coverage = NULL, average_data = TRUE,
+hourly_fips(fips, year, var = "all", coverage = 0, average_data = TRUE,
   station_label = FALSE, verbose = TRUE)
 }
 \arguments{
 \item{fips}{A character string of the five-digit U.S. FIPS code of a U.S.
 county.}
 
-\item{year}{a four digit number or vector of numbers indicating the year or
+\item{year}{A four-digit number or vector of numbers indicating the year or
 years for which you want to pull hourly data. Values for \code{year} can
 be in the range from 1901 to the current year.}
 
 \item{var}{A character vector specifying desired weather variables. For
-example, var = c("wind_speed", "temperature"). The core weather variables
-available include \code{c("wind_direction", "wind_speed", "ceiling_height",
-"visibility_distance", "temperature", "temperature_dewpoint",
-"air_pressure")}. Alternatively, you can specify var = "all" to include
-additional flag and quality codes.}
+example, \code{var = c("wind_speed", "temperature")} pulls data on hourly
+wind speed and temperature. The core weather variables
+available include \code{"wind_direction"}, \code{"wind_speed"},
+\code{"ceiling_height"}, \code{"visibility_distance"}, \code{"temperature"},
+\code{"temperature_dewpoint"}, \code{"air_pressure"}. Alternatively, you
+can specify var = "all" to include additional flag and quality codes.}
 
 \item{coverage}{A numeric value in the range of 0 to 1 that specifies
 the desired percentage coverage for the weather variable (i.e., what
 percent of each weather variable must be non-missing to include data from
-a monitor when calculating daily values averaged across monitors.)}
+a monitor when calculating daily values averaged across monitors).}
 
 \item{average_data}{TRUE / FALSE to indicate if you want the function to
 average daily weather data across multiple monitors.}
@@ -43,16 +44,16 @@ A list with six elements. The first element (\code{hourly_data}) is a
    dataframe of daily weather data averaged across multiple stations, as well
    as columns (\code{"var"_reporting}) for each weather variable showing the
    number of stations contributing to the average for that variable for that
-   hour. The second element (\code{station_metadata} is a dataframe of station
+   hour. The second element (\code{station_metadata}) is a dataframe of station
    metadata for stations included in the \code{daily_data} dataframe, as
    well as statistical information about the values contriuted to each
    weather variable by each station. The third element (\code{station_map})
    is a plot showing points for all weather stations for a particular county
    satisfying the conditions present in \code{hourly_fips}'s arguments
-   (year, coverage, and/or var). \code{radius} is the calculated radius
-   within which stations were pulled from the county's center. Elements
-   \code{lat_center} and \code{lon_center} are the latitude and longitude of
-   the county's center.
+   (year, coverage, and/or weather variables). \code{radius} is the
+   calculated radius within which stations were pulled from the county's
+   center. Elements \code{lat_center} and \code{lon_center} are the latitude
+   and longitude of the county's center.
 }
 \description{
 Given a particular county FIPS code, this function returns a list with two
@@ -61,7 +62,7 @@ elements: \code{data}, a dataframe of hourly average weather values, and
 the average weather in \code{data}.
 }
 \note{
-Observation times are vased on Coordinated Universal Time Code (UTC).
+Observation times are based on Coordinated Universal Time Code (UTC).
 }
 \examples{
 \dontrun{

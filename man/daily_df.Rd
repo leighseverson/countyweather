@@ -4,7 +4,7 @@
 \alias{daily_df}
 \title{Return average daily weather data for a particular county.}
 \usage{
-daily_df(stations, coverage = NULL, var = "all", date_min = NULL,
+daily_df(stations, coverage = 0, var = "all", date_min = NULL,
   date_max = NULL, average_data = TRUE)
 }
 \arguments{
@@ -19,8 +19,10 @@ default is to include all monitors with any available data (i.e.,
 \code{coverage = 0}).)}
 
 \item{var}{A character vector specifying desired weather variables. For
-example, var = c("tmin", "tmax", "prcp"). The default is \code{"all"},
-which includes all available weather variables. For a full list of all
+example, \code{var = c("tmin", "tmax", "prcp")} for maximum temperature,
+minimum temperature, and precipitation. The default is \code{"all"},
+which includes all available weather variables at any weather station in
+the county. For a full list of all
 possible variable names, see NOAA's README file for the Daily Global
 Historical Climatology Network (GHCN-Daily) at
 \url{http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt}. Many of
@@ -47,40 +49,31 @@ metric across all available monitors in the county that day.}
 }
 \value{
 A list with two elements. \code{daily_data} is a dataframe of daily
-   weather data averaged across multiple monitors, as well as columns
+   weather data averaged across multiple monitors and includes columns
    (\code{"var"_reporting}) for each weather variable showing the number of
    stations contributing to the average for that variable on that day.
    The element \code{station_df} is a dataframe of station metadata for each
    station contributing weather data. A weather station will have one row per
-   weather variable it contributes data to. In addition to information such
-   as station id, name, latitude, and longitude, this dataframe includes
-   statistical information about weather values contributed by each station
-   for each weather variable. These statistics include \code{calc_coverage}
-   (the percent of non-missing values for each station-weather variable
-   combination for the specified date range), \code{standard_dev}
-   (standard deviation), \code{max}, and \code{min}, (giving the minimum and
-   maximum values), and \code{range}, giving the range of values in each
-   station-weather variable combination. The element \code{radius} is the
-   calculated radius within which stations were pulled from the county's
-   center. Elements \code{lat_center} and \code{lon_center} are the latitude
-   and longitude of the county's center.
+   weather variable to which it contributes data. In addition to information
+   such as station id, name, latitude, and longitude, the \code{station_df}
+   dataframe includes statistical information about weather values
+   contributed by each station for each weather variable. These statistics
+   include \code{calc_coverage} (the percent of non-missing values for each
+   station-weather variable combination for the specified date range),
+   \code{standard_dev} (standard deviation), \code{max}, and \code{min},
+   (giving the minimum and maximum values), and \code{range}, giving the
+   range of values in each station-weather variable combination. The
+   element \code{radius} is the calculated radius within which stations were
+   pulled from the county's center. Elements \code{lat_center} and
+   \code{lon_center} are the latitude and longitude of the county's center.
 }
 \description{
-\code{daily_df} returns a list of two elements. The element
-\code{averaged} is a dataframe of average daily weather values for a
-particular county, date range, and/or specified "coverage." The element
-\code{stations} is a dataframe containing metadata about stations
-contributing to the average weather values in the \code{averaged} dataframe,
-as well as statistical information about the values for each station-weather
-variable combination. Columns in the \code{stations} dataframe include each
-station's id, key (indicating the weather variable that station is contributing
-data for), latitude, longitude, id, and name.
-}
-\details{
+Returns a list with data on weather and stations for a selected county.
 This function serves as a wrapper to several functions from the \code{rnoaa}
-package, which provides weather data from all relevant stations in a county.
-This function filters and averages across stations based on user-specified
-coverage specifications for weather monitors.
+package, which pull weather data from all relevant stations in a county.
+This function filters and averages data returned by \code{rnoaa} functions
+across all weather stations in a county based on user-specified
+coverage specifications.
 }
 \note{
 Because this function uses the NOAA API to identify the weather
@@ -95,11 +88,13 @@ Because this function uses the NOAA API to identify the weather
 \dontrun{
 stations <- daily_stations(fips = "12086", date_min = "2010-01-01",
                            date_max = "2010-02-01")
-list <- daily_df(stations = stations, coverage = 0.90,
+fips_list <- daily_df(stations = stations, coverage = 0.90,
                  var = c("tmax", "tmin", "prcp"),
                  date_min = "2010-01-01", date_max = "2010-02-01")
-averaged_data <- list$daily_data
-station_info <- list$stations
+averaged_data <- fips_list$daily_data
+head(averaged_data)
+station_info <- fips_list$station_df
+head(station_info)
 }
 }
 

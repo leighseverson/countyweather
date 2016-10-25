@@ -18,18 +18,18 @@
 #'    dataframe of daily weather data averaged across multiple stations, as well
 #'    as columns (\code{"var"_reporting}) for each weather variable showing the
 #'    number of stations contributing to the average for that variable for that
-#'    hour. The second element (\code{station_metadata} is a dataframe of station
+#'    hour. The second element (\code{station_metadata}) is a dataframe of station
 #'    metadata for stations included in the \code{daily_data} dataframe, as
 #'    well as statistical information about the values contriuted to each
 #'    weather variable by each station. The third element (\code{station_map})
 #'    is a plot showing points for all weather stations for a particular county
 #'    satisfying the conditions present in \code{hourly_fips}'s arguments
-#'    (year, coverage, and/or var). \code{radius} is the calculated radius
-#'    within which stations were pulled from the county's center. Elements
-#'    \code{lat_center} and \code{lon_center} are the latitude and longitude of
-#'    the county's center.
+#'    (year, coverage, and/or weather variables). \code{radius} is the
+#'    calculated radius within which stations were pulled from the county's
+#'    center. Elements \code{lat_center} and \code{lon_center} are the latitude
+#'    and longitude of the county's center.
 #'
-#' @note Observation times are vased on Coordinated Universal Time Code (UTC).
+#' @note Observation times are based on Coordinated Universal Time Code (UTC).
 #'
 #' @examples
 #' \dontrun{
@@ -42,7 +42,7 @@
 #' station_map <- ex$station_map
 #' }
 #' @export
-hourly_fips <- function(fips, year, var = "all", coverage = NULL,
+hourly_fips <- function(fips, year, var = "all", coverage = 0,
                         average_data = TRUE, station_label = FALSE,
                         verbose = TRUE) {
 
@@ -75,8 +75,8 @@ hourly_fips <- function(fips, year, var = "all", coverage = NULL,
 
 #' Return average hourly weather data for a particular county.
 #'
-#' \code{hourly_df} returns a dataframe of average daily weather values
-#' for a particular county, year, and/or specified "coverage."
+#' Returns a dataframe of average daily weather values
+#' for a particular county, year, weather variables, and/or specified coverage.
 #'
 #' This function serves as a wrapper to several functions from the \code{rnoaa}
 #' package, which provides weather data from all relevant stations in a county.
@@ -85,21 +85,22 @@ hourly_fips <- function(fips, year, var = "all", coverage = NULL,
 #'
 #' @param fips A character string of the five-digit U.S. FIPS code of a U.S.
 #'    county.
-#' @param year a four digit number or vector of numbers indicating the year or
+#' @param year A four-digit number or vector of numbers indicating the year or
 #'    years for which you want to pull hourly data. Values for \code{year} can
 #'    be in the range from 1901 to the current year.
 #' @param var A character vector specifying desired weather variables. For
-#'    example, var = c("wind_speed", "temperature"). The core weather variables
-#'    available include \code{c("wind_direction", "wind_speed", "ceiling_height",
-#'    "visibility_distance", "temperature", "temperature_dewpoint",
-#'    "air_pressure")}. Alternatively, you can specify var = "all" to include
-#'    additional flag and quality codes.
+#'    example, \code{var = c("wind_speed", "temperature")} pulls data on hourly
+#'    wind speed and temperature. The core weather variables
+#'    available include \code{"wind_direction"}, \code{"wind_speed"},
+#'    \code{"ceiling_height"}, \code{"visibility_distance"}, \code{"temperature"},
+#'    \code{"temperature_dewpoint"}, \code{"air_pressure"}. Alternatively, you
+#'    can specify var = "all" to include additional flag and quality codes.
 #' @param average_data TRUE / FALSE to indicate if you want the function to
 #'    average daily weather data across multiple monitors.
 #' @param coverage A numeric value in the range of 0 to 1 that specifies
 #'    the desired percentage coverage for the weather variable (i.e., what
 #'    percent of each weather variable must be non-missing to include data from
-#'    a monitor when calculating daily values averaged across monitors.)
+#'    a monitor when calculating daily values averaged across monitors).
 #'
 #' @return A list with five elements. The first element, \code{hourly_data}, is
 #'    a dataframe of hourly weather data averaged across multiple stations,
@@ -107,8 +108,8 @@ hourly_fips <- function(fips, year, var = "all", coverage = NULL,
 #'    showing the number of stations contributing to the average for that
 #'    variable for each hour. \code{station_df} is a dataframe of station
 #'    metadata for each station contributing weather data. A weather station
-#'    will have one row per weather variable it contributes data to. In addition
-#'    to information such as usaf and wban ids and station names, this
+#'    will have one row per weather variable to which it contributes data. In
+#'    addition to information such as USAF and WBAN ids and station names, this
 #'    dataframe includes statistical information about weather values
 #'    contributed by each station for each weather variable. These statistics
 #'    include calculated coverage (\code{calc_coverage}), which is the percent
@@ -118,9 +119,9 @@ hourly_fips <- function(fips, year, var = "all", coverage = NULL,
 #'    combination. The element \code{radius} is the calculated radius within
 #'    which stations were pulled from the county's center. Elements
 #'    \code{lat_center} and \code{lon_center} are the latitude and longitude of
-#'    the county's center.
+#'    the county's geographic center.
 #'
-#' @note Observation times are vased on Coordinated Universal Time Code (UTC).
+#' @note Observation times are based on Coordinated Universal Time Code (UTC).
 #'
 #' @references For more information on this dataset and available weather and
 #' flag/quality variables, see
@@ -128,16 +129,16 @@ hourly_fips <- function(fips, year, var = "all", coverage = NULL,
 #'
 #' @examples
 #' \dontrun{
-#' df <- hourly_df(fips = "12086", year = 1992, var = c("wind_speed",
-#'                                                      "temperature"))
-#' data <- df$hourly_data
-#' station_info <- df$station_df
-#' radius <- df$radius
+#' df <- hourly_df(fips = "12086", year = 1992,
+#'                 var = c("wind_speed", "temperature"))
+#' head(df$hourly_data)
+#' head(df$station_df)
+#' df$radius
 #' }
 #'
 #' @export
 hourly_df <- function(fips, year, var = "all", average_data = TRUE,
-                      coverage = NULL) {
+                      coverage = 0) {
 
   # hourly data for multiple monitors for multiple years
   hourly_list <- lapply(year, function(x) isd_monitors_data(fips = fips,
@@ -220,22 +221,22 @@ hourly_df <- function(fips, year, var = "all", average_data = TRUE,
 #'
 #' Given a vector of U.S. county FIPS codes, this function saves each element of
 #' the lists created from the function \code{daily_fips} to a separate folder
-#' within a fiven directory. The dataframe \code{daily_data} is saved to a
+#' within a given directory. The dataframe \code{daily_data} is saved to a
 #' subdirectory of the given directory called "data." This time series dataframe
-#' gives 1. the values for specified weather variables, and 2. the number of
+#' gives the values for specified weather variables and the number of
 #' weather stations contributing to the average for each day within the
-#' specified year(s). Metadata information about the weather stations and
+#' specified year(s). Metadata about the weather stations and
 #' county are saved in a list with four elements in a subdirectory called
 #' "metadata." These elements include \code{station_metadata} (station metadata
 #' for stations contributing to the time series dataframe), \code{radius}
-#' (the radius (in km) within which weather stations were pulled from each
+#' (the radius, in km, within which weather stations were pulled from each
 #' county's center), \code{lat_center}, and \code{lon_center} (the latitude
-#' and longitude of the county's center). If the user specifies "csv" ouput for
-#' the \code{metadata_type}, argument, \code{radius}, \code{lat_center}, and
-#' \code{lon_center} are added to the \code{station_metadata} dataframe as three
-#' additional columns.
+#' and longitude of the county's geographic center). If the user specifies "csv"
+#' output for the \code{metadata_type} argument, \code{radius}, \code{lat_center},
+#' and \code{lon_center} are added to the \code{station_metadata} dataframe as
+#' three additional columns.
 #'
-#' @return Writes out three subirectories of a fiven directory with hourly
+#' @return Writes out three subdirectories of a given directory, with hourly
 #' weather files saved in "data", station and county metadata saved in
 #' "metadata", and a map of weather station locations saved in "maps" for each
 #' FIPS code specified. The user can specify either .rds or .csv files for the
@@ -246,15 +247,17 @@ hourly_df <- function(fips, year, var = "all", average_data = TRUE,
 #' @inheritParams write_daily_timeseries
 #' @param out_directory The absolute or relative pathname for the directory
 #'    where you would like the time series files to be saved.
-#' @param data_type A character strign indicating that you would like either
-#'    .rds files (data_type = "rds") or .csv files (data_type = "csv") for the
-#'    time series output. This option defaults to .rds files.
+#' @param data_type A character string indicating that you would like either
+#'    .rds files (\code{data_type = "rds"}) or .csv files
+#'    (\code{data_type = "csv"}) for the time series output. This option
+#'    defaults to .rds files.
 #' @param metadata_type A character string indicating that you would like either
-#'    .rds files (metadata_type = "rds") or .csv files (metadata_type = "csv")
+#'    .rds files (\code{metadata_type = "rds"}) or .csv files
+#'    (\code{metadata_type = "csv"})
 #'    for the station and county metadata output. This option defaults to .rds
 #'    files, in which case a list of four elements is saved
 #'    (\code{station_metadata}, \code{radius}, \code{lat_center}, and
-#'    \code{lon_center}). If the user specified "csv" output, \code{radius},
+#'    \code{lon_center}). If the user specifies "csv" output, \code{radius},
 #'    \code{lat_center}, and \code{lon_center} are added to the
 #'    \code{station_metadata} dataframe as additional columns.
 #' @param keep_map TRUE / FALSE indicating if a map of the stations should
@@ -274,7 +277,7 @@ hourly_df <- function(fips, year, var = "all", average_data = TRUE,
 #'                         out_directory = "~/timeseries_hourly")
 #' }
 #' @export
-write_hourly_timeseries <- function(fips, year, coverage = NULL, var = "all",
+write_hourly_timeseries <- function(fips, year, coverage = 0, var = "all",
                                     out_directory, data_type = "rds",
                                     metadata_type = "rds", average_data = TRUE,
                                     station_label = FALSE, keep_map = TRUE,
@@ -412,30 +415,23 @@ write_hourly_timeseries <- function(fips, year, coverage = NULL, var = "all",
 
 #' Write plot files for hourly weather time series dataframes.
 #'
-#' This function writes out a directory with plots for every timeseries file
-#' present in the specified directory (produced by the \code{write_hourly_timeseries}
+#' Writes a directory with plots for every weather data timeseries file
+#' present in the specified directory (as produced by the \code{write_hourly_timeseries}
 #' function) for a particular weather variable. These plots are meant to aid in
 #' initial exploratory analysis.
 #'
 #' @return Writes out a directory with plots of time series data for a given
 #' weather variable for each file present in the directory specified.
 #'
-#' @param var A character string specifying which weather
-#'    variable present in the time series dataframe you would like to produce
-#'    plots for. For example, var = "wind_speed".
-#' @param data_directory The absolute or relative pathname for the directory
-#'    where your daily time series dataframes (produced by
-#'    \code{write_hourly_timeseries}) are saved.
-#' @param plot_directory The absolute or relative pathname for the directory
-#'    where you would like the plots to be saved.
+#' @inheritParams plot_daily_timeseries
 #' @param year A year or vector of years giving the year(s) present in the
 #'    time series dataframe.
-#' @param data_type A character string indicating the type of timeseries files
-#'    you would like to produce plots for (either "rds" or "csv"). This option
-#'    defaults to .rds files.
 #'
 #' @examples
 #' \dontrun{
+#' write_hourly_timeseries(fips = c("08031", "12086"), year = c(1994, 1995),
+#'                         coverage = 0.90, var = c("wind_speed", "temperature"),
+#'                         out_directory = "~/timeseries_hourly")
 #' plot_hourly_timeseries(var = "wind_speed", year = c(1994, 1995),
 #'                        data_directory = "~/timeseries_hourly/data",
 #'                        plot_directory = "~/timeseries_hourly/plots_wind_speed")

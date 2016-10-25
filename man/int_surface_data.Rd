@@ -7,11 +7,11 @@
 int_surface_data(usaf_code, wban_code, year, var = "all")
 }
 \arguments{
-\item{usaf_code}{A character string with a six-digit usaf code for the
-monitor.}
+\item{usaf_code}{A character string with a six-digit USAF code for the
+weather station.}
 
-\item{wban_code}{A character string with a five-digit wban code for the
-monitor.}
+\item{wban_code}{A character string with a five-digit WBAN code for the
+weather station.}
 
 \item{year}{A four-digit numeric giving the year for which to pull data.}
 
@@ -24,22 +24,20 @@ include \code{wind_direction}, \code{wind_speed},
 \value{
 This function returns the same type of dataframe as that returned
    by the \code{isd} function from the \code{rnoaa} package, but with the
-   dataframe limited to the selected weather variables.
+   dataframe limited to the selected weather variables and cleaned a bit more.
 }
 \description{
-This function wraps the \code{isd} function from the \code{rnoaa} package.
+Wraps the \code{isd} function from the \code{rnoaa} package and provides
+some additional data cleaning.
 }
 \examples{
 \dontrun{
 ids <- isd_fips_stations(fips = "12086")$stations
-airport_station <- int_surface_data(usaf_code = ids$usaf[1],
-                                    wban_code = ids$wban[1],
-                                    year = 1992,
-                                    var = c("wind_speed", "temperature"))
 kendall_station <- int_surface_data(usaf_code = ids$usaf[11],
                                     wban_code = ids$wban[11],
                                     year = 1992,
                                     var = c("wind_speed", "temperature"))
+head(kendall_station)
 }
 }
 \references{

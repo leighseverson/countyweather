@@ -11,10 +11,10 @@ Authors@R: c(person("Rachel", "Severson",
                   role = c("aut")))
 Description: Interacts with NOAA data sources (including the NCDC API at
   http://www.ncdc.noaa.gov/cdo-web/webservices/v2 and ISD data) using
-  functions from the rnoaa package to obtain and compile weather time series
-  for U.S. counties. This work was supported in part by grants from the National
-  Institute of Environmental Health Sciences (R00ES022631) and the Colorado
-  State University Water Center.
+  functions from the `rnoaa` package to obtain and compile weather time 
+  series for U.S. counties. This work was supported in part by grants from the 
+  National Institute of Environmental Health Sciences (R00ES022631) and the 
+  Colorado State University Water Center.
 License: GPL-2
 LazyData: TRUE
 Imports:

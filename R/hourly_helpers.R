@@ -1,9 +1,9 @@
 #' Get station list for a particular U.S. county.
 #'
-#' This function serves as a wrapper to the \code{isd_stations_search} function
+#' A wrapper to the \code{isd_stations_search} function
 #' in the \code{rnoaa} package, allowing you to search by FIPS code rather than
-#' having to know the latitude and longitude of the center of each county.
-#' \code{isd_stations_search} requires a radius within which to search for
+#' having to know the latitude and longitude of the center of each county. The
+#' \code{isd_stations_search} function requires a radius within which to search for
 #' stations. This radius is estimated from 2010 U.S. Census Land Area data.
 #'
 #' @param fips A five-digit FIPS county code.
@@ -21,8 +21,9 @@
 #'
 #' @examples
 #' \dontrun{
-#' list <- isd_fips_stations(fips = "12086")
-#' ids <- list$stations
+#' fips_list <- isd_fips_stations(fips = "12086")
+#' ids <- fips_list$stations
+#' head(ids)
 #' }
 isd_fips_stations <- function(fips, verbose = FALSE) {
 
@@ -57,12 +58,13 @@ isd_fips_stations <- function(fips, verbose = FALSE) {
 
 #' Get hourly data for a single monitor.
 #'
-#' This function wraps the \code{isd} function from the \code{rnoaa} package.
+#' Wraps the \code{isd} function from the \code{rnoaa} package and provides
+#' some additional data cleaning.
 #'
-#' @param usaf_code A character string with a six-digit usaf code for the
-#'    monitor.
-#' @param wban_code A character string with a five-digit wban code for the
-#'    monitor.
+#' @param usaf_code A character string with a six-digit USAF code for the
+#'    weather station.
+#' @param wban_code A character string with a five-digit WBAN code for the
+#'    weather station.
 #' @param year A four-digit numeric giving the year for which to pull data.
 #' @param var A character vector listing the weather variables to pull. In
 #'    addition quality flag data, choices for main weather variables to pull
@@ -72,7 +74,7 @@ isd_fips_stations <- function(fips, verbose = FALSE) {
 #'
 #' @return This function returns the same type of dataframe as that returned
 #'    by the \code{isd} function from the \code{rnoaa} package, but with the
-#'    dataframe limited to the selected weather variables.
+#'    dataframe limited to the selected weather variables and cleaned a bit more.
 #'
 #' @references
 #' For more information on this dataset, see
@@ -81,14 +83,11 @@ isd_fips_stations <- function(fips, verbose = FALSE) {
 #' @examples
 #' \dontrun{
 #' ids <- isd_fips_stations(fips = "12086")$stations
-#' airport_station <- int_surface_data(usaf_code = ids$usaf[1],
-#'                                     wban_code = ids$wban[1],
-#'                                     year = 1992,
-#'                                     var = c("wind_speed", "temperature"))
 #' kendall_station <- int_surface_data(usaf_code = ids$usaf[11],
 #'                                     wban_code = ids$wban[11],
 #'                                     year = 1992,
 #'                                     var = c("wind_speed", "temperature"))
+#' head(kendall_station)
 #' }
 int_surface_data <- function(usaf_code, wban_code, year, var = "all") {
 
@@ -132,18 +131,18 @@ int_surface_data <- function(usaf_code, wban_code, year, var = "all") {
 #' Pull hourly data for multiple monitors.
 #'
 #' Pull all available data for all weather monitors within a calculated radius of
-#' the population-weighted center of a U.S. county, based on the county's FIPS
+#' the geographic center of a U.S. county, based on the county's FIPS
 #' code. The radius for each county is calculated using 2010 U.S. Census Land Area
 #' data.
 #'
 #' @param fips A five-digit FIPS county code.
 #' @param year A four-digit numeric giving the year for which to pull data.
 #' @param var A character vector listing the weather variables to pull. The main
-#'    available weather variables include \code{wind_direction}, \code{wind_speed},
+#'    available weather variables are \code{wind_direction}, \code{wind_speed},
 #'    \code{ceiling_height}, \code{visibility_distance}, \code{temperature},
 #'    \code{temperature_dewpoint} and \code{air_pressure}.
 #'
-#' @return A list with five elements: \code{ids} is a dataframe of station
+#' @return A list with five elements. \code{ids} is a dataframe of station
 #'    metadata for all avaiable stations in the given fips code. \code{df} is a
 #'    data frame with hourly weather data for the given variable(s) and date
 #'    range. \code{radius} is the calculated radius within which stations
@@ -153,9 +152,9 @@ int_surface_data <- function(usaf_code, wban_code, year, var = "all") {
 #'
 #' @examples
 #' \dontrun{
-#' list <- isd_monitors_data(fips = "12086", year = 1992,
-#'                           var = c("wind_speed", "temperature"))
-#' stationdata <- list$df
+#' fips_list <- isd_monitors_data(fips = "12086", year = 1992,
+#'                                var = c("wind_speed", "temperature"))
+#' stationdata <- fips_list$df
 #' ggplot(stationdata, aes(x = date_time, y = wind_speed)) +
 #'    geom_point(alpha = 0.5, size = 0.2) +
 #'    facet_wrap(~ usaf_station, ncol = 1)
@@ -223,7 +222,7 @@ isd_monitors_data <- function(fips, year, var = "all") {
 
 #' Average hourly weather data across multiple stations.
 #'
-#' \code{ave_hourly} returns a dataframe with hourly weather averaged across
+#' Returns a dataframe with hourly weather averaged across
 #' stations, as well as columns showing the number of stations contributing to
 #' average for each variable and each hour.
 #'
@@ -268,13 +267,15 @@ ave_hourly <- function(hourly_data) {
 #' Filter NOAA ISD stations based on "coverage" requirements, and calculate
 #' coverage and statistical information for each station-variable combination.
 #'
-#' \code{filter_hourly} filters available weather variables based on a specified
-#' minimum coverage (i.e., percent non-missing hourly observations).
+#' Filters available weather stations based on a specified
+#' minimum coverage (i.e., percent non-missing hourly observations). Weather
+#' stations with non-missing data for fewer days than specified by
+#' \code{coverage} will be excluded from the county average.
 #'
 #' @param fips A character string giving the five-digit U.S. FIPS
 #'    county code of the county for which the user wants to pull weather data.
-#' @param hourly_data A \code{isd_monitors_data} dataframe (The "df" element of
-#'    a \code{isd_monitors_data} list)
+#' @param hourly_data A dataframe as returned by the \code{df} element from an
+#'    \code{isd_monitors_data} call.
 #' @param coverage A numeric value in the range of 0 to 1 that specifies the
 #'    desired percentage coverage for each weather variable (i.e., what percent
 #'    of each weather variable must be non-missing to include the data from a
@@ -286,12 +287,12 @@ ave_hourly <- function(hourly_data) {
 #'    variable showing the number of stations contributing to the average for that
 #'    variable for each hour. The second element, \code{stations}, is a dataframe
 #'    giving statistical information for stations that meet the specified coverage
-#'    requirements. The column \code{station} gives the station id (usaf and
-#'    wban identification numbers pasted together, separated by "-"). Note: one
+#'    requirements. The column \code{station} gives the station id (USAF and
+#'    WBAN identification numbers pasted together, separated by "-"). Note: One
 #'    of these identification ids is sometimes missing. For example, a value in
 #'    \code{station} might be \code{722029-NA}. The column \code{var}
 #'    gives the weather variable associated with the row of statistical values
-#'    for each station and variable combination. \code{calc_covearge} gives the
+#'    for each station and variable combination. \code{calc_coverage} gives the
 #'    percentage coverage for each station-weather variable combination. These
 #'    values will all be greater than or equal to the specified \code{coverage}
 #'    value. \code{standard_dev} gives the standard deviation of values for each
@@ -300,17 +301,14 @@ ave_hourly <- function(hourly_data) {
 #'    each station-weather variable combination. These last four statistical
 #'    calculations (\code{standard_dev}, \code{max}, \code{min}, and
 #'    \code{range}) are only included for the seven core hourly weather variables,
-#'    which include "wind_direction", "wind_speed", "ceiling_height",
-#'    "visibility_distance", "temperature", "temperature_dewpoint", and
-#'    "air_pressure." (The values of these columns are set to "NA" for other
-#'    variables, such as quality flag data.)
+#'    which include \code{"wind_direction"}, \code{"wind_speed"},
+#'    \code{"ceiling_height"}, \code{"visibility_distance"}, \code{"temperature"},
+#'    \code{"temperature_dewpoint"}, and \code{"air_pressure"}. (The values of
+#'    these columns are set to \code{NA} for other variables, such as quality
+#'    flag data.)
 #'
 #' @importFrom dplyr %>%
-filter_hourly <- function(fips, hourly_data, coverage = NULL) {
-
-  if (purrr::is_null(coverage)) {
-   coverage <- 0
-  }
+filter_hourly <- function(fips, hourly_data, coverage = 0) {
 
   all_cols <- colnames(hourly_data)
   not_vars <- c("usaf_station", "wban_station", "date_time", "latitude",
@@ -393,29 +391,25 @@ filter_hourly <- function(fips, hourly_data, coverage = NULL) {
 
 #' Plot hourly weather stations for a particular county.
 #'
-#' This function produces a map with points indicating stations that contribute
-#' to the weather data in the argument \code{hourly_data}.
+#' Produces a \code{ggplot} object mapping stations that contribute
+#' to the weather data returned by \code{hourly_data}.
 #'
-#' @param fips A five-digit FIPS county code.
+#' @inheritParams daily_stationmap
 #' @param hourly_data A list returned from the function \code{hourly_df}.
-#' @param point_color point_color The specified \code{ggplot2} color for each point
-#'    representing the location of a station.
-#' @param point_size The specified \code{ggplot2} size for each point
-#'    representing the location of a station.
-#' @param station_label TRUE / FALSE If TRUE, includes labels giving the id for
-#'    monitor on the map. The default is FALSE.
 #'
-#' @return A plot showing points for all weather stations for a particular
-#'    county satisfying the conditions present in \code{hourly_df}'s
-#'    arguments (year(s) and/or var). Because hourly data is pulled by radius
-#'    from each county's population-weighted center, this plot inlcudes the
-#'    calculated radius from which stations are pulled. This radius is calculated
-#'    for each county using 2010 U.S. Census Land Area data. 2010 U.S. Census
-#'    cartographic boundary shapefiles are used to proved county outlines,
-#'    included on this plot as well. Note: because stations are pulled within
-#'    a radius from the county's geographic center, depending on the shape of
-#'    the county, stations from outside of the county's boundaries may sometimes
-#'    be providing data for that county.
+#' @return A \code{ggplot} object mapping all weather stations for a particular
+#'    county that satisfy the conditions present in \code{hourly_df}'s
+#'    arguments (year(s), coverage, and/or weather variables). Because hourly
+#'    data is pulled by radius from each county's geograph center, this plot
+#'    includes the calculated radius from which stations are pulled for that
+#'    county. This radius
+#'    is calculated for each county using 2010 U.S. Census Land Area data.
+#'    2011 U.S. Census cartographic boundary shapefiles are used to proved
+#'    county outlines, included on this plot as well. Note: Because stations
+#'    are pulled within a radius from the county's geographic center, depending
+#'    on the shape of the county, weather stations from outside the county's
+#'    boundaries may sometimes be providing data for that county and some
+#'    weather stations within the county may not be included.
 #'
 #' @examples
 #' \dontrun{

@@ -117,7 +117,7 @@ andrew_precip$station_map
 
 ![](README-unnamed-chunk-13-1.png)
 
-This map uses 2010 U.S. Census Cartographic Boundary Shapefiles (from the Census Bureau's MAF/TIGER geographic database) and functions from the `ggmap` package to overlay weather station locations on a shaped map showing the county's boundaries.
+This map uses U.S. Census TIGER/Line shapefiles (vintage 2011) and functions from the `ggmap` package to overlay weather station locations on a shaped map showing the county's boundaries.
 
 The `station_metadata` dataframe gives information about all of the stations contributing data to the `daily_data` dataframe, as well as information about how the values by each station vary within each weather variable. If a weather station is contributing data for multiple variables, it will show up in this dataframe multiple times. Here's what the `station_metadata` dataframe looks like for the `andrew_precip` list:
 
@@ -230,7 +230,7 @@ andrew_hourly$station_map
 
 ![](README-unnamed-chunk-20-1.png)
 
-Because hourly data is pulled by radius from each county's geographic center, this plot inlcudes the calculated radius from which stations are pulled. This radius is calculated for each county using 2010 U.S. Census Land Area data. 2010 U.S. Census cartographic boundary shapefiles are used to provide county outlines, included on this plot as well. Because stations are pulled within a radius from the county's center, stations from outside of the county's boundaries may sometimes be providing data for that county.
+Because hourly data is pulled by radius from each county's geographic center, this plot inlcudes the calculated radius from which stations are pulled. This radius is calculated for each county using 2010 U.S. Census Land Area data. U.S. Census TIGER/Line shapefiles are used to provide county outlines, included on this plot as well. Because stations are pulled within a radius from the county's center, stations from outside of the county's boundaries may sometimes be providing data for that county.
 
 Other list elements returned by `hourly_fips` include `station_metadata`, `radius`, `lat_center`, and `lon_center`. `radius` is the estimated radius (in km) for the county calculated using 2010 U.S. Census Land Area data -- the county is assumed to be roughly ciruclar. `lat_center` and `lon_center` are the longitude and latitude of the geographic center for the county, respectively.
 

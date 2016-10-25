@@ -10,35 +10,38 @@ daily_stationmap(fips, daily_data, point_color = "firebrick",
 \arguments{
 \item{fips}{A five-digit FIPS county code.}
 
-\item{daily_data}{A list returned from the function \code{daily_df}.}
+\item{daily_data}{A list returned from the function \code{daily_df} (see
+helpfile for \code{daily_df}).}
 
-\item{point_color}{point_color The specified \code{ggplot2} color for each point
-representing the location of a station.}
+\item{point_color}{Character string with color for points
+mapping the locations of weather stations (passes to \code{ggplot}).}
 
-\item{point_size}{The specified \code{ggplot2} size for each point
-representing the location of a station.}
+\item{point_size}{Character string with size for for points
+mapping the locations of weather stations (passes to \code{ggplot}).}
 
-\item{station_label}{TRUE / FALSE If TRUE, includes labels giving the id for
-monitor on the map. The default is FALSE.}
+\item{station_label}{TRUE / FALSE Whether to include labels for
+each weather station.}
 }
 \value{
-A plot showing points for all weather stations for a particular
+A \code{ggplot} object mapping all weather stations for a particular
    county satisfying the conditions present in \code{daily_df}'s
-   arguments (date range and/or var). 2010 U.S. Census cartographic boundary
-   shapefiles are used to provide county outlines.
+   arguments (date range, coverage, and/or weather variables). 2011 U.S.
+   Census cartographic boundary shapefiles are used to provide county
+   outlines.
 }
 \description{
-This function produces a map with points indicating stations that contribute
-to the weather data in the argument \code{daily_data}.
+Produces a map with points indicating stations that contribute
+to the weather data in the \code{daily_data} data frame output by
+\code{daily_fips}.
 }
 \examples{
 \dontrun{
-stations <- daily_stations(fips = "12086", date_min = "1992-08-01",
+miami_stations <- daily_stations(fips = "12086", date_min = "1992-08-01",
                           date_max = "1992-08-31")
-daily_data <- daily_df(stations = stations, coverage = 0.90,
+daily_data <- daily_df(stations = miami_stations, coverage = 0.90,
                       var = c("tmax", "tmin", "prcp"),
                       date_min = "1992-08-01", date_max = "1992-08-31")
-daily_stationmap("12086", daily_data)
+daily_stationmap(fips = "12086", daily_data = daily_data)
 }
 
 }

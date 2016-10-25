@@ -4,10 +4,11 @@
 \alias{filter_coverage}
 \title{Filter stations based on "coverage" requirements.}
 \usage{
-filter_coverage(coverage_df, coverage = NULL)
+filter_coverage(coverage_df, coverage = 0)
 }
 \arguments{
-\item{coverage_df}{A \code{meteo_coverage} dataframe}
+\item{coverage_df}{A dataframe as returned by the \code{meteo_coverage}
+function in the \code{rnoaa} package}
 
 \item{coverage}{A numeric value in the range of 0 to 1 that specifies
 the desired percentage coverage for the weather variable (i.e., what
@@ -15,13 +16,14 @@ percent of each weather variable must be non-missing to include data from
 a monitor when calculating daily values averaged across monitors).}
 }
 \value{
-a \code{dataframe} with stations that meet the specified coverage
-   requirements for weather variables included in the dataframe present in
-   this function's arguments.
+A dataframe with stations that meet the specified coverage
+   requirements for weather variables included in the \code{coverage_df}
+   dataframe passed to the function.
 }
 \description{
-\code{filter_coverage} filters available weather variables
-based on a specified required minimum coverage (i.e., percent non-missing
-daily observations).
+Filters available weather stations based on a specified required minimum
+coverage (i.e., percent non-missing daily observations). Weather stations
+with non-missing data for fewer days than specified by \code{coverage} will
+be excluded from the county average.
 }
 

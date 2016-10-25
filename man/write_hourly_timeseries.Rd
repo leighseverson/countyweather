@@ -4,7 +4,7 @@
 \alias{write_hourly_timeseries}
 \title{Write hourly weather time series files for U.S. counties.}
 \usage{
-write_hourly_timeseries(fips, year, coverage = NULL, var = "all",
+write_hourly_timeseries(fips, year, coverage = 0, var = "all",
   out_directory, data_type = "rds", metadata_type = "rds",
   average_data = TRUE, station_label = FALSE, keep_map = TRUE,
   verbose = TRUE)
@@ -13,35 +13,38 @@ write_hourly_timeseries(fips, year, coverage = NULL, var = "all",
 \item{fips}{A character string of the five-digit U.S. FIPS code of a U.S.
 county.}
 
-\item{year}{a four digit number or vector of numbers indicating the year or
+\item{year}{A four-digit number or vector of numbers indicating the year or
 years for which you want to pull hourly data. Values for \code{year} can
 be in the range from 1901 to the current year.}
 
 \item{coverage}{A numeric value in the range of 0 to 1 that specifies
 the desired percentage coverage for the weather variable (i.e., what
 percent of each weather variable must be non-missing to include data from
-a monitor when calculating daily values averaged across monitors.)}
+a monitor when calculating daily values averaged across monitors).}
 
 \item{var}{A character vector specifying desired weather variables. For
-example, var = c("wind_speed", "temperature"). The core weather variables
-available include \code{c("wind_direction", "wind_speed", "ceiling_height",
-"visibility_distance", "temperature", "temperature_dewpoint",
-"air_pressure")}. Alternatively, you can specify var = "all" to include
-additional flag and quality codes.}
+example, \code{var = c("wind_speed", "temperature")} pulls data on hourly
+wind speed and temperature. The core weather variables
+available include \code{"wind_direction"}, \code{"wind_speed"},
+\code{"ceiling_height"}, \code{"visibility_distance"}, \code{"temperature"},
+\code{"temperature_dewpoint"}, \code{"air_pressure"}. Alternatively, you
+can specify var = "all" to include additional flag and quality codes.}
 
 \item{out_directory}{The absolute or relative pathname for the directory
 where you would like the time series files to be saved.}
 
-\item{data_type}{A character strign indicating that you would like either
-.rds files (data_type = "rds") or .csv files (data_type = "csv") for the
-time series output. This option defaults to .rds files.}
+\item{data_type}{A character string indicating that you would like either
+.rds files (\code{data_type = "rds"}) or .csv files
+(\code{data_type = "csv"}) for the time series output. This option
+defaults to .rds files.}
 
 \item{metadata_type}{A character string indicating that you would like either
-.rds files (metadata_type = "rds") or .csv files (metadata_type = "csv")
+.rds files (\code{metadata_type = "rds"}) or .csv files
+(\code{metadata_type = "csv"})
 for the station and county metadata output. This option defaults to .rds
 files, in which case a list of four elements is saved
 (\code{station_metadata}, \code{radius}, \code{lat_center}, and
-\code{lon_center}). If the user specified "csv" output, \code{radius},
+\code{lon_center}). If the user specifies "csv" output, \code{radius},
 \code{lat_center}, and \code{lon_center} are added to the
 \code{station_metadata} dataframe as additional columns.}
 
@@ -59,7 +62,7 @@ FALSE, the "maps" subdirectory will not be created.}
 out the county or vector of counties it's saving files for.}
 }
 \value{
-Writes out three subirectories of a fiven directory with hourly
+Writes out three subdirectories of a given directory, with hourly
 weather files saved in "data", station and county metadata saved in
 "metadata", and a map of weather station locations saved in "maps" for each
 FIPS code specified. The user can specify either .rds or .csv files for the
@@ -69,20 +72,20 @@ data and metadatafiles, using the arguments \code{data_type} and
 \description{
 Given a vector of U.S. county FIPS codes, this function saves each element of
 the lists created from the function \code{daily_fips} to a separate folder
-within a fiven directory. The dataframe \code{daily_data} is saved to a
+within a given directory. The dataframe \code{daily_data} is saved to a
 subdirectory of the given directory called "data." This time series dataframe
-gives 1. the values for specified weather variables, and 2. the number of
+gives the values for specified weather variables and the number of
 weather stations contributing to the average for each day within the
-specified year(s). Metadata information about the weather stations and
+specified year(s). Metadata about the weather stations and
 county are saved in a list with four elements in a subdirectory called
 "metadata." These elements include \code{station_metadata} (station metadata
 for stations contributing to the time series dataframe), \code{radius}
-(the radius (in km) within which weather stations were pulled from each
+(the radius, in km, within which weather stations were pulled from each
 county's center), \code{lat_center}, and \code{lon_center} (the latitude
-and longitude of the county's center). If the user specifies "csv" ouput for
-the \code{metadata_type}, argument, \code{radius}, \code{lat_center}, and
-\code{lon_center} are added to the \code{station_metadata} dataframe as three
-additional columns.
+and longitude of the county's geographic center). If the user specifies "csv"
+output for the \code{metadata_type} argument, \code{radius}, \code{lat_center},
+and \code{lon_center} are added to the \code{station_metadata} dataframe as
+three additional columns.
 }
 \note{
 If the function is unable to pull weather data for a particular county

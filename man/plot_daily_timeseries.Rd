@@ -8,8 +8,9 @@ plot_daily_timeseries(var, date_min, date_max, data_directory, plot_directory,
   data_type = "rds")
 }
 \arguments{
-\item{var}{A character string specifying which weather variable present in
-the timeseries dataframe that you would like to produce plots for.}
+\item{var}{A character string specifying which weather variable for which
+you would like to produce plots (the variable must be present in the
+timeseries dataframe).}
 
 \item{date_min}{A character string giving the earliest date present in the
 timeseries dataframe in "yyyy-mm-dd" format.}
@@ -25,35 +26,29 @@ are saved.}
 where you would like the plots to be saved.}
 
 \item{data_type}{A character string indicating the type of timeseries files
-you would like to produce plots for (either "rds" or "csv"). This option
-defaults to .rds files.}
+you would like to produce plots for (either \code{"rds"} or \code{"csv"}).
+This option defaults to .rds files.}
 }
 \value{
 Writes out a directory with plots of timeseries data for a given
 weather variable for each file present in the directory specified.
 }
 \description{
-This function writes out a directory with plots for every timeseries file
-present in the specified directory (produced by the \code{daily_timeseries}
+Writes a directory with plots for every weather data time series file
+in the specified directory (as produced by the \code{daily_timeseries}
 function and saved in the "data" subdirectory of the directory given in that
 function's arguments) for a particular weather variable.
 }
 \examples{
 \dontrun{
+write_daily_timeseries(fips = c("37055", "15005"), coverage = 0.90,
+                       date_min = "1995-01-01", date_max = "1995-01-31",
+                       var = c("tmax", "tmin", "prcp"),
+                       out_directory = "~/timeseries")
 plot_daily_timeseries(var = "prcp", date_min = "1995-01-01",
                       date_max = "1995-01-31",
                       data_directory = "~/timeseries/data",
                       plot_directory = "~/timeseries/plots_prcp")
-
-plot_daily_timeseries(var = "tmax", date_min = "1995-01-01",
-                      date_max = "1995-01-31",
-                      data_directory = "~/timeseries/data",
-                      plot_directory = "~/timeseries/plots_tmax")
-
-plot_daily_timeseries(var = "tmin", date_min = "1995-01-01",
-                     date_max = "1995-01-31",
-                     data_directory = "~/timeseries/data",
-                     plot_directory = "~/timeseries/plots_tmin")
 }
 }
 

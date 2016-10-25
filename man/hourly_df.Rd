@@ -4,22 +4,23 @@
 \alias{hourly_df}
 \title{Return average hourly weather data for a particular county.}
 \usage{
-hourly_df(fips, year, var = "all", average_data = TRUE, coverage = NULL)
+hourly_df(fips, year, var = "all", average_data = TRUE, coverage = 0)
 }
 \arguments{
 \item{fips}{A character string of the five-digit U.S. FIPS code of a U.S.
 county.}
 
-\item{year}{a four digit number or vector of numbers indicating the year or
+\item{year}{A four-digit number or vector of numbers indicating the year or
 years for which you want to pull hourly data. Values for \code{year} can
 be in the range from 1901 to the current year.}
 
 \item{var}{A character vector specifying desired weather variables. For
-example, var = c("wind_speed", "temperature"). The core weather variables
-available include \code{c("wind_direction", "wind_speed", "ceiling_height",
-"visibility_distance", "temperature", "temperature_dewpoint",
-"air_pressure")}. Alternatively, you can specify var = "all" to include
-additional flag and quality codes.}
+example, \code{var = c("wind_speed", "temperature")} pulls data on hourly
+wind speed and temperature. The core weather variables
+available include \code{"wind_direction"}, \code{"wind_speed"},
+\code{"ceiling_height"}, \code{"visibility_distance"}, \code{"temperature"},
+\code{"temperature_dewpoint"}, \code{"air_pressure"}. Alternatively, you
+can specify var = "all" to include additional flag and quality codes.}
 
 \item{average_data}{TRUE / FALSE to indicate if you want the function to
 average daily weather data across multiple monitors.}
@@ -27,7 +28,7 @@ average daily weather data across multiple monitors.}
 \item{coverage}{A numeric value in the range of 0 to 1 that specifies
 the desired percentage coverage for the weather variable (i.e., what
 percent of each weather variable must be non-missing to include data from
-a monitor when calculating daily values averaged across monitors.)}
+a monitor when calculating daily values averaged across monitors).}
 }
 \value{
 A list with five elements. The first element, \code{hourly_data}, is
@@ -36,8 +37,8 @@ A list with five elements. The first element, \code{hourly_data}, is
    showing the number of stations contributing to the average for that
    variable for each hour. \code{station_df} is a dataframe of station
    metadata for each station contributing weather data. A weather station
-   will have one row per weather variable it contributes data to. In addition
-   to information such as usaf and wban ids and station names, this
+   will have one row per weather variable to which it contributes data. In
+   addition to information such as USAF and WBAN ids and station names, this
    dataframe includes statistical information about weather values
    contributed by each station for each weather variable. These statistics
    include calculated coverage (\code{calc_coverage}), which is the percent
@@ -47,11 +48,11 @@ A list with five elements. The first element, \code{hourly_data}, is
    combination. The element \code{radius} is the calculated radius within
    which stations were pulled from the county's center. Elements
    \code{lat_center} and \code{lon_center} are the latitude and longitude of
-   the county's center.
+   the county's geographic center.
 }
 \description{
-\code{hourly_df} returns a dataframe of average daily weather values
-for a particular county, year, and/or specified "coverage."
+Returns a dataframe of average daily weather values
+for a particular county, year, weather variables, and/or specified coverage.
 }
 \details{
 This function serves as a wrapper to several functions from the \code{rnoaa}
@@ -60,15 +61,15 @@ This function filters and averages across NOAA ISD/ISH stations based on
 user-specified coverage specifications.
 }
 \note{
-Observation times are vased on Coordinated Universal Time Code (UTC).
+Observation times are based on Coordinated Universal Time Code (UTC).
 }
 \examples{
 \dontrun{
-df <- hourly_df(fips = "12086", year = 1992, var = c("wind_speed",
-                                                     "temperature"))
-data <- df$hourly_data
-station_info <- df$station_df
-radius <- df$radius
+df <- hourly_df(fips = "12086", year = 1992,
+                var = c("wind_speed", "temperature"))
+head(df$hourly_data)
+head(df$station_df)
+df$radius
 }
 
 }

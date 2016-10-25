@@ -18,10 +18,13 @@ that have data for dates including and after the specified date.}
 format ("yyyy-mm-dd"). The dataframe returned will include only stations
 that have data for dates up to and including the specified date.}
 }
+\value{
+A dataframe with NOAA NCDC station IDs for a single U.S. county.
+}
 \description{
-\code{daily_stations} returns a dataframe showing NOAA NCDC station IDs for
+Returns a dataframe with NOAA NCDC station IDs for
 a single U.S. county. This function has options to filter stations based on
-start and end date of available data, as well as percent of data coverage.
+maximum and minimum dates, as well as percent data coverage.
 }
 \note{
 Because this function uses the NOAA API to identify the weather
@@ -34,8 +37,12 @@ Because this function uses the NOAA API to identify the weather
 }
 \examples{
 \dontrun{
-ex <- daily_stations("36005")
-ex2 <- daily_stations("12086", date_min = "1999-01-01", date_max = "2012-12-31")
+stations_36005 <- daily_stations("36005")
+stations_36005
+
+miami_stations <- daily_stations("12086", date_min = "1999-01-01",
+                                 date_max = "2012-12-31")
+miami_stations
 }
 
 }

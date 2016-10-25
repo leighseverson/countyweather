@@ -5,14 +5,14 @@
 \title{Filter NOAA ISD stations based on "coverage" requirements, and calculate
 coverage and statistical information for each station-variable combination.}
 \usage{
-filter_hourly(fips, hourly_data, coverage = NULL)
+filter_hourly(fips, hourly_data, coverage = 0)
 }
 \arguments{
 \item{fips}{A character string giving the five-digit U.S. FIPS
 county code of the county for which the user wants to pull weather data.}
 
-\item{hourly_data}{A \code{isd_monitors_data} dataframe (The "df" element of
-a \code{isd_monitors_data} list)}
+\item{hourly_data}{A dataframe as returned by the \code{df} element from an
+\code{isd_monitors_data} call.}
 
 \item{coverage}{A numeric value in the range of 0 to 1 that specifies the
 desired percentage coverage for each weather variable (i.e., what percent
@@ -26,12 +26,12 @@ A list with two elements: \code{df} and \code{stations}. \code{df} is
    variable showing the number of stations contributing to the average for that
    variable for each hour. The second element, \code{stations}, is a dataframe
    giving statistical information for stations that meet the specified coverage
-   requirements. The column \code{station} gives the station id (usaf and
-   wban identification numbers pasted together, separated by "-"). Note: one
+   requirements. The column \code{station} gives the station id (USAF and
+   WBAN identification numbers pasted together, separated by "-"). Note: One
    of these identification ids is sometimes missing. For example, a value in
    \code{station} might be \code{722029-NA}. The column \code{var}
    gives the weather variable associated with the row of statistical values
-   for each station and variable combination. \code{calc_covearge} gives the
+   for each station and variable combination. \code{calc_coverage} gives the
    percentage coverage for each station-weather variable combination. These
    values will all be greater than or equal to the specified \code{coverage}
    value. \code{standard_dev} gives the standard deviation of values for each
@@ -40,13 +40,16 @@ A list with two elements: \code{df} and \code{stations}. \code{df} is
    each station-weather variable combination. These last four statistical
    calculations (\code{standard_dev}, \code{max}, \code{min}, and
    \code{range}) are only included for the seven core hourly weather variables,
-   which include "wind_direction", "wind_speed", "ceiling_height",
-   "visibility_distance", "temperature", "temperature_dewpoint", and
-   "air_pressure." (The values of these columns are set to "NA" for other
-   variables, such as quality flag data.)
+   which include \code{"wind_direction"}, \code{"wind_speed"},
+   \code{"ceiling_height"}, \code{"visibility_distance"}, \code{"temperature"},
+   \code{"temperature_dewpoint"}, and \code{"air_pressure"}. (The values of
+   these columns are set to \code{NA} for other variables, such as quality
+   flag data.)
 }
 \description{
-\code{filter_hourly} filters available weather variables based on a specified
-minimum coverage (i.e., percent non-missing hourly observations).
+Filters available weather stations based on a specified
+minimum coverage (i.e., percent non-missing hourly observations). Weather
+stations with non-missing data for fewer days than specified by
+\code{coverage} will be excluded from the county average.
 }
 

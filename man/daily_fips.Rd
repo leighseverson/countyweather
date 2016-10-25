@@ -4,7 +4,7 @@
 \alias{daily_fips}
 \title{Pull average daily weather data by U.S. county.}
 \usage{
-daily_fips(fips, coverage = NULL, date_min = NULL, date_max = NULL,
+daily_fips(fips, coverage = 0, date_min = NULL, date_max = NULL,
   var = "all", average_data = TRUE, station_label = FALSE,
   verbose = TRUE)
 }
@@ -28,8 +28,10 @@ format ("yyyy-mm-dd"). The dataframe returned will include only stations
 that have data for dates up to and including the specified date.}
 
 \item{var}{A character vector specifying desired weather variables. For
-example, var = c("tmin", "tmax", "prcp"). The default is \code{"all"},
-which includes all available weather variables. For a full list of all
+example, \code{var = c("tmin", "tmax", "prcp")} for maximum temperature,
+minimum temperature, and precipitation. The default is \code{"all"},
+which includes all available weather variables at any weather station in
+the county. For a full list of all
 possible variable names, see NOAA's README file for the Daily Global
 Historical Climatology Network (GHCN-Daily) at
 \url{http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt}. Many of
@@ -47,7 +49,7 @@ for each day in the dataset, giving the average value of the weather
 metric across all available monitors in the county that day.}
 
 \item{station_label}{TRUE / FALSE to indicate if you want your plot of
-weather station locations to include labels indicating station ids.}
+weather station locations to include labels with station ids.}
 
 \item{verbose}{TRUE / FALSE to indicate if you want the function to print
 out the name of the county it's processing.}
@@ -57,12 +59,13 @@ A list with three elements. The first element (\code{daily_data}) is a
    dataframe of daily weather data averaged across multiple stations, as well
    as columns (\code{"var"_reporting}) for each weather variable showing the
    number of stations contributing to the average for that variable on that
-   day. The second element (\code{station_metadata} is a dataframe of station
+   day. The second element (\code{station_metadata}) is a dataframe of station
    metadata for stations included in the \code{daily_data} dataframe, as well
    as statistical information about these values. Columns
-   include station id, name, var, latitude, longitude, calc_coverage,
-   standard_dev, min, max, and range. The third element (\code{station_map})
-   is a plot showing points for all weather stations for a particular county
+   include \code{id}, \code{name}, \code{var}, \code{latitude},
+   \code{longitude}, \code{calc_coverage}, \code{standard_dev}, \code{min},
+   \code{max}, and \code{range}. The third element (\code{station_map})
+   is a plot showing locations of all weather stations for a particular county
    satisfying the conditions present in \code{daily_fips}'s arguments
    (\code{coverage}, \code{date_min}, \code{date_max}, and/or \code{var}).
 }
@@ -82,17 +85,17 @@ Because this function uses the NOAA API to identify the weather
 }
 \examples{
 \dontrun{
-ex <- daily_fips("08031", coverage = 0.90, date_min = "2010-01-01",
+denver_ex <- daily_fips("08031", coverage = 0.90, date_min = "2010-01-01",
                  date_max = "2010-02-01", var = "prcp")
 
-weather_data <- ex$daily_data
-station_map <- ex$station_map
+head(denver_ex$daily_data)
+denver_ex$station_map
 
 mobile_ex <- daily_fips("01097", date_min = "1997-07-13",
                         date_max = "1997-07-25", var = "prcp",
                         average_data = FALSE)
 library(ggplot2)
-ggplot(mobile_ex$daily_weather, aes(x = date, y = prcp, color = id)) +
+ggplot(mobile_ex$daily_data, aes(x = date, y = prcp, color = id)) +
    geom_line()
 }
 }

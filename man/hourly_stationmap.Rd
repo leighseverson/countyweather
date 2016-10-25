@@ -12,31 +12,33 @@ hourly_stationmap(fips, hourly_data, point_color = "firebrick",
 
 \item{hourly_data}{A list returned from the function \code{hourly_df}.}
 
-\item{point_color}{point_color The specified \code{ggplot2} color for each point
-representing the location of a station.}
+\item{point_color}{Character string with color for points
+mapping the locations of weather stations (passes to \code{ggplot}).}
 
-\item{point_size}{The specified \code{ggplot2} size for each point
-representing the location of a station.}
+\item{point_size}{Character string with size for for points
+mapping the locations of weather stations (passes to \code{ggplot}).}
 
-\item{station_label}{TRUE / FALSE If TRUE, includes labels giving the id for
-monitor on the map. The default is FALSE.}
+\item{station_label}{TRUE / FALSE Whether to include labels for
+each weather station.}
 }
 \value{
-A plot showing points for all weather stations for a particular
-   county satisfying the conditions present in \code{hourly_df}'s
-   arguments (year(s) and/or var). Because hourly data is pulled by radius
-   from each county's population-weighted center, this plot inlcudes the
-   calculated radius from which stations are pulled. This radius is calculated
-   for each county using 2010 U.S. Census Land Area data. 2010 U.S. Census
-   cartographic boundary shapefiles are used to proved county outlines,
-   included on this plot as well. Note: because stations are pulled within
-   a radius from the county's geographic center, depending on the shape of
-   the county, stations from outside of the county's boundaries may sometimes
-   be providing data for that county.
+A \code{ggplot} object mapping all weather stations for a particular
+   county that satisfy the conditions present in \code{hourly_df}'s
+   arguments (year(s), coverage, and/or weather variables). Because hourly
+   data is pulled by radius from each county's geograph center, this plot
+   includes the calculated radius from which stations are pulled for that
+   county. This radius
+   is calculated for each county using 2010 U.S. Census Land Area data.
+   2011 U.S. Census cartographic boundary shapefiles are used to proved
+   county outlines, included on this plot as well. Note: Because stations
+   are pulled within a radius from the county's geographic center, depending
+   on the shape of the county, weather stations from outside the county's
+   boundaries may sometimes be providing data for that county and some
+   weather stations within the county may not be included.
 }
 \description{
-This function produces a map with points indicating stations that contribute
-to the weather data in the argument \code{hourly_data}.
+Produces a \code{ggplot} object mapping stations that contribute
+to the weather data returned by \code{hourly_data}.
 }
 \examples{
 \dontrun{

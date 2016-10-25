@@ -26,7 +26,7 @@
 county_radius
 }
 \description{
-A dataframe containing the FIPS code and an estimate for radius in km for
+A dataframe containing the FIPS code and estimated radius (in km) for
 each U.S. county. This dataset was put together using a dataset from the U.S.
 Census American FactFinder data dissemination tool. This dataset was downloaded
 from the geographic identifiers 'G001' option for the 2010 Summary File1
