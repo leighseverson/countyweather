@@ -4,7 +4,7 @@
 \alias{write_hourly_timeseries}
 \title{Write hourly weather time series files for U.S. counties.}
 \usage{
-write_hourly_timeseries(fips, year, coverage = 0, var = "all",
+write_hourly_timeseries(fips, year, coverage = NULL, var = "all",
   out_directory, data_type = "rds", metadata_type = "rds",
   average_data = TRUE, station_label = FALSE, keep_map = TRUE,
   verbose = TRUE)

@@ -5,7 +5,7 @@
 \title{Return average hourly weather data and a plot showing the location of weather
 stations for a particular county.}
 \usage{
-hourly_fips(fips, year, var = "all", coverage = 0, average_data = TRUE,
+hourly_fips(fips, year, var = "all", coverage = NULL, average_data = TRUE,
   station_label = FALSE, verbose = TRUE)
 }
 \arguments{

@@ -4,7 +4,7 @@
 \alias{write_daily_timeseries}
 \title{Write daily weather timeseries files for U.S. counties.}
 \usage{
-write_daily_timeseries(fips, coverage = 0, date_min = NULL,
+write_daily_timeseries(fips, coverage = NULL, date_min = NULL,
   date_max = NULL, var = "all", out_directory, data_type = "rds",
   metadata_type = "rds", average_data = TRUE, station_label = FALSE,
   keep_map = TRUE, verbose = TRUE)
