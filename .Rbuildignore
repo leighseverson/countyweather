@@ -6,3 +6,4 @@
 ^writing$
 ^.Renviron.rtf$
 ^\.travis\.yml$
+^cran-comments\.md$
