@@ -4,7 +4,7 @@
 \alias{daily_fips}
 \title{Pull average daily weather data by U.S. county.}
 \usage{
-daily_fips(fips, coverage = 0, date_min = NULL, date_max = NULL,
+daily_fips(fips, coverage = NULL, date_min = NULL, date_max = NULL,
   var = "all", average_data = TRUE, station_label = FALSE,
   verbose = TRUE)
 }

@@ -4,7 +4,7 @@
 \alias{hourly_df}
 \title{Return average hourly weather data for a particular county.}
 \usage{
-hourly_df(fips, year, var = "all", average_data = TRUE, coverage = 0)
+hourly_df(fips, year, var = "all", average_data = TRUE, coverage = NULL)
 }
 \arguments{
 \item{fips}{A character string of the five-digit U.S. FIPS code of a U.S.

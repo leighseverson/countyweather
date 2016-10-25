@@ -5,7 +5,7 @@
 \title{Filter NOAA ISD stations based on "coverage" requirements, and calculate
 coverage and statistical information for each station-variable combination.}
 \usage{
-filter_hourly(fips, hourly_data, coverage = 0)
+filter_hourly(fips, hourly_data, coverage = NULL)
 }
 \arguments{
 \item{fips}{A character string giving the five-digit U.S. FIPS
