@@ -7,6 +7,10 @@
 
 0 errors | 0 warnings | 1 note
 
+There were no ERRORs or WARNINGs. 
+
+There was 1 NOTE:
+
 * This is a new release.
 
 ## Reverse dependencies
