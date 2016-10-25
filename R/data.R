@@ -59,16 +59,3 @@
 #'
 #' \url{http://www.census.gov/prod/cen2010/doc/sf1.pdf}
 "county_radius"
-
-#' County cartographic boundary shapefiles
-#'
-#' A "SpatialPolygonsDataFrame" object. This shapefile downloaded from the U.S.
-#' Census 2010 Cartographic Boundary Shapefiles for counties. The
-#' gz_2010_us_050_00_500k zip file was downloaded from the website listed in
-#' "Source."
-#'
-#' @format A "SpatialPolygonsDataFrame" object
-#' @source
-#'
-#' \url{https://www.census.gov/geo/maps-data/data/cbf/cbf_counties.html}
-"county_outlines"

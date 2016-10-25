@@ -11,7 +11,7 @@
    \item{fips}{A numeric vector giving the county's five-digit Federal
                Information Processing Standard (FIPS) code}
    \item{name}{A character vector giving the name and state for each county}
-   \item{latitude}{A numeric vector giving the latutude at the geographic
+   \item{latitude}{A numeric vector giving the latitude at the geographic
                    center of each county}
    \item{longitude}{A numeric vector giving the longitude at the geographic
                     center of each county}
