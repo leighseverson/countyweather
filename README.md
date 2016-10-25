@@ -1,5 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
+[![Travis-CI Build Status](https://travis-ci.org/geanders/countyweather.svg?branch=master)](https://travis-ci.org/geanders/countyweather)
+
 While data from weather stations is available at the specific location of the weather station, it is often useful to have estimates of daily or hourly weather aggregated on a larger spatial level. For U.S.-based studies, it can be particularly useful to be able to pull time series of weather by county. For example, the health data used in environmental epidemiology studies is often aggregated at the county level for U.S. studies, making it very useful for environmental epidemiology applications to be able to create weather datasets by county.
 
 This package builds on functions from the `rnoaa` package to identify weather stations within a county based on its FIPS code and then pull weather data for a specified date range from those weather stations. It then does some additional cleaning and aggregating to produce a single, county-level weather dataset. Further, it maps the weather stations used for that county and date range and allows you to create and write datasets for many different counties using a single function call.
@@ -105,7 +107,7 @@ ggplot(andrew_precip$daily_data, aes(x = date, y = prcp, color = prcp_reporting)
   scale_color_continuous(name = "# stations\nreporting")
 ```
 
-![](README-unnamed-chunk-12-1.png)
+![](README-unnamed-chunk-11-1.png)
 
 From this plot, you can see both the extreme precipitation associated with Hurricane Andrew (Aug. 24) and that the storm knocked out quite a few of the weather stations normally available.
 
@@ -115,7 +117,7 @@ A map is also included in the output of `daily_fips` with the weather stations u
 andrew_precip$station_map
 ```
 
-![](README-unnamed-chunk-13-1.png)
+![](README-unnamed-chunk-12-1.png)
 
 This map uses U.S. Census TIGER/Line shapefiles (vintage 2011) and functions from the `ggmap` package to overlay weather station locations on a shaped map showing the county's boundaries.
 
@@ -218,7 +220,7 @@ ggplot(to_plot, aes(x = date_time, y = wind_speed,
   scale_color_continuous(name = "# stations\nreporting")
 ```
 
-![](README-unnamed-chunk-19-1.png)
+![](README-unnamed-chunk-18-1.png)
 
 Again, the intensity of conditions during Hurricane Andrew is clear, as is the reduction in the number of reporting weather stations during the storm.
 
@@ -228,7 +230,7 @@ The list object returned by `hourly_fips` also includes a map of weather station
 andrew_hourly$station_map
 ```
 
-![](README-unnamed-chunk-20-1.png)
+![](README-unnamed-chunk-19-1.png)
 
 Because hourly data is pulled by radius from each county's geographic center, this plot inlcudes the calculated radius from which stations are pulled. This radius is calculated for each county using 2010 U.S. Census Land Area data. U.S. Census TIGER/Line shapefiles are used to provide county outlines, included on this plot as well. Because stations are pulled within a radius from the county's center, stations from outside of the county's boundaries may sometimes be providing data for that county.
 
@@ -283,7 +285,7 @@ plot_daily_timeseries("prcp", data_directory = "~/Documents/andrew_data/data",
 
 Here's an example of what the time series plots for the three Florida counties would look like:
 
-![](README-unnamed-chunk-28-1.png)
+![](README-unnamed-chunk-27-1.png)
 
 Futher options available in the package
 ---------------------------------------
@@ -329,7 +331,7 @@ ggplot(not_averaged_data, aes(x = date, y = prcp,
   theme_minimal() 
 ```
 
-![](README-unnamed-chunk-30-1.png)
+![](README-unnamed-chunk-29-1.png)
 
 It might be interesting here to compare this plot with the station map, this time with station labels included (done using `station_label = TRUE` when we pulled this data using `daily_fips`):
 
@@ -337,7 +339,7 @@ It might be interesting here to compare this plot with the station map, this tim
 not_averaged$station_map
 ```
 
-![](README-unnamed-chunk-31-1.png)
+![](README-unnamed-chunk-30-1.png)
 
 ### Quality Flags
 
