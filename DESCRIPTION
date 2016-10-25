@@ -1,8 +1,8 @@
 Package: countyweather
 Type: Package
 Title: Compiles Meterologic Data for U.S. Counties
-Version: 0.0.9000
-Date: 2016-10-24
+Version: 0.1.0
+Date: 2016-10-25
 Authors@R: c(person("Rachel", "Severson",
                   email = "rachel.severson@colostate.edu",
                   role = c("aut", "cre")),
@@ -11,10 +11,10 @@ Authors@R: c(person("Rachel", "Severson",
                   role = c("aut")))
 Description: Interacts with NOAA data sources (including the NCDC API at
   http://www.ncdc.noaa.gov/cdo-web/webservices/v2 and ISD data) using
-  functions from the rnoaa package to obtain and compile weather time series
-  for U.S. counties. This work was supported in part by grants from the National
-  Institute of Environmental Health Sciences (R00ES022631) and the Colorado
-  State University Water Center.
+  functions from the `rnoaa` package to obtain and compile weather time 
+  series for U.S. counties. This work was supported in part by grants from the 
+  National Institute of Environmental Health Sciences (R00ES022631) and the 
+  Colorado State University Water Center.
 License: GPL-2
 LazyData: TRUE
 Imports:

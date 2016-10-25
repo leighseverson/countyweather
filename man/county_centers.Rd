@@ -11,9 +11,9 @@
    \item{fips}{A numeric vector giving the county's five-digit Federal
                Information Processing Standard (FIPS) code}
    \item{name}{A character vector giving the name and state for each county}
-   \item{latitude}{A numeric vector giving the latutude at the geographic
+   \item{latitude}{A numeric vector giving the latitude of the geographic
                    center of each county}
-   \item{longitude}{A numeric vector giving the longitude at the geographic
+   \item{longitude}{A numeric vector giving the longitude of the geographic
                     center of each county}
    \item{region}{A numeric vector giving the four-digit or five-digit Federal
                  Information Processing Standard (FIPS) code (values in this
@@ -27,11 +27,12 @@
 county_centers
 }
 \description{
-A dataframe containing state, FIPS code, name, geographic latitude and
-longitude, and region code for each U.S. county as of the 2010 census. This
-dataset was put together using a dataframe from the U.S. Census Bureau, which
-was pulled from the website listed in "Source." (Note: the names (in county,
-state format) for each county were pulled from the 2010 U.S. Census file found here:
+A dataframe containing county-specific data: state, FIPS code, name,
+latitude and longitude of geographic center, and region code. It includes
+each U.S. county as of the 2010 census. This dataset was put together using a
+dataframe from the U.S. Census Bureau, which was pulled from the website
+listed in "Source." (Note: The names---in county, state format---for each
+county were pulled from the 2010 U.S. Census file found here:
 \url{http://www2.census.gov/geo/docs/reference/cenpop2010/county/CenPop2010_Mean_CO.txt}.)
 }
 \keyword{datasets}

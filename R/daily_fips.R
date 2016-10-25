@@ -8,7 +8,7 @@
 #' @inheritParams daily_stations
 #'
 #' @param station_label TRUE / FALSE to indicate if you want your plot of
-#'    weather station locations to include labels indicating station ids.
+#'    weather station locations to include labels with station ids.
 #' @param verbose TRUE / FALSE to indicate if you want the function to print
 #'    out the name of the county it's processing.
 #'
@@ -16,12 +16,13 @@
 #'    dataframe of daily weather data averaged across multiple stations, as well
 #'    as columns (\code{"var"_reporting}) for each weather variable showing the
 #'    number of stations contributing to the average for that variable on that
-#'    day. The second element (\code{station_metadata} is a dataframe of station
+#'    day. The second element (\code{station_metadata}) is a dataframe of station
 #'    metadata for stations included in the \code{daily_data} dataframe, as well
 #'    as statistical information about these values. Columns
-#'    include station id, name, var, latitude, longitude, calc_coverage,
-#'    standard_dev, min, max, and range. The third element (\code{station_map})
-#'    is a plot showing points for all weather stations for a particular county
+#'    include \code{id}, \code{name}, \code{var}, \code{latitude},
+#'    \code{longitude}, \code{calc_coverage}, \code{standard_dev}, \code{min},
+#'    \code{max}, and \code{range}. The third element (\code{station_map})
+#'    is a plot showing locations of all weather stations for a particular county
 #'    satisfying the conditions present in \code{daily_fips}'s arguments
 #'    (\code{coverage}, \code{date_min}, \code{date_max}, and/or \code{var}).
 #'
@@ -35,21 +36,20 @@
 #'
 #' @examples
 #' \dontrun{
-#' ex <- daily_fips("08031", coverage = 0.90, date_min = "2010-01-01",
+#' denver_ex <- daily_fips("08031", coverage = 0.90, date_min = "2010-01-01",
 #'                  date_max = "2010-02-01", var = "prcp")
 #'
-#' weather_data <- ex$daily_data
-#' station_map <- ex$station_map
+#' head(denver_ex$daily_data)
+#' denver_ex$station_map
 #'
 #' mobile_ex <- daily_fips("01097", date_min = "1997-07-13",
 #'                         date_max = "1997-07-25", var = "prcp",
 #'                         average_data = FALSE)
 #' library(ggplot2)
-#' ggplot(mobile_ex$daily_weather, aes(x = date, y = prcp, color = id)) +
+#' ggplot(mobile_ex$daily_data, aes(x = date, y = prcp, color = id)) +
 #'    geom_line()
 #' }
 #' @export
-
 daily_fips <- function(fips, coverage = NULL, date_min = NULL, date_max = NULL,
                        var = "all", average_data = TRUE, station_label = FALSE,
                        verbose = TRUE) {
@@ -84,20 +84,12 @@ daily_fips <- function(fips, coverage = NULL, date_min = NULL, date_max = NULL,
 
 #' Return average daily weather data for a particular county.
 #'
-#' \code{daily_df} returns a list of two elements. The element
-#' \code{averaged} is a dataframe of average daily weather values for a
-#' particular county, date range, and/or specified "coverage." The element
-#' \code{stations} is a dataframe containing metadata about stations
-#' contributing to the average weather values in the \code{averaged} dataframe,
-#' as well as statistical information about the values for each station-weather
-#' variable combination. Columns in the \code{stations} dataframe include each
-#' station's id, key (indicating the weather variable that station is contributing
-#' data for), latitude, longitude, id, and name.
-#'
+#' Returns a list with data on weather and stations for a selected county.
 #' This function serves as a wrapper to several functions from the \code{rnoaa}
-#' package, which provides weather data from all relevant stations in a county.
-#' This function filters and averages across stations based on user-specified
-#' coverage specifications for weather monitors.
+#' package, which pull weather data from all relevant stations in a county.
+#' This function filters and averages data returned by \code{rnoaa} functions
+#' across all weather stations in a county based on user-specified
+#' coverage specifications.
 #'
 #' @note Because this function uses the NOAA API to identify the weather
 #'    monitors within a U.S. county, you will need to get an access token from
@@ -116,8 +108,10 @@ daily_fips <- function(fips, coverage = NULL, date_min = NULL, date_max = NULL,
 #'    default is to include all monitors with any available data (i.e.,
 #'    \code{coverage = 0}).)
 #' @param var A character vector specifying desired weather variables. For
-#'    example, var = c("tmin", "tmax", "prcp"). The default is \code{"all"},
-#'    which includes all available weather variables. For a full list of all
+#'    example, \code{var = c("tmin", "tmax", "prcp")} for maximum temperature,
+#'    minimum temperature, and precipitation. The default is \code{"all"},
+#'    which includes all available weather variables at any weather station in
+#'    the county. For a full list of all
 #'    possible variable names, see NOAA's README file for the Daily Global
 #'    Historical Climatology Network (GHCN-Daily) at
 #'    \url{http://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt}. Many of
@@ -135,33 +129,35 @@ daily_fips <- function(fips, coverage = NULL, date_min = NULL, date_max = NULL,
 #' @inheritParams daily_stations
 #'
 #' @return A list with two elements. \code{daily_data} is a dataframe of daily
-#'    weather data averaged across multiple monitors, as well as columns
+#'    weather data averaged across multiple monitors and includes columns
 #'    (\code{"var"_reporting}) for each weather variable showing the number of
 #'    stations contributing to the average for that variable on that day.
 #'    The element \code{station_df} is a dataframe of station metadata for each
 #'    station contributing weather data. A weather station will have one row per
-#'    weather variable it contributes data to. In addition to information such
-#'    as station id, name, latitude, and longitude, this dataframe includes
-#'    statistical information about weather values contributed by each station
-#'    for each weather variable. These statistics include \code{calc_coverage}
-#'    (the percent of non-missing values for each station-weather variable
-#'    combination for the specified date range), \code{standard_dev}
-#'    (standard deviation), \code{max}, and \code{min}, (giving the minimum and
-#'    maximum values), and \code{range}, giving the range of values in each
-#'    station-weather variable combination. The element \code{radius} is the
-#'    calculated radius within which stations were pulled from the county's
-#'    center. Elements \code{lat_center} and \code{lon_center} are the latitude
-#'    and longitude of the county's center.
+#'    weather variable to which it contributes data. In addition to information
+#'    such as station id, name, latitude, and longitude, the \code{station_df}
+#'    dataframe includes statistical information about weather values
+#'    contributed by each station for each weather variable. These statistics
+#'    include \code{calc_coverage} (the percent of non-missing values for each
+#'    station-weather variable combination for the specified date range),
+#'    \code{standard_dev} (standard deviation), \code{max}, and \code{min},
+#'    (giving the minimum and maximum values), and \code{range}, giving the
+#'    range of values in each station-weather variable combination. The
+#'    element \code{radius} is the calculated radius within which stations were
+#'    pulled from the county's center. Elements \code{lat_center} and
+#'    \code{lon_center} are the latitude and longitude of the county's center.
 #'
 #' @examples
 #' \dontrun{
 #' stations <- daily_stations(fips = "12086", date_min = "2010-01-01",
 #'                            date_max = "2010-02-01")
-#' list <- daily_df(stations = stations, coverage = 0.90,
+#' fips_list <- daily_df(stations = stations, coverage = 0.90,
 #'                  var = c("tmax", "tmin", "prcp"),
 #'                  date_min = "2010-01-01", date_max = "2010-02-01")
-#' averaged_data <- list$daily_data
-#' station_info <- list$stations
+#' averaged_data <- fips_list$daily_data
+#' head(averaged_data)
+#' station_info <- fips_list$station_df
+#' head(station_info)
 #' }
 daily_df <- function(stations, coverage = NULL, var = "all", date_min = NULL,
                      date_max = NULL, average_data = TRUE) {
@@ -270,9 +266,11 @@ daily_df <- function(stations, coverage = NULL, var = "all", date_min = NULL,
 #'
 #' Given a vector of U.S. county FIPS codes, this function saves each element of
 #' the lists created from the function \code{daily_fips} to a separate folder
-#' within a given directory. The dataframe \code{daily_data} is saved to a
+#' within a given directory. This function therefore allows you to pull and
+#' save weather data time series for multiple counties at once.
+#' The dataframe \code{daily_data} is saved to a
 #' a subdirectory of the given directory called "data." This timeseries
-#' dataframe gives: 1. the values for specified weather variables, and 2. the
+#' dataframe gives the values for specified weather variables and the
 #' number of weather stations contributing to the average value for each day
 #' within the specified date range. The element \code{station_metadata}, which
 #' gives information about stations contributing to the time series, as well as
@@ -284,9 +282,10 @@ daily_df <- function(stations, coverage = NULL, var = "all", date_min = NULL,
 #' @return Writes out three subdirectories of a given directory with daily
 #'    weather files saved in "data", station metadata saved in "metadata",
 #'    and a map of weather station locations saved in "maps" for each FIPS code
-#'    specified. The user can specify either .rds or .csv files for the data and
-#'    metadata files, using the arguments \code{data_type} and
-#'    \code{metadata_type}, respectively. Maps are saved as .png files.
+#'    specified provided there is available data for that county. The user can
+#'    specify either .rds or .csv format for the data and metadata files, using
+#'    the arguments \code{data_type} and \code{metadata_type}, respectively.
+#'    Maps are saved as .png files.
 #'
 #' @inheritParams daily_df
 #' @inheritParams daily_stations
@@ -300,10 +299,11 @@ daily_df <- function(stations, coverage = NULL, var = "all", date_min = NULL,
 #'    .rds files (metadata_type  = "rds") or .csv files (metadata_type = "csv")
 #'    for the station metadata output. This option defaults to .rds files.
 #' @param keep_map TRUE / FALSE indicating if a map of the stations should
-#'    be included. The map can substantially increase the size of the files. If
-#'    FALSE, the "maps" subdirectory will not be created.
+#'    be included. The map can substantially increase the size of the files, so
+#'    if file size is a concern, you should consider setting this option to
+#'    FALSE. If FALSE, the "maps" subdirectory will not be created.
 #' @param verbose TRUE / FALSE to indicate if you want the function to print
-#'    out the county or vector of counties it's saving files for.
+#'    the county or vector of counties it's saving files for as the function runs.
 #' @param station_label TRUE / FALSE to indicate whether to include station
 #'    labels in the station map.
 #'
@@ -445,16 +445,17 @@ write_daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
 
 #' Write plot files for daily weather timeseries dataframes.
 #'
-#' This function writes out a directory with plots for every timeseries file
-#' present in the specified directory (produced by the \code{daily_timeseries}
+#' Writes a directory with plots for every weather data time series file
+#' in the specified directory (as produced by the \code{daily_timeseries}
 #' function and saved in the "data" subdirectory of the directory given in that
 #' function's arguments) for a particular weather variable.
 #'
 #' @return Writes out a directory with plots of timeseries data for a given
 #' weather variable for each file present in the directory specified.
 #'
-#' @param var A character string specifying which weather variable present in
-#'    the timeseries dataframe that you would like to produce plots for.
+#' @param var A character string specifying which weather variable for which
+#' you would like to produce plots (the variable must be present in the
+#' timeseries dataframe).
 #' @param data_directory The absolute or relative pathname for the directory
 #'    where your daily timeseries dataframes (produced by \code{daily_timeseries})
 #'    are saved.
@@ -465,25 +466,19 @@ write_daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
 #' @param date_max  A character string giving the latest date present in the
 #'    timeseries dataframe in "yyyy-mm-dd" format.
 #' @param data_type A character string indicating the type of timeseries files
-#'    you would like to produce plots for (either "rds" or "csv"). This option
-#'    defaults to .rds files.
+#'    you would like to produce plots for (either \code{"rds"} or \code{"csv"}).
+#'    This option defaults to .rds files.
 #'
 #' @examples
 #' \dontrun{
+#' write_daily_timeseries(fips = c("37055", "15005"), coverage = 0.90,
+#'                        date_min = "1995-01-01", date_max = "1995-01-31",
+#'                        var = c("tmax", "tmin", "prcp"),
+#'                        out_directory = "~/timeseries")
 #' plot_daily_timeseries(var = "prcp", date_min = "1995-01-01",
 #'                       date_max = "1995-01-31",
 #'                       data_directory = "~/timeseries/data",
 #'                       plot_directory = "~/timeseries/plots_prcp")
-#'
-#' plot_daily_timeseries(var = "tmax", date_min = "1995-01-01",
-#'                       date_max = "1995-01-31",
-#'                       data_directory = "~/timeseries/data",
-#'                       plot_directory = "~/timeseries/plots_tmax")
-#'
-#'plot_daily_timeseries(var = "tmin", date_min = "1995-01-01",
-#'                      date_max = "1995-01-31",
-#'                      data_directory = "~/timeseries/data",
-#'                      plot_directory = "~/timeseries/plots_tmin")
 #' }
 #' @importFrom dplyr %>%
 #'

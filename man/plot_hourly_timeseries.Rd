@@ -8,36 +8,39 @@ plot_hourly_timeseries(var, year, data_directory, plot_directory,
   data_type = "rds")
 }
 \arguments{
-\item{var}{A character string specifying which weather
-variable present in the time series dataframe you would like to produce
-plots for. For example, var = "wind_speed".}
+\item{var}{A character string specifying which weather variable for which
+you would like to produce plots (the variable must be present in the
+timeseries dataframe).}
 
 \item{year}{A year or vector of years giving the year(s) present in the
 time series dataframe.}
 
 \item{data_directory}{The absolute or relative pathname for the directory
-where your daily time series dataframes (produced by
-\code{write_hourly_timeseries}) are saved.}
+where your daily timeseries dataframes (produced by \code{daily_timeseries})
+are saved.}
 
 \item{plot_directory}{The absolute or relative pathname for the directory
 where you would like the plots to be saved.}
 
 \item{data_type}{A character string indicating the type of timeseries files
-you would like to produce plots for (either "rds" or "csv"). This option
-defaults to .rds files.}
+you would like to produce plots for (either \code{"rds"} or \code{"csv"}).
+This option defaults to .rds files.}
 }
 \value{
 Writes out a directory with plots of time series data for a given
 weather variable for each file present in the directory specified.
 }
 \description{
-This function writes out a directory with plots for every timeseries file
-present in the specified directory (produced by the \code{write_hourly_timeseries}
+Writes a directory with plots for every weather data timeseries file
+present in the specified directory (as produced by the \code{write_hourly_timeseries}
 function) for a particular weather variable. These plots are meant to aid in
 initial exploratory analysis.
 }
 \examples{
 \dontrun{
+write_hourly_timeseries(fips = c("08031", "12086"), year = c(1994, 1995),
+                        coverage = 0.90, var = c("wind_speed", "temperature"),
+                        out_directory = "~/timeseries_hourly")
 plot_hourly_timeseries(var = "wind_speed", year = c(1994, 1995),
                        data_directory = "~/timeseries_hourly/data",
                        plot_directory = "~/timeseries_hourly/plots_wind_speed")

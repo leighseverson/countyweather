@@ -12,12 +12,12 @@ isd_monitors_data(fips, year, var = "all")
 \item{year}{A four-digit numeric giving the year for which to pull data.}
 
 \item{var}{A character vector listing the weather variables to pull. The main
-available weather variables include \code{wind_direction}, \code{wind_speed},
+available weather variables are \code{wind_direction}, \code{wind_speed},
 \code{ceiling_height}, \code{visibility_distance}, \code{temperature},
 \code{temperature_dewpoint} and \code{air_pressure}.}
 }
 \value{
-A list with five elements: \code{ids} is a dataframe of station
+A list with five elements. \code{ids} is a dataframe of station
    metadata for all avaiable stations in the given fips code. \code{df} is a
    data frame with hourly weather data for the given variable(s) and date
    range. \code{radius} is the calculated radius within which stations
@@ -27,15 +27,15 @@ A list with five elements: \code{ids} is a dataframe of station
 }
 \description{
 Pull all available data for all weather monitors within a calculated radius of
-the population-weighted center of a U.S. county, based on the county's FIPS
+the geographic center of a U.S. county, based on the county's FIPS
 code. The radius for each county is calculated using 2010 U.S. Census Land Area
 data.
 }
 \examples{
 \dontrun{
-list <- isd_monitors_data(fips = "12086", year = 1992,
-                          var = c("wind_speed", "temperature"))
-stationdata <- list$df
+fips_list <- isd_monitors_data(fips = "12086", year = 1992,
+                               var = c("wind_speed", "temperature"))
+stationdata <- fips_list$df
 ggplot(stationdata, aes(x = date_time, y = wind_speed)) +
    geom_point(alpha = 0.5, size = 0.2) +
    facet_wrap(~ usaf_station, ncol = 1)

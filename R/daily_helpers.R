@@ -1,8 +1,8 @@
 #' NOAA NCDC station IDs per county.
 #'
-#' \code{daily_stations} returns a dataframe showing NOAA NCDC station IDs for
+#' Returns a dataframe with NOAA NCDC station IDs for
 #' a single U.S. county. This function has options to filter stations based on
-#' start and end date of available data, as well as percent of data coverage.
+#' maximum and minimum dates, as well as percent data coverage.
 #'
 #' @note Because this function uses the NOAA API to identify the weather
 #'    monitors within a U.S. county, you will need to get an access token from
@@ -21,10 +21,16 @@
 #'    format ("yyyy-mm-dd"). The dataframe returned will include only stations
 #'    that have data for dates up to and including the specified date.
 #'
+#' @return A dataframe with NOAA NCDC station IDs for a single U.S. county.
+#'
 #' @examples
 #' \dontrun{
-#' ex <- daily_stations("36005")
-#' ex2 <- daily_stations("12086", date_min = "1999-01-01", date_max = "2012-12-31")
+#' stations_36005 <- daily_stations("36005")
+#' stations_36005
+#'
+#' miami_stations <- daily_stations("12086", date_min = "1999-01-01",
+#'                                  date_max = "2012-12-31")
+#' miami_stations
 #' }
 #'
 #' @importFrom dplyr %>%
@@ -68,9 +74,9 @@ daily_stations <- function(fips, date_min = NULL, date_max = NULL) {
 
 #' Average daily weather data across multiple stations.
 #'
-#' \code{ave_daily} returns a dataframe with daily weather averaged across
-#'    stations, as well as columns showing the number of stations contributing
-#'    to the average for each variable and each day.
+#' Returns a dataframe with daily weather averaged across
+#' stations, as well as columns showing the number of stations contributing
+#' to the average for each variable and each day.
 #'
 #' @param weather_data A dataframe with daily weather observations. This
 #'    dataframe is returned from the \code{rnoaa} function
@@ -107,26 +113,28 @@ ave_daily <- function(weather_data) {
 
 #' Filter stations based on "coverage" requirements.
 #'
-#' \code{filter_coverage} filters available weather variables
-#' based on a specified required minimum coverage (i.e., percent non-missing
-#' daily observations).
+#' Filters available weather stations based on a specified required minimum
+#' coverage (i.e., percent non-missing daily observations). Weather stations
+#' with non-missing data for fewer days than specified by \code{coverage} will
+#' be excluded from the county average.
 #'
-#' @param coverage_df A \code{meteo_coverage} dataframe
+#' @param coverage_df A dataframe as returned by the \code{meteo_coverage}
+#'    function in the \code{rnoaa} package
 #' @param coverage A numeric value in the range of 0 to 1 that specifies
 #'    the desired percentage coverage for the weather variable (i.e., what
 #'    percent of each weather variable must be non-missing to include data from
 #'    a monitor when calculating daily values averaged across monitors).
 #'
-#' @return a \code{dataframe} with stations that meet the specified coverage
-#'    requirements for weather variables included in the dataframe present in
-#'    this function's arguments.
+#' @return A dataframe with stations that meet the specified coverage
+#'    requirements for weather variables included in the \code{coverage_df}
+#'    dataframe passed to the function.
 #'
 #' @importFrom dplyr %>%
-filter_coverage <- function(coverage_df, coverage = NULL) {
+filter_coverage <- function(coverage_df, coverage = 0) {
 
   if (is.null(coverage)) {
     coverage <- 0
-  }
+    }
 
   all_cols <- colnames(coverage_df)
   not_vars <- c("id", "start_date", "end_date", "total_obs")
@@ -152,31 +160,34 @@ filter_coverage <- function(coverage_df, coverage = NULL) {
 
 #' Plot daily weather stations for a particular county.
 #'
-#' This function produces a map with points indicating stations that contribute
-#' to the weather data in the argument \code{daily_data}.
+#' Produces a map with points indicating stations that contribute
+#' to the weather data in the \code{daily_data} data frame output by
+#' \code{daily_fips}.
 #'
 #' @param fips A five-digit FIPS county code.
-#' @param daily_data A list returned from the function \code{daily_df}.
-#' @param point_color point_color The specified \code{ggplot2} color for each point
-#'    representing the location of a station.
-#' @param point_size The specified \code{ggplot2} size for each point
-#'    representing the location of a station.
-#' @param station_label TRUE / FALSE If TRUE, includes labels giving the id for
-#'    monitor on the map. The default is FALSE.
+#' @param daily_data A list returned from the function \code{daily_df} (see
+#'    helpfile for \code{daily_df}).
+#' @param point_color Character string with color for points
+#'    mapping the locations of weather stations (passes to \code{ggplot}).
+#' @param point_size Character string with size for for points
+#'    mapping the locations of weather stations (passes to \code{ggplot}).
+#' @param station_label TRUE / FALSE Whether to include labels for
+#'    each weather station.
 #'
-#' @return A plot showing points for all weather stations for a particular
+#' @return A \code{ggplot} object mapping all weather stations for a particular
 #'    county satisfying the conditions present in \code{daily_df}'s
-#'    arguments (date range and/or var). 2010 U.S. Census cartographic boundary
-#'    shapefiles are used to provide county outlines.
+#'    arguments (date range, coverage, and/or weather variables). 2011 U.S.
+#'    Census cartographic boundary shapefiles are used to provide county
+#'    outlines.
 #'
 #' @examples
 #' \dontrun{
-#' stations <- daily_stations(fips = "12086", date_min = "1992-08-01",
+#' miami_stations <- daily_stations(fips = "12086", date_min = "1992-08-01",
 #'                           date_max = "1992-08-31")
-#' daily_data <- daily_df(stations = stations, coverage = 0.90,
+#' daily_data <- daily_df(stations = miami_stations, coverage = 0.90,
 #'                       var = c("tmax", "tmin", "prcp"),
 #'                       date_min = "1992-08-01", date_max = "1992-08-31")
-#' daily_stationmap("12086", daily_data)
+#' daily_stationmap(fips = "12086", daily_data = daily_data)
 #' }
 #'
 #' @importFrom dplyr %>%

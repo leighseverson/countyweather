@@ -10,7 +10,7 @@ isd_fips_stations(fips, verbose = FALSE)
 \item{fips}{A five-digit FIPS county code.}
 
 \item{verbose}{TRUE / FALSE to indicate if you want the function to print
-out the county or vector of counties it's saving files for.}
+the county or vector of counties it's saving files for as the function runs.}
 }
 \value{
 A list with four elements. The first element, \code{stations}, is a
@@ -24,16 +24,17 @@ A list with four elements. The first element, \code{stations}, is a
    longitude of the county's population-weighted center.
 }
 \description{
-This function serves as a wrapper to the \code{isd_stations_search} function
+A wrapper to the \code{isd_stations_search} function
 in the \code{rnoaa} package, allowing you to search by FIPS code rather than
-having to know the latitude and longitude of the center of each county.
-\code{isd_stations_search} requires a radius within which to search for
+having to know the latitude and longitude of the center of each county. The
+\code{isd_stations_search} function requires a radius within which to search for
 stations. This radius is estimated from 2010 U.S. Census Land Area data.
 }
 \examples{
 \dontrun{
-list <- isd_fips_stations(fips = "12086")
-ids <- list$stations
+fips_list <- isd_fips_stations(fips = "12086")
+ids <- fips_list$stations
+head(ids)
 }
 }
 
