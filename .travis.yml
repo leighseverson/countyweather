@@ -1,8 +1,9 @@
 # R for travis: see documentation at https://docs.travis-ci.com/user/languages/r
 
-language: R
+language: c
 sudo: required
 dist: trusty
+script: ./travis-tool.sh run_tests
 
 before_script:
   - sudo apt-get --yes --force-yes update -qq
