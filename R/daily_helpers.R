@@ -132,6 +132,10 @@ ave_daily <- function(weather_data) {
 #' @importFrom dplyr %>%
 filter_coverage <- function(coverage_df, coverage = 0) {
 
+  if (is.null(coverage)) {
+    coverage <- 0
+    }
+
   all_cols <- colnames(coverage_df)
   not_vars <- c("id", "start_date", "end_date", "total_obs")
   g_cols <- all_cols[!all_cols %in% not_vars]

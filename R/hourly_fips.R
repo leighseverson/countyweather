@@ -42,7 +42,7 @@
 #' station_map <- ex$station_map
 #' }
 #' @export
-hourly_fips <- function(fips, year, var = "all", coverage = 0,
+hourly_fips <- function(fips, year, var = "all", coverage = NULL,
                         average_data = TRUE, station_label = FALSE,
                         verbose = TRUE) {
 
@@ -138,7 +138,7 @@ hourly_fips <- function(fips, year, var = "all", coverage = 0,
 #'
 #' @export
 hourly_df <- function(fips, year, var = "all", average_data = TRUE,
-                      coverage = 0) {
+                      coverage = NULL) {
 
   # hourly data for multiple monitors for multiple years
   hourly_list <- lapply(year, function(x) isd_monitors_data(fips = fips,
@@ -277,7 +277,7 @@ hourly_df <- function(fips, year, var = "all", average_data = TRUE,
 #'                         out_directory = "~/timeseries_hourly")
 #' }
 #' @export
-write_hourly_timeseries <- function(fips, year, coverage = 0, var = "all",
+write_hourly_timeseries <- function(fips, year, coverage = NULL, var = "all",
                                     out_directory, data_type = "rds",
                                     metadata_type = "rds", average_data = TRUE,
                                     station_label = FALSE, keep_map = TRUE,

@@ -308,7 +308,11 @@ ave_hourly <- function(hourly_data) {
 #'    flag data.)
 #'
 #' @importFrom dplyr %>%
-filter_hourly <- function(fips, hourly_data, coverage = 0) {
+filter_hourly <- function(fips, hourly_data, coverage = NULL) {
+
+  if (is.null(coverage)) {
+    coverage <- 0
+  }
 
   all_cols <- colnames(hourly_data)
   not_vars <- c("usaf_station", "wban_station", "date_time", "latitude",

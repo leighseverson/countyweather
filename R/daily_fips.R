@@ -50,7 +50,7 @@
 #'    geom_line()
 #' }
 #' @export
-daily_fips <- function(fips, coverage = 0, date_min = NULL, date_max = NULL,
+daily_fips <- function(fips, coverage = NULL, date_min = NULL, date_max = NULL,
                        var = "all", average_data = TRUE, station_label = FALSE,
                        verbose = TRUE) {
   census_data <- countyweather::county_centers
@@ -159,7 +159,7 @@ daily_fips <- function(fips, coverage = 0, date_min = NULL, date_max = NULL,
 #' station_info <- fips_list$station_df
 #' head(station_info)
 #' }
-daily_df <- function(stations, coverage = 0, var = "all", date_min = NULL,
+daily_df <- function(stations, coverage = NULL, var = "all", date_min = NULL,
                      date_max = NULL, average_data = TRUE) {
 
   # get tidy full dataset for all monitors
@@ -319,7 +319,7 @@ daily_df <- function(stations, coverage = 0, var = "all", date_min = NULL,
 #'                        out_directory = "~/timeseries")
 #' }
 #' @export
-write_daily_timeseries <- function(fips, coverage = 0, date_min = NULL,
+write_daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
                                    date_max = NULL, var = "all", out_directory,
                                    data_type = "rds", metadata_type = "rds",
                                    average_data = TRUE, station_label = FALSE,
