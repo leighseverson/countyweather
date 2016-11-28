@@ -166,16 +166,16 @@ daily_df <- function(stations, coverage = NULL, var = "all", date_min = NULL,
   quiet_pull_monitors <- purrr::quietly(rnoaa::meteo_pull_monitors)
 
   if (var == "all") {
-    var <- "all"
+    meteo_var <- "all"
   } else {
-    var <- toupper(var)
+    meteo_var <- toupper(var)
   }
 
   meteo_df <- quiet_pull_monitors(monitors = stations$id,
                                   keep_flags = FALSE,
                                   date_min = date_min,
                                   date_max = date_max,
-                                  var = var)$result
+                                  var = meteo_var)$result
 
   # calculate coverage for each weather variable
   coverage_df <- rnoaa::meteo_coverage(meteo_df, verbose = FALSE)
