@@ -34,6 +34,7 @@
 #' }
 #'
 #' @importFrom dplyr %>%
+#' @export
 daily_stations <- function(fips, date_min = NULL, date_max = NULL) {
 
   FIPS <- paste0('FIPS:', fips)
