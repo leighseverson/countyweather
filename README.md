@@ -1,6 +1,8 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-[![Travis-CI Build Status](https://travis-ci.org/geanders/countyweather.svg?branch=master)](https://travis-ci.org/geanders/countyweather)
+[![Travis-CI Build Status](https://travis-ci.org/geanders/countyweather.svg?branch=master)](https://travis-ci.org/geanders/countyweather) [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/countyweather)](https://cran.r-project.org/package=countyweather)
+
+    #> Error in library(countyweather): there is no package called 'countyweather'
 
 While data from weather stations is available at the specific location of the weather station, it is often useful to have estimates of daily or hourly weather aggregated on a larger spatial level. For U.S.-based studies, it can be particularly useful to be able to pull time series of weather by county. For example, the health data used in environmental epidemiology studies is often aggregated at the county level for U.S. studies, making it very useful for environmental epidemiology applications to be able to create weather datasets by county.
 
@@ -69,11 +71,12 @@ Here is an example of creating a dataset with daily precipitation for Miami-Dade
 ``` r
 andrew_precip <- daily_fips(fips = "12086", date_min = "1992-08-01", 
                             date_max = "1992-08-31", var = "prcp")
+#> Error in eval(expr, envir, enclos): could not find function "daily_fips"
 ```
 
 ``` r
 names(andrew_precip)
-#> [1] "daily_data"       "station_metadata" "station_map"
+#> Error in eval(expr, envir, enclos): object 'andrew_precip' not found
 ```
 
 The output from this function call is a list that includes three elements: a daily timeseries of weather data for the county (`andrew_precip$daily_data`), a dataframe with meta-data about the weather stations used to create the timeseries data, as well as statistical information about the weather values pulled from these stations (`andrew_precip$station_metadata`), and a map showing the locations of weather stations included in the county-averaged dataset (`andrew_precip$station_map`).
@@ -82,15 +85,7 @@ Here are the first few rows of the dataset:
 
 ``` r
 head(andrew_precip$daily_data)
-#> # A tibble: 6 × 3
-#>         date     prcp prcp_reporting
-#>       <date>    <dbl>          <int>
-#> 1 1992-08-01 1.016667              6
-#> 2 1992-08-02 8.850000              6
-#> 3 1992-08-03 9.366667              6
-#> 4 1992-08-04 5.483333              6
-#> 5 1992-08-05 2.716667              6
-#> 6 1992-08-06 1.633333              6
+#> Error in head(andrew_precip$daily_data): object 'andrew_precip' not found
 ```
 
 The dataset includes columns for date (`date`), precipitation (in mm, `prcp`), and also the number of stations used to calculate each daily average precipitation observation (`prcp_reporting`).
@@ -105,9 +100,8 @@ ggplot(andrew_precip$daily_data, aes(x = date, y = prcp, color = prcp_reporting)
   geom_line() + geom_point() + theme_minimal() + 
   xlab("Date in 1992") + ylab("Daily rainfall (mm)") + 
   scale_color_continuous(name = "# stations\nreporting")
+#> Error in ggplot(andrew_precip$daily_data, aes(x = date, y = prcp, color = prcp_reporting)): object 'andrew_precip' not found
 ```
-
-![](README-unnamed-chunk-11-1.png)
 
 From this plot, you can see both the extreme precipitation associated with Hurricane Andrew (Aug. 24) and that the storm knocked out quite a few of the weather stations normally available.
 
@@ -115,9 +109,8 @@ A map is also included in the output of `daily_fips` with the weather stations u
 
 ``` r
 andrew_precip$station_map
+#> Error in eval(expr, envir, enclos): object 'andrew_precip' not found
 ```
-
-![](README-unnamed-chunk-12-1.png)
 
 This map uses U.S. Census TIGER/Line shapefiles (vintage 2011) and functions from the `ggmap` package to overlay weather station locations on a shaped map showing the county's boundaries.
 
@@ -125,19 +118,7 @@ The `station_metadata` dataframe gives information about all of the stations con
 
 ``` r
 andrew_precip$station_metadata
-#> Source: local data frame [6 x 10]
-#> Groups: id [6]
-#> 
-#>            id                                     name   var latitude
-#>         <chr>                                    <chr> <chr>    <dbl>
-#> 1 USC00083909                           HIALEAH, FL US  prcp 25.81750
-#> 2 USC00087020                       PERRINE 4 W, FL US  prcp 25.58190
-#> 3 USC00088780         TAMIAMI TRAIL 40 MI. BEND, FL US  prcp 25.76080
-#> 4 USW00012839       MIAMI INTERNATIONAL AIRPORT, FL US  prcp 25.79050
-#> 5 USW00012859 MIAMI WEATHER SERVICE OFFICE CITY, FL US  prcp 25.71667
-#> 6 USW00092811                       MIAMI BEACH, FL US  prcp 25.80630
-#> # ... with 6 more variables: longitude <dbl>, calc_coverage <dbl>,
-#> #   standard_dev <dbl>, min <dbl>, max <dbl>, range <dbl>
+#> Error in eval(expr, envir, enclos): object 'andrew_precip' not found
 ```
 
 For each station, the dataframe gives an `id` and `name`, as well as `latitude` and `longitude`. `var` indicates the variable for which the station is pulling data. If a station is contributing data for multiple variables, that station will show up in the dataframe once for each of those variables. For each variable and station combination, the dataframe also shows `calc_coverage`, which is the calculated percent of non-missing values. You can filter these by using the `daily_fips` option `coverage`. `standard_dev` gives the standard deviation for each sample of weather data from each station and weather variable, `min` and `max` give the minumum and maximum values, and `range` gives the range of these values. These last four statistical calculations (standard deviation, maximum, minimum, and range) are only included for the seven core hourly weather variables (which include `wind_direction`, `wind_speed`, `ceiling_height`, `visibility_distance`, `temperature`, and `temperature_dewpoint` -- for more details on these variables, see the "More on the weather data" section below). The values of these columns are set to "NA" for other variables, such as quality flag data.
@@ -155,7 +136,7 @@ Here is an example of pulling hourly data for Miami-Dade, for the year of Hurric
 ``` r
 andrew_hourly <- hourly_fips(fips = "12086", year = 1992,
                            var = c("wind_speed", "temperature"))
-#> Getting hourly weather data for Miami-Dade County, Florida. This may take a while.
+#> Error in eval(expr, envir, enclos): could not find function "hourly_fips"
 ```
 
 The output from this call is a list object that includes six elements. `andrew_hourly$hourly_data` is an hourly timeseries of weather data for the county. The other five elements, `station_metadata`, `station_map`, `radius`, `lat_center`, and `lon_center`, are explained in more detail below.
@@ -164,22 +145,14 @@ Here are the first few rows of of the `hourly_data` dataset:
 
 ``` r
 head(andrew_hourly$hourly_data)
-#> # A tibble: 6 × 5
-#>             date_time temperature wind_speed temperature_reporting
-#>                <dttm>       <dbl>      <dbl>                 <int>
-#> 1 1992-01-01 00:00:00    19.63333   2.725000                     3
-#> 2 1992-01-01 01:00:00    19.43333   2.450000                     3
-#> 3 1992-01-01 02:00:00    19.03333   2.975000                     3
-#> 4 1992-01-01 03:00:00    19.03333   2.450000                     3
-#> 5 1992-01-01 04:00:00    18.53333   2.200000                     3
-#> 6 1992-01-01 05:00:00    18.50000   2.233333                     3
-#> # ... with 1 more variables: wind_speed_reporting <int>
+#> Error in head(andrew_hourly$hourly_data): object 'andrew_hourly' not found
 ```
 
 If you need to get the timestamp for each observation in local time, you can use the `add_local_time` function from the `countytimezones` package to do that:
 
 ``` r
 andrew_hourly_data <- as.data.frame(andrew_hourly$hourly_data) 
+#> Error in as.data.frame(andrew_hourly$hourly_data): object 'andrew_hourly' not found
 
 # install.packages("countytimezones") # Install package if necessary
 library(countytimezones)
@@ -188,21 +161,9 @@ library(countytimezones)
 ``` r
 andrew_hourly_data <- add_local_time(df = andrew_hourly_data, fips = "12086",
                                      datetime_colname = "date_time")
+#> Error in add_local_time(df = andrew_hourly_data, fips = "12086", datetime_colname = "date_time"): object 'andrew_hourly_data' not found
 head(andrew_hourly_data)
-#>             date_time temperature wind_speed temperature_reporting
-#> 1 1992-01-01 00:00:00    19.63333   2.725000                     3
-#> 2 1992-01-01 01:00:00    19.43333   2.450000                     3
-#> 3 1992-01-01 02:00:00    19.03333   2.975000                     3
-#> 4 1992-01-01 03:00:00    19.03333   2.450000                     3
-#> 5 1992-01-01 04:00:00    18.53333   2.200000                     3
-#> 6 1992-01-01 05:00:00    18.50000   2.233333                     3
-#>   wind_speed_reporting       local_time local_date         local_tz
-#> 1                    4 1991-12-31 19:00 1991-12-31 America/New_York
-#> 2                    4 1991-12-31 20:00 1991-12-31 America/New_York
-#> 3                    4 1991-12-31 21:00 1991-12-31 America/New_York
-#> 4                    4 1991-12-31 22:00 1991-12-31 America/New_York
-#> 5                    4 1991-12-31 23:00 1991-12-31 America/New_York
-#> 6                    3 1992-01-01 00:00 1992-01-01 America/New_York
+#> Error in head(andrew_hourly_data): object 'andrew_hourly_data' not found
 ```
 
 Here is a plot of hourly wind speeds for Miami-Dade County, FL, for the month of Hurricane Andrew:
@@ -212,15 +173,15 @@ library(dplyr)
 library(lubridate)
 to_plot <- andrew_hourly$hourly_data %>%
   filter(months(date_time) == "August")
+#> Error in eval(expr, envir, enclos): object 'andrew_hourly' not found
 ggplot(to_plot, aes(x = date_time, y = wind_speed,
                     color = wind_speed_reporting)) + 
   geom_line() + theme_minimal() + 
   xlab("Date in August 1992") + 
   ylab("Wind speed (m / s)") + 
   scale_color_continuous(name = "# stations\nreporting")
+#> Error in ggplot(to_plot, aes(x = date_time, y = wind_speed, color = wind_speed_reporting)): object 'to_plot' not found
 ```
-
-![](README-unnamed-chunk-18-1.png)
 
 Again, the intensity of conditions during Hurricane Andrew is clear, as is the reduction in the number of reporting weather stations during the storm.
 
@@ -228,9 +189,8 @@ The list object returned by `hourly_fips` also includes a map of weather station
 
 ``` r
 andrew_hourly$station_map
+#> Error in eval(expr, envir, enclos): object 'andrew_hourly' not found
 ```
-
-![](README-unnamed-chunk-19-1.png)
 
 Because hourly data is pulled by radius from each county's geographic center, this plot inlcudes the calculated radius from which stations are pulled. This radius is calculated for each county using 2010 U.S. Census Land Area data. U.S. Census TIGER/Line shapefiles are used to provide county outlines, included on this plot as well. Because stations are pulled within a radius from the county's center, stations from outside of the county's boundaries may sometimes be providing data for that county.
 
@@ -240,20 +200,7 @@ The `station_metadata` dataframe gives information about all of the stations con
 
 ``` r
 andrew_hourly$station_metadata
-#> # A tibble: 8 × 15
-#>     usaf  wban      station                station_name         var
-#>    <chr> <chr>        <chr>                       <chr>       <chr>
-#> 1 722029  <NA>    722029-NA        KENDALL TAMIAMI EXEC  wind_speed
-#> 2 722026 12826 722026-12826       HOMESTEAD AFB AIRPORT  wind_speed
-#> 3 722020 12839 722020-12839 MIAMI INTERNATIONAL AIRPORT  wind_speed
-#> 4 722024  <NA>    722024-NA                   OPA LOCKA  wind_speed
-#> 5 722029  <NA>    722029-NA        KENDALL TAMIAMI EXEC temperature
-#> 6 722026 12826 722026-12826       HOMESTEAD AFB AIRPORT temperature
-#> 7 722020 12839 722020-12839 MIAMI INTERNATIONAL AIRPORT temperature
-#> 8 722024  <NA>    722024-NA                   OPA LOCKA temperature
-#> # ... with 10 more variables: calc_coverage <dbl>, standard_dev <dbl>,
-#> #   range <dbl>, ctry <chr>, state <chr>, elev_m <dbl>, begin <dbl>,
-#> #   end <dbl>, longitude <dbl>, latitude <dbl>
+#> Error in eval(expr, envir, enclos): object 'andrew_hourly' not found
 ```
 
 `usaf` and `wban` are station ids. `station` is a unique identifier for each station -- usaf and wban ids have been pasted together, separated by "-". (Note: values for `wban` or `usaf` are sometimes missing (originally indicated by "99999" or "999999"), which could result in a `station` value like `722024-NA`.) `station_name` is the name for each station, and `var` indicates the variable for which the station is pulling data. If a station is contributing data for multiple variables, that station will show up in the dataframe once for each of those variables. For each variable and station combination, the dataframe also shows `calc_coverage`, which is the calculated percent of non-missing values. You can filter these by using the `hourly_fips` option `coverage`. `standard_dev` gives the standard deviation for each sample of weather data from each station and weather variable, and `range` gives the range of these values. Here, we can see in row 7 that the OPA LOCKA station has a very low percent coverage for temperature (0.0018), and a correspondingly high standard deviation (17.94). If you are interested in looking at the weather values for certain stations, you can use the `average_data = FALSE` option in `hourly_fips`. For more on this option and a few others, see the "Futher options available in the package" section below. The dataframe also gives station countries, states, elevation (in meters), the earliest and latest dates for which the station has available data (`begin` and `end`, respectively), longitude, and latitude.
@@ -285,6 +232,9 @@ plot_daily_timeseries("prcp", data_directory = "~/Documents/andrew_data/data",
 
 Here's an example of what the time series plots for the three Florida counties would look like:
 
+    #> Error in eval(expr, envir, enclos): object 'andrew_precip' not found
+    #> Error in df$date: object of type 'closure' is not subsettable
+
 ![](README-unnamed-chunk-27-1.png)
 
 Futher options available in the package
@@ -304,21 +254,13 @@ not_averaged <- daily_fips(fips = "12086",
                            date_max = "1992-08-31",
                            var = "prcp", average_data = FALSE, 
                            station_label = TRUE)
-#> Getting daily weather data for Miami-Dade County, Florida. This may take a while.
+#> Error in eval(expr, envir, enclos): could not find function "daily_fips"
 not_averaged_data <- not_averaged$daily_data
+#> Error in eval(expr, envir, enclos): object 'not_averaged' not found
 head(not_averaged_data)
-#> # A tibble: 6 × 3
-#>            id       date  prcp
-#>         <chr>     <date> <dbl>
-#> 1 USC00083909 1992-08-01   1.3
-#> 2 USC00083909 1992-08-02   4.8
-#> 3 USC00083909 1992-08-03   1.3
-#> 4 USC00083909 1992-08-04   0.0
-#> 5 USC00083909 1992-08-05   7.6
-#> 6 USC00083909 1992-08-06   1.0
+#> Error in head(not_averaged_data): object 'not_averaged_data' not found
 unique(not_averaged_data$id)
-#> [1] "USC00083909" "USC00087020" "USC00088780" "USW00012839" "USW00012859"
-#> [6] "USW00092811"
+#> Error in unique(not_averaged_data$id): object 'not_averaged_data' not found
 ```
 
 In this example, there are six weather stations contributing weather data to the time series. We can plot the data by station to get a sense for how values from each weather station compare, and which weather stations were presumably knocked out by the storm, with different colors used to show values for different weather stations:
@@ -329,17 +271,15 @@ ggplot(not_averaged_data, aes(x = date, y = prcp,
                          colour = id)) + 
   geom_line() + 
   theme_minimal() 
+#> Error in ggplot(not_averaged_data, aes(x = date, y = prcp, colour = id)): object 'not_averaged_data' not found
 ```
-
-![](README-unnamed-chunk-29-1.png)
 
 It might be interesting here to compare this plot with the station map, this time with station labels included (done using `station_label = TRUE` when we pulled this data using `daily_fips`):
 
 ``` r
 not_averaged$station_map
+#> Error in eval(expr, envir, enclos): object 'not_averaged' not found
 ```
-
-![](README-unnamed-chunk-30-1.png)
 
 ### Quality Flags
 
@@ -401,26 +341,20 @@ Because it doesn't make sense to average these codes across stations, the codes 
 ``` r
 ex <- hourly_fips("12086", 1992, var = c("wind_speed", "wind_speed_quality"), 
                   average_data = FALSE)
-#> Getting hourly weather data for Miami-Dade County, Florida. This may take a while.
+#> Error in eval(expr, envir, enclos): could not find function "hourly_fips"
 ex_data <- ex$hourly_data
+#> Error in eval(expr, envir, enclos): object 'ex' not found
 head(ex_data)
-#> # A tibble: 6 × 7
-#>   usaf_station wban_station           date_time latitude longitude
-#>          <dbl>        <dbl>              <dttm>    <dbl>     <dbl>
-#> 1       722029           NA 1992-01-01 00:00:00    25.65   -80.433
-#> 2       722029           NA 1992-01-01 01:00:00    25.65   -80.433
-#> 3       722029           NA 1992-01-01 02:00:00    25.65   -80.433
-#> 4       722029           NA 1992-01-01 03:00:00    25.65   -80.433
-#> 5       722029           NA 1992-01-01 04:00:00    25.65   -80.433
-#> 6       722029           NA 1992-01-01 05:00:00    25.65   -80.433
-#> # ... with 2 more variables: wind_speed <dbl>, wind_speed_quality <chr>
+#> Error in head(ex_data): object 'ex_data' not found
 ```
 
 We can replace all wind speed observations with quality codes of 2, 3, 6, or 7 with `NA`s.
 
 ``` r
 ex_data$wind_speed_quality <- as.numeric(ex_data$wind_speed_quality)
+#> Error in eval(expr, envir, enclos): object 'ex_data' not found
 ex_data$wind_speed[ex_data$wind_speed_quality %in% c(2, 3, 6, 7)] <- NA
+#> Error in ex_data$wind_speed[ex_data$wind_speed_quality %in% c(2, 3, 6, : object 'ex_data' not found
 ```
 
 More on the weather data
