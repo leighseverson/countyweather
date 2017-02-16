@@ -181,6 +181,9 @@ isd_monitors_data <- function(fips, year, var = "all") {
 
       cols <- colnames(st_out_list[[1]])
 
+      # fixes for Error: Can not automatically convert from numeric to
+      # character in column "wind_speed".
+
       if ("wind_direction" %in% cols) {
         x$wind_direction <- as.numeric(x$wind_direction)
       }
@@ -202,6 +205,10 @@ isd_monitors_data <- function(fips, year, var = "all") {
       if ("GF1_lowest_cloud_base_height" %in% cols) {
         x$GF1_lowest_cloud_base_height <- as.numeric(x$GF1_lowest_cloud_base_height)
       }
+      if ("wind_speed" %in% cols) {
+        x$wind_speed <- as.numeric(x$wind_speed)
+      }
+
 
       return(x)
     }
