@@ -17,9 +17,11 @@ knitr::opts_chunk$set(
 ```
 
 
-```{r echo = FALSE}
+```{r echo = FALSE, message = FALSE}
 library(countyweather)
 options("noaakey" = Sys.getenv("noaakey"))
+
+devtools::install_github("dkahle/ggmap", force = TRUE)
 ```
 ```{r, echo = FALSE}
 knitr::opts_chunk$set(
