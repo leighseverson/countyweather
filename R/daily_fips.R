@@ -275,7 +275,7 @@ daily_df <- function(stations, coverage = NULL, var = "all", date_min = NULL,
 #' the lists created from the function \code{daily_fips} to a separate folder
 #' within a given directory. This function therefore allows you to pull and
 #' save weather data time series for multiple counties at once.
-#' The dataframe \code{daily_data} is saved to a
+#' The dataframe \code{daily_data} is saved to
 #' a subdirectory of the given directory called "data." This timeseries
 #' dataframe gives the values for specified weather variables and the
 #' number of weather stations contributing to the average value for each day
