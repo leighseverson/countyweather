@@ -390,7 +390,9 @@ write_daily_timeseries <- function(fips, coverage = NULL, date_min = NULL,
     possibleError <- tryCatch({
 
       out_list <- daily_fips(fips = fips[i], date_min = date_min,
-                             date_max = date_max, var = var, verbose = FALSE)
+                             date_max = date_max, var = var, verbose = FALSE,
+                             average_data = average_data,
+                             station_label = station_label)
       out_data <- out_list$daily_data
       out_metadata <- out_list$station_metadata
 
