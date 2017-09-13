@@ -208,7 +208,9 @@ daily_stationmap <- function(fips, daily_data, point_color = "firebrick",
   state <- stringi::stri_sub(fips, 1, 2)
   county <- stringi::stri_sub(fips, 3)
 
-  shp <- tigris::counties(state, cb = TRUE)
+  suppressMessages(
+    shp <- tigris::counties(state, cb = TRUE)
+  )
   county_shp <- shp[shp$COUNTYFP == county, ]
 
   # convert to raster so that we can add geom_raster() (which gets rid of the
