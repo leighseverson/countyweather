@@ -380,11 +380,18 @@ daily_stationmap <- function(fips, daily_data, point_color = "firebrick",
                          inherit.aes = FALSE,
                          na.rm = TRUE)
 
+  station_df <- daily_data$station_df
+  dups <- unique(station_df$name[duplicated(station_df$name)])
+
   station_df <- daily_data$station_df %>%
     dplyr::tbl_df() %>%
     dplyr::filter_(~ !duplicated(id)) %>%
-    dplyr::arrange_(~ dplyr::desc(latitude)) %>%
-    dplyr::mutate_(name = ~ factor(name, levels = name))
+    dplyr::arrange_(~ dplyr::desc(latitude))
+
+  name_levels <- unique(station_df$name)
+
+ station_df <- station_df %>%
+    dplyr::mutate_(name = ~ factor(name, levels = name_levels))
 
   if (station_label == TRUE) {
     map_out <- map +
