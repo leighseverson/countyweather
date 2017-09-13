@@ -165,8 +165,10 @@ daily_df <- function(stations, coverage = NULL, var = "all", date_min = NULL,
   # get tidy full dataset for all monitors
   quiet_pull_monitors <- purrr::quietly(rnoaa::meteo_pull_monitors)
 
-  if (var == "all") {
-    meteo_var <- "all"
+  if (length(var) == 1) {
+    if (var == "all") {
+      meteo_var <- "all"
+    }
   } else {
     meteo_var <- toupper(var)
   }
