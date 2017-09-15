@@ -192,7 +192,7 @@ daily_df <- function(stations, coverage = NULL, var = "all", date_min = NULL,
 
   # steps to filter out erroneous data from individual stations
   # precipitation
-  if ("prcp" %in% var) {
+  if ("prcp" %in% var & "prcp" %in% colnames(meteo_df)) {
     filtered_data$prcp <- filtered_data$prcp / 10
     if (max(filtered_data$prcp, na.rm = TRUE) > 1100) {
       bad_prcp <- which(with(filtered_data, prcp > 1100))
@@ -201,7 +201,7 @@ daily_df <- function(stations, coverage = NULL, var = "all", date_min = NULL,
   }
 
   # snowfall
-  if ("snow" %in% var) {
+  if ("snow" %in% var & "snow" %in% colnames(meteo_df)) {
     if(max(filtered_data$snow, na.rm = TRUE) > 1600) {
       bad_snow <- which(with(filtered_data, snow > 1600))
       filtered_data <- filtered_data[-bad_snow,]
@@ -209,7 +209,7 @@ daily_df <- function(stations, coverage = NULL, var = "all", date_min = NULL,
   }
 
   # snow depth
-  if ("snwd" %in% var) {
+  if ("snwd" %in% var & "snwd" %in% colnames(meteo_df)) {
     if (max(filtered_data$snwd, na.rm = TRUE) > 11500) {
       bad_snwd <- which(with(filtered_data, snwd > 11500))
       filtered_data <- filtered_data[-bad_snwd,]
@@ -217,7 +217,7 @@ daily_df <- function(stations, coverage = NULL, var = "all", date_min = NULL,
   }
 
   # tmax
-  if ("tmax" %in% var) {
+  if ("tmax" %in% var & "tmax" %in% colnames(meteo_df)) {
     filtered_data$tmax <- filtered_data$tmax / 10
     if (max(filtered_data$tmax, na.rm = TRUE) > 57) {
       bad_tmax <- which(with(filtered_data, tmax > 57))
@@ -226,7 +226,7 @@ daily_df <- function(stations, coverage = NULL, var = "all", date_min = NULL,
   }
 
   # tmin
-  if ("tmin" %in% var) {
+  if ("tmin" %in% var & "tmin" %in% colnames(meteo_df)) {
     filtered_data$tmin <- filtered_data$tmin / 10
     if (min(filtered_data$tmin, na.rm = TRUE) < -62) {
       bad_tmin <- which(with(filtered_data, tmin < -62))
