@@ -72,12 +72,15 @@ daily_fips <- function(fips, coverage = NULL, date_min = NULL, date_max = NULL,
                            date_max = date_max,
                            coverage = coverage,
                            average_data = average_data)
-  station_map <- daily_stationmap(fips = fips,
-                                  daily_data = weather_data,
-                                  station_label = station_label)
+
+  # sp::proj4string not working
+  ## station_map <- daily_stationmap(fips = fips,
+  ##                                 daily_data = weather_data,
+  ##                                 station_label = station_label)
+
   list <- list("daily_data" = weather_data$daily_data,
                "station_metadata" = weather_data$station_df,
-               "station_map" = station_map)
+               "station_map" = NULL)
   return(list)
 
 }
@@ -180,7 +183,9 @@ daily_df <- function(stations, coverage = NULL, var = "all", date_min = NULL,
                                   var = meteo_var)$result
 
   # calculate coverage for each weather variable
-  coverage_df <- rnoaa::meteo_coverage(meteo_df, verbose = FALSE)
+
+  # MD: append $summary since API changed possibly
+  coverage_df <- rnoaa::meteo_coverage(meteo_df, verbose = FALSE)$summary
 
   # filter station dataset based on specified coverage
   filtered <- filter_coverage(coverage_df,

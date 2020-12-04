@@ -217,7 +217,10 @@ daily_stationmap <- function(fips, daily_data, point_color = "firebrick",
   # geom_polygons island problem)
   r <- raster::raster(raster::extent(county_shp))
   raster::res(r) <- 0.001
+
+  ## MD: THE FOLLOWING LINE BREAKS:
   raster::projection(r) <- sp::proj4string(county_shp)
+
   r <- raster::rasterize(county_shp, r)
   rdf <- data.frame(raster::rasterToPoints(r))
 
