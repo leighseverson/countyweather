@@ -171,6 +171,8 @@ daily_df <- function(stations, coverage = NULL, var = "all", date_min = NULL,
   if (length(var) == 1) {
     if (var == "all") {
       meteo_var <- "all"
+    } else {
+      meteo_var <- var
     }
   } else {
     meteo_var <- toupper(var)
