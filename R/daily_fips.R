@@ -73,10 +73,11 @@ daily_fips <- function(fips, coverage = NULL, date_min = NULL, date_max = NULL,
                            coverage = coverage,
                            average_data = average_data)
 
-  # sp::proj4string not working
-  ## station_map <- daily_stationmap(fips = fips,
-  ##                                 daily_data = weather_data,
-  ##                                 station_label = station_label)
+  ## TODO: replace with tigris to get county boundary
+
+  # station_map <- daily_stationmap(fips = fips,
+  #                                 daily_data = weather_data,
+  #                                 station_label = station_label)
 
   list <- list("daily_data" = weather_data$daily_data,
                "station_metadata" = weather_data$station_df,
