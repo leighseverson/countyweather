@@ -16,10 +16,14 @@
 #'    in numeric, character, or factor format.
 #' @param date_min A string with the desired starting date in character, ISO
 #'    format ("yyyy-mm-dd"). The dataframe returned will include only stations
-#'    that have data for dates including and after the specified date.
+#'    that have data for dates including and after the specified date. If not
+#'    specified, the function will include all stations, regardless of the date
+#'    when the station started recording data.
 #' @param date_max A string with the desired ending date in character, ISO
 #'    format ("yyyy-mm-dd"). The dataframe returned will include only stations
-#'    that have data for dates up to and including the specified date.
+#'    that have data for dates up to and including the specified date. If not
+#'    specified, the function will include all stations, regardless of the date
+#'    when the station stopped recording data.
 #'
 #' @return A dataframe with NOAA NCDC station IDs for a single U.S. county.
 #'
@@ -54,10 +58,10 @@ daily_stations <- function(fips, date_min = NULL, date_max = NULL) {
   # If either `min_date` or `max_date` option was null, set to a date that
   # will keep all monitors in the filtering.
   if (is.null(date_max)) {
-    date_max <- min(station_df$maxdate)
+    date_max <- min(lubridate::ymd(station_df$maxdate))
   }
   if (is.null(date_min)) {
-    date_min <- max(station_df$mindate)
+    date_min <- max(lubridate::ymd(station_df$mindate))
   }
 
   date_max <- lubridate::ymd(date_max)
@@ -66,7 +70,7 @@ daily_stations <- function(fips, date_min = NULL, date_max = NULL) {
   tot_df <- dplyr::mutate_(station_df,
                            mindate = ~ lubridate::ymd(mindate),
                            maxdate = ~ lubridate::ymd(maxdate)) %>%
-    dplyr::filter_(~ maxdate >= date_min & mindate <= date_max) %>%
+    dplyr::filter_(~ maxdate >= date_max & mindate <= date_min) %>%
     dplyr::select_(.dots = c("id", "latitude", "longitude", "name")) %>%
     dplyr::mutate_(id = ~ gsub("GHCND:", "", id))
 
