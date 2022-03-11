@@ -188,7 +188,7 @@ hourly_df <- function(fips, year, var = "all", average_data = TRUE,
       dplyr::select_(quote(usaf), quote(wban), quote(station), quote(station_name),
              quote(var), quote(calc_coverage), quote(standard_dev), quote(range),
              quote(ctry), quote(state), quote(elev_m), quote(begin), quote(end),
-             quote(longitude), quote(latitude))
+             quote(lon), quote(lat))
 
   # average hourly across multiple stations
 
