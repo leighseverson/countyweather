@@ -4,7 +4,8 @@
 \name{county_centers}
 \alias{county_centers}
 \title{County latitude and longitude designations.}
-\format{A dataframe with 3,143 rows and 5 variables:
+\format{
+A dataframe with 3,143 rows and 5 variables:
 \describe{
    \item{state}{A character vector giving the two-letter abbreviation for
                 the state of each county}
@@ -19,7 +20,8 @@
                  Information Processing Standard (FIPS) code (values in this
                  column are identical to those in the "fips" column, but do
                  not include leading zeros)}
-}}
+}
+}
 \source{
 \url{https://www.census.gov/geo/maps-data/data/gazetteer2010.html}
 }
@@ -36,4 +38,3 @@ county were pulled from the 2010 U.S. Census file found here:
 \url{http://www2.census.gov/geo/docs/reference/cenpop2010/county/CenPop2010_Mean_CO.txt}.)
 }
 \keyword{datasets}
-

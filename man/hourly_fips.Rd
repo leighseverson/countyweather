@@ -5,8 +5,15 @@
 \title{Return average hourly weather data and a plot showing the location of weather
 stations for a particular county.}
 \usage{
-hourly_fips(fips, year, var = "all", coverage = NULL, average_data = TRUE,
-  station_label = FALSE, verbose = TRUE)
+hourly_fips(
+  fips,
+  year,
+  var = "all",
+  coverage = NULL,
+  average_data = TRUE,
+  station_label = FALSE,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{fips}{A character string of the five-digit U.S. FIPS code of a U.S.
@@ -75,4 +82,3 @@ station_data <- ex$station_metadata
 station_map <- ex$station_map
 }
 }
-

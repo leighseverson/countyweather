@@ -4,7 +4,7 @@
 \alias{daily_stations}
 \title{NOAA NCDC station IDs per county.}
 \usage{
-daily_stations(fips, date_min = NULL, date_max = NULL)
+daily_stations(fips, date_min = NULL, date_max = NULL, limit_20_longest = TRUE)
 }
 \arguments{
 \item{fips}{A string with the five-digit U.S. FIPS code of a county
@@ -12,11 +12,20 @@ in numeric, character, or factor format.}
 
 \item{date_min}{A string with the desired starting date in character, ISO
 format ("yyyy-mm-dd"). The dataframe returned will include only stations
-that have data for dates including and after the specified date.}
+that have data for dates including and after the specified date. If not
+specified, the function will include all stations, regardless of the date
+when the station started recording data.}
 
 \item{date_max}{A string with the desired ending date in character, ISO
 format ("yyyy-mm-dd"). The dataframe returned will include only stations
-that have data for dates up to and including the specified date.}
+that have data for dates up to and including the specified date. If not
+specified, the function will include all stations, regardless of the date
+when the station stopped recording data.}
+
+\item{limit_20_longest}{A logical value, indicating whether the stations should
+be limited to the 20 with the longest records of data (otherwise, there may
+be so many stations that it will take extremely long to pull data from all of
+them).}
 }
 \value{
 A dataframe with NOAA NCDC station IDs for a single U.S. county.
@@ -46,4 +55,3 @@ miami_stations
 }
 
 }
-

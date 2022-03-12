@@ -16,4 +16,3 @@ Returns a dataframe with hourly weather averaged across
 stations, as well as columns showing the number of stations contributing to
 average for each variable and each hour.
 }
-

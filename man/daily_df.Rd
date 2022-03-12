@@ -4,8 +4,14 @@
 \alias{daily_df}
 \title{Return average daily weather data for a particular county.}
 \usage{
-daily_df(stations, coverage = NULL, var = "all", date_min = NULL,
-  date_max = NULL, average_data = TRUE)
+daily_df(
+  stations,
+  coverage = NULL,
+  var = "all",
+  date_min = NULL,
+  date_max = NULL,
+  average_data = TRUE
+)
 }
 \arguments{
 \item{stations}{A dataframe containing station metadata, returned from
@@ -34,11 +40,15 @@ the time range for any monitor in the county.}
 
 \item{date_min}{A string with the desired starting date in character, ISO
 format ("yyyy-mm-dd"). The dataframe returned will include only stations
-that have data for dates including and after the specified date.}
+that have data for dates including and after the specified date. If not
+specified, the function will include all stations, regardless of the date
+when the station started recording data.}
 
 \item{date_max}{A string with the desired ending date in character, ISO
 format ("yyyy-mm-dd"). The dataframe returned will include only stations
-that have data for dates up to and including the specified date.}
+that have data for dates up to and including the specified date. If not
+specified, the function will include all stations, regardless of the date
+when the station stopped recording data.}
 
 \item{average_data}{TRUE / FALSE to indicate if you want the function to
 average daily weather data across multiple monitors. If you choose
@@ -97,4 +107,3 @@ station_info <- fips_list$station_df
 head(station_info)
 }
 }
-

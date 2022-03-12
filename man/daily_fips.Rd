@@ -4,9 +4,17 @@
 \alias{daily_fips}
 \title{Pull average daily weather data by U.S. county.}
 \usage{
-daily_fips(fips, coverage = NULL, date_min = NULL, date_max = NULL,
-  var = "all", average_data = TRUE, station_label = FALSE,
-  verbose = TRUE)
+daily_fips(
+  fips,
+  coverage = NULL,
+  date_min = NULL,
+  date_max = NULL,
+  var = "all",
+  average_data = TRUE,
+  station_label = FALSE,
+  limit_20_longest = TRUE,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{fips}{A string with the five-digit U.S. FIPS code of a county
@@ -21,11 +29,15 @@ default is to include all monitors with any available data (i.e.,
 
 \item{date_min}{A string with the desired starting date in character, ISO
 format ("yyyy-mm-dd"). The dataframe returned will include only stations
-that have data for dates including and after the specified date.}
+that have data for dates including and after the specified date. If not
+specified, the function will include all stations, regardless of the date
+when the station started recording data.}
 
 \item{date_max}{A string with the desired ending date in character, ISO
 format ("yyyy-mm-dd"). The dataframe returned will include only stations
-that have data for dates up to and including the specified date.}
+that have data for dates up to and including the specified date. If not
+specified, the function will include all stations, regardless of the date
+when the station stopped recording data.}
 
 \item{var}{A character vector specifying desired weather variables. For
 example, \code{var = c("tmin", "tmax", "prcp")} for maximum temperature,
@@ -50,6 +62,11 @@ metric across all available monitors in the county that day.}
 
 \item{station_label}{TRUE / FALSE to indicate if you want your plot of
 weather station locations to include labels with station ids.}
+
+\item{limit_20_longest}{A logical value, indicating whether the stations should
+be limited to the 20 with the longest records of data (otherwise, there may
+be so many stations that it will take extremely long to pull data from all of
+them).}
 
 \item{verbose}{TRUE / FALSE to indicate if you want the function to print
 out the name of the county it's processing.}
@@ -99,4 +116,3 @@ ggplot(mobile_ex$daily_data, aes(x = date, y = prcp, color = id)) +
    geom_line()
 }
 }
-

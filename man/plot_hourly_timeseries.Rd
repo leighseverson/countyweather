@@ -4,8 +4,13 @@
 \alias{plot_hourly_timeseries}
 \title{Write plot files for hourly weather time series dataframes.}
 \usage{
-plot_hourly_timeseries(var, year, data_directory, plot_directory,
-  data_type = "rds")
+plot_hourly_timeseries(
+  var,
+  year,
+  data_directory,
+  plot_directory,
+  data_type = "rds"
+)
 }
 \arguments{
 \item{var}{A character string specifying which weather variable for which
@@ -49,4 +54,3 @@ plot_hourly_timeseries(var = "temperature", year = c(1994, 1995),
                        plot_directory = "~/timeseries_hourly/plots_temperature")
 }
 }
-

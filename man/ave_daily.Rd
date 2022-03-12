@@ -16,4 +16,3 @@ Returns a dataframe with daily weather averaged across
 stations, as well as columns showing the number of stations contributing
 to the average for each variable and each day.
 }
-

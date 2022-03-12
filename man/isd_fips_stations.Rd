@@ -37,4 +37,3 @@ ids <- fips_list$stations
 head(ids)
 }
 }
-

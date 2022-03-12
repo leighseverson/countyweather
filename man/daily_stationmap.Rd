@@ -4,8 +4,13 @@
 \alias{daily_stationmap}
 \title{Plot daily weather stations for a particular county.}
 \usage{
-daily_stationmap(fips, daily_data, point_color = "firebrick",
-  point_size = 2, station_label = FALSE)
+daily_stationmap(
+  fips,
+  daily_data,
+  point_color = "firebrick",
+  point_size = 2,
+  station_label = FALSE
+)
 }
 \arguments{
 \item{fips}{A five-digit FIPS county code.}
@@ -45,4 +50,3 @@ daily_stationmap(fips = "12086", daily_data = daily_data)
 }
 
 }
-

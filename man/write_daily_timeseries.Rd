@@ -4,10 +4,20 @@
 \alias{write_daily_timeseries}
 \title{Write daily weather timeseries files for U.S. counties.}
 \usage{
-write_daily_timeseries(fips, coverage = NULL, date_min = NULL,
-  date_max = NULL, var = "all", out_directory, data_type = "rds",
-  metadata_type = "rds", average_data = TRUE, station_label = FALSE,
-  keep_map = TRUE, verbose = TRUE)
+write_daily_timeseries(
+  fips,
+  coverage = NULL,
+  date_min = NULL,
+  date_max = NULL,
+  var = "all",
+  out_directory,
+  data_type = "rds",
+  metadata_type = "rds",
+  average_data = TRUE,
+  station_label = FALSE,
+  keep_map = TRUE,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{fips}{A string with the five-digit U.S. FIPS code of a county
@@ -22,11 +32,15 @@ default is to include all monitors with any available data (i.e.,
 
 \item{date_min}{A string with the desired starting date in character, ISO
 format ("yyyy-mm-dd"). The dataframe returned will include only stations
-that have data for dates including and after the specified date.}
+that have data for dates including and after the specified date. If not
+specified, the function will include all stations, regardless of the date
+when the station started recording data.}
 
 \item{date_max}{A string with the desired ending date in character, ISO
 format ("yyyy-mm-dd"). The dataframe returned will include only stations
-that have data for dates up to and including the specified date.}
+that have data for dates up to and including the specified date. If not
+specified, the function will include all stations, regardless of the date
+when the station stopped recording data.}
 
 \item{var}{A character vector specifying desired weather variables. For
 example, \code{var = c("tmin", "tmax", "prcp")} for maximum temperature,
@@ -86,7 +100,7 @@ Given a vector of U.S. county FIPS codes, this function saves each element of
 the lists created from the function \code{daily_fips} to a separate folder
 within a given directory. This function therefore allows you to pull and
 save weather data time series for multiple counties at once.
-The dataframe \code{daily_data} is saved to a
+The dataframe \code{daily_data} is saved to
 a subdirectory of the given directory called "data." This timeseries
 dataframe gives the values for specified weather variables and the
 number of weather stations contributing to the average value for each day
@@ -110,4 +124,3 @@ write_daily_timeseries(fips = c("37055", "15005"), coverage = 0.90,
                        out_directory = "~/timeseries")
 }
 }
-

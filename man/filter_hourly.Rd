@@ -52,4 +52,3 @@ minimum coverage (i.e., percent non-missing hourly observations). Weather
 stations with non-missing data for fewer days than specified by
 \code{coverage} will be excluded from the county average.
 }
-

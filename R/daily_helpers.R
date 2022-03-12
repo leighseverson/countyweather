@@ -24,6 +24,10 @@
 #'    that have data for dates up to and including the specified date. If not
 #'    specified, the function will include all stations, regardless of the date
 #'    when the station stopped recording data.
+#' @param limit_20_longest A logical value, indicating whether the stations should
+#'    be limited to the 20 with the longest records of data (otherwise, there may
+#'    be so many stations that it will take extremely long to pull data from all of
+#'    them).
 #'
 #' @return A dataframe with NOAA NCDC station IDs for a single U.S. county.
 #'
@@ -39,7 +43,7 @@
 #'
 #' @importFrom dplyr %>%
 #' @export
-daily_stations <- function(fips, date_min = NULL, date_max = NULL) {
+daily_stations <- function(fips, date_min = NULL, date_max = NULL, limit_20_longest = TRUE) {
 
   FIPS <- paste0('FIPS:', fips)
   station_ids <- rnoaa::ncdc_stations(datasetid = 'GHCND', locationid = FIPS,
@@ -70,7 +74,15 @@ daily_stations <- function(fips, date_min = NULL, date_max = NULL) {
   tot_df <- dplyr::mutate_(station_df,
                            mindate = ~ lubridate::ymd(mindate),
                            maxdate = ~ lubridate::ymd(maxdate)) %>%
-    dplyr::filter_(~ maxdate >= date_max & mindate <= date_min) %>%
+    dplyr::filter_(~ maxdate >= date_max & mindate <= date_min)
+
+  if(limit_20_longest & nrow(tot_df) > 20){
+    tot_df <- tot_df %>%
+      mutate(dftime = difftime(maxdate, mindate)) %>%
+      dplyr::slice_max(order_by = dftime, n = 20)
+  }
+
+  tot_df <- tot_df %>%
     dplyr::select_(.dots = c("id", "latitude", "longitude", "name")) %>%
     dplyr::mutate_(id = ~ gsub("GHCND:", "", id))
 

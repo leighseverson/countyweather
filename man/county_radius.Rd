@@ -4,7 +4,8 @@
 \name{county_radius}
 \alias{county_radius}
 \title{County land area data.}
-\format{A dataframe with 3,143 rows and 2 variables:
+\format{
+A dataframe with 3,143 rows and 2 variables:
 \describe{
 
    \item{fips}{A character vector giving the county's five-digit Federal
@@ -18,7 +19,8 @@
                         dividing by pi. Each county was estimated to be
                         roughly circular for the purposes of estimating
                         county radii.}
-}}
+}
+}
 \source{
 \url{http://www.census.gov/prod/cen2010/doc/sf1.pdf}
 }
@@ -35,4 +37,3 @@ U.S. census here: \url{https://ask.census.gov/faq.php?id=5000&faqId=7825}. The
 website listed in "Source" gives more information about this dataset.
 }
 \keyword{datasets}
-

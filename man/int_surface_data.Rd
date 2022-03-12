@@ -44,4 +44,3 @@ head(kendall_station)
 For more information on this dataset, see
 \url{ftp://ftp.ncdc.noaa.gov/pub/data/noaa/ish-format-document.pdf}.
 }
-

@@ -78,4 +78,3 @@ For more information on this dataset and available weather and
 flag/quality variables, see
 \url{ftp://ftp.ncdc.noaa.gov/pub/data/noaa/ish-format-document.pdf}.
 }
-

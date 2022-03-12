@@ -52,7 +52,7 @@
 #' @export
 daily_fips <- function(fips, coverage = NULL, date_min = NULL, date_max = NULL,
                        var = "all", average_data = TRUE, station_label = FALSE,
-                       verbose = TRUE) {
+                       limit_20_longest = TRUE, verbose = TRUE) {
   census_data <- countyweather::county_centers
   loc_fips <- which(census_data$fips == fips)
 
@@ -65,7 +65,7 @@ daily_fips <- function(fips, coverage = NULL, date_min = NULL, date_max = NULL,
   }
 
   stations <- daily_stations(fips = fips, date_min = date_min,
-                             date_max = date_max)
+                             date_max = date_max, limit_20_longest = limit_20_longest)
   weather_data <- daily_df(stations = stations,
                            var = var,
                            date_min = date_min,

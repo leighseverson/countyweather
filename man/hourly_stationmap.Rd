@@ -4,8 +4,13 @@
 \alias{hourly_stationmap}
 \title{Plot hourly weather stations for a particular county.}
 \usage{
-hourly_stationmap(fips, hourly_data, point_color = "firebrick",
-  point_size = 2, station_label = FALSE)
+hourly_stationmap(
+  fips,
+  hourly_data,
+  point_color = "firebrick",
+  point_size = 2,
+  station_label = FALSE
+)
 }
 \arguments{
 \item{fips}{A five-digit FIPS county code.}
@@ -48,4 +53,3 @@ hourly_stationmap("12086", hourly_data)
 }
 
 }
-

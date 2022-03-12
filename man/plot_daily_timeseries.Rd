@@ -4,8 +4,14 @@
 \alias{plot_daily_timeseries}
 \title{Write plot files for daily weather timeseries dataframes.}
 \usage{
-plot_daily_timeseries(var, date_min, date_max, data_directory, plot_directory,
-  data_type = "rds")
+plot_daily_timeseries(
+  var,
+  date_min,
+  date_max,
+  data_directory,
+  plot_directory,
+  data_type = "rds"
+)
 }
 \arguments{
 \item{var}{A character string specifying which weather variable for which
@@ -51,4 +57,3 @@ plot_daily_timeseries(var = "prcp", date_min = "1995-01-01",
                       plot_directory = "~/timeseries/plots_prcp")
 }
 }
-
