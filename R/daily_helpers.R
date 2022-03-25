@@ -16,18 +16,24 @@
 #'    in numeric, character, or factor format.
 #' @param date_min A string with the desired starting date in character, ISO
 #'    format ("yyyy-mm-dd"). The dataframe returned will include only stations
-#'    that have data for dates including and after the specified date. If not
-#'    specified, the function will include all stations, regardless of the date
+#'    that have data for dates including and after the specified date. In other words,
+#'    if you specify that this equals "1981-02-16", then it will return only
+#'    the stations with at least some data recorded after Feb. 16, 1981. If a station
+#'    stopped recording data before Feb. 16, 1981, it will be removed from the set of stations. If not
+#'    specified, the function will include available stations, regardless of the date
 #'    when the station started recording data.
 #' @param date_max A string with the desired ending date in character, ISO
 #'    format ("yyyy-mm-dd"). The dataframe returned will include only stations
 #'    that have data for dates up to and including the specified date. If not
-#'    specified, the function will include all stations, regardless of the date
+#'    specified, the function will include available stations, regardless of the date
 #'    when the station stopped recording data.
 #' @param limit_20_longest A logical value, indicating whether the stations should
 #'    be limited to the 20 with the longest records of data (otherwise, there may
 #'    be so many stations that it will take extremely long to pull data from all of
-#'    them).
+#'    them). The default is TRUE.
+#' @param exclude_less_than_one_year A logical value, indicating whether stations with
+#'    less than one year's worth of data should be automatically excluded. The default
+#'    value is TRUE.
 #'
 #' @return A dataframe with NOAA NCDC station IDs for a single U.S. county.
 #'
@@ -43,7 +49,8 @@
 #'
 #' @importFrom dplyr %>%
 #' @export
-daily_stations <- function(fips, date_min = NULL, date_max = NULL, limit_20_longest = TRUE) {
+daily_stations <- function(fips, date_min = NULL, date_max = NULL,
+                           limit_20_longest = TRUE, exclude_less_than_one_year = TRUE) {
 
   FIPS <- paste0('FIPS:', fips)
   station_ids <- rnoaa::ncdc_stations(datasetid = 'GHCND', locationid = FIPS,
@@ -62,10 +69,10 @@ daily_stations <- function(fips, date_min = NULL, date_max = NULL, limit_20_long
   # If either `min_date` or `max_date` option was null, set to a date that
   # will keep all monitors in the filtering.
   if (is.null(date_max)) {
-    date_max <- min(lubridate::ymd(station_df$maxdate))
+    date_max <- max(lubridate::ymd(station_df$mindate))
   }
   if (is.null(date_min)) {
-    date_min <- max(lubridate::ymd(station_df$mindate))
+    date_min <- min(lubridate::ymd(station_df$maxdate))
   }
 
   date_max <- lubridate::ymd(date_max)
@@ -74,11 +81,17 @@ daily_stations <- function(fips, date_min = NULL, date_max = NULL, limit_20_long
   tot_df <- dplyr::mutate_(station_df,
                            mindate = ~ lubridate::ymd(mindate),
                            maxdate = ~ lubridate::ymd(maxdate)) %>%
-    dplyr::filter_(~ maxdate >= date_max & mindate <= date_min)
+    dplyr::filter_(~ maxdate >= date_min & mindate <= date_max)
+
+  if(exclude_less_than_one_year){
+    tot_df <- tot_df %>%
+      dplyr::mutate_(dftime = ~ difftime(maxdate, mindate, units = "weeks")) %>%
+      dplyr::filter(dftime >= 52.14)
+  }
 
   if(limit_20_longest & nrow(tot_df) > 20){
     tot_df <- tot_df %>%
-      mutate(dftime = difftime(maxdate, mindate)) %>%
+      dplyr::mutate_(dftime = ~ difftime(maxdate, mindate)) %>%
       dplyr::slice_max(order_by = dftime, n = 20)
   }
 
