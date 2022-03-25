@@ -188,7 +188,6 @@ daily_df <- function(stations, coverage = NULL, var = "all", date_min = NULL,
 
   # calculate coverage for each weather variable
 
-  # MD: append $summary since API changed possibly
   coverage_df <- rnoaa::meteo_coverage(meteo_df, verbose = FALSE)$summary
 
   # filter station dataset based on specified coverage
