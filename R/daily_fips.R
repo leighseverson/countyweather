@@ -202,7 +202,7 @@ daily_df <- function(stations, coverage = NULL, var = "all", date_min = NULL,
   good_monitors <- unique(filtered$id)
 
   # filter weather dataset based on stations with specified coverage
-  filtered_data <- dplyr::filter(meteo_df, id %in% good_monitors)
+  filtered_data <- dplyr::filter_(meteo_df, ~ id %in% good_monitors)
 
   # steps to filter out erroneous data from individual stations
   # precipitation
@@ -260,21 +260,21 @@ daily_df <- function(stations, coverage = NULL, var = "all", date_min = NULL,
   group_cols <- c("id", "key")
 
   stats <- filtered_data %>%
-    dplyr::select(quote(-date)) %>%
-    tidyr::gather(key_col = "key", value_col = "value", gather_cols = g_cols) %>%
-    dplyr::group_by(.dots = group_cols) %>%
-    dplyr::summarize(standard_dev = ~ sd(value, na.rm = TRUE),
+    dplyr::select_(quote(-date)) %>%
+    tidyr::gather_(key_col = "key", value_col = "value", gather_cols = g_cols) %>%
+    dplyr::group_by_(.dots = group_cols) %>%
+    dplyr::summarize_(standard_dev = ~ sd(value, na.rm = TRUE),
                       min = ~ min(value, na.rm = TRUE),
                       max = ~ max(value, na.rm = TRUE),
                       range = ~ max - min)
 
-  filtered <- dplyr::filter(filtered, ~ id %in% good_monitors)
+  filtered <- dplyr::filter_(filtered, ~ id %in% good_monitors)
   stats <- dplyr::full_join(stats, filtered, by = c("id", "key"))
 
-  stations <- dplyr::filter(stations, id %in% good_monitors)
+  stations <- dplyr::filter_(stations, ~ id %in% good_monitors)
 
   stations <- dplyr::full_join(stats, stations, by = "id") %>%
-    dplyr::select(quote(id), quote(name), quote(key), quote(latitude),
+    dplyr::select_(quote(id), quote(name), quote(key), quote(latitude),
                    quote(longitude), quote(calc_coverage), quote(standard_dev),
                    quote(min), quote(max), quote(range))
 
