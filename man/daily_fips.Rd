@@ -13,6 +13,7 @@ daily_fips(
   average_data = TRUE,
   station_label = FALSE,
   limit_20_longest = TRUE,
+  exclude_less_than_one_year = TRUE,
   verbose = TRUE
 )
 }
@@ -70,6 +71,10 @@ weather station locations to include labels with station ids.}
 be limited to the 20 with the longest records of data (otherwise, there may
 be so many stations that it will take extremely long to pull data from all of
 them). The default is TRUE.}
+
+\item{exclude_less_than_one_year}{A logical value, indicating whether stations with
+less than one year's worth of data should be automatically excluded. The default
+value is TRUE.}
 
 \item{verbose}{TRUE / FALSE to indicate if you want the function to print
 out the name of the county it's processing.}

@@ -92,7 +92,15 @@ daily_fips <- function(fips, coverage = NULL, date_min = NULL, date_max = NULL,
 #' package, which pull weather data from all relevant stations in a county.
 #' This function filters and averages data returned by \code{rnoaa} functions
 #' across all weather stations in a county based on user-specified
-#' coverage specifications.
+#' coverage specifications. For a few of the most common weather variables, we
+#' convert from the original units to more commonly-used units. For example, in
+#' NOAA's data, the temperature values (\code{tmin}, \code{tmax}, and \code{tavg})
+#' are recorded in tenths of degrees Celsius. This code converts those to degrees
+#' Celsius. Similarly, in NOAA's data the precipitation (\code{prcp}) is recorded
+#' in tenths of millimeters, which this code converts to millimeters. All other
+#' units are left as in NOAA's original data. See NOAA's README file for the
+#' GHCND data (\url{https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt}) for
+#' more information on the source data that are being pulled.
 #'
 #' @note Because this function uses the NOAA API to identify the weather
 #'    monitors within a U.S. county, you will need to get an access token from
