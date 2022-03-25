@@ -202,16 +202,16 @@ daily_df <- function(stations, coverage = NULL, var = "all", date_min = NULL,
   # precipitation
   if ("prcp" %in% var) {
     filtered_data$prcp <- filtered_data$prcp / 10
-    if (max(filtered_data$prcp, na.rm = TRUE) > 1100) {
-      bad_prcp <- which(with(filtered_data, prcp > 1100))
+    if (max(filtered_data$prcp, na.rm = TRUE) > 2000) { # Max. daily in US is currently 1,262 mm
+      bad_prcp <- which(with(filtered_data, prcp > 2000))
       filtered_data <- filtered_data[-bad_prcp,]
     }
   }
 
   # snowfall
   if ("snow" %in% var) {
-    if(max(filtered_data$snow, na.rm = TRUE) > 1600) {
-      bad_snow <- which(with(filtered_data, snow > 1600))
+    if(max(filtered_data$snow, na.rm = TRUE) > 5000){ # Max. daily in US is currently 1,925 mm
+      bad_snow <- which(with(filtered_data, snow > 5000))
       filtered_data <- filtered_data[-bad_snow,]
     }
   }
@@ -227,8 +227,8 @@ daily_df <- function(stations, coverage = NULL, var = "all", date_min = NULL,
   # tmax
   if ("tmax" %in% var) {
     filtered_data$tmax <- filtered_data$tmax / 10
-    if (max(filtered_data$tmax, na.rm = TRUE) > 57) {
-      bad_tmax <- which(with(filtered_data, tmax > 57))
+    if (max(filtered_data$tmax, na.rm = TRUE) > 98) {
+      bad_tmax <- which(with(filtered_data, tmax > 98))
       filtered_data <- filtered_data[-bad_tmax,]
     }
   }
@@ -236,10 +236,15 @@ daily_df <- function(stations, coverage = NULL, var = "all", date_min = NULL,
   # tmin
   if ("tmin" %in% var) {
     filtered_data$tmin <- filtered_data$tmin / 10
-    if (min(filtered_data$tmin, na.rm = TRUE) < -62) {
-      bad_tmin <- which(with(filtered_data, tmin < -62))
+    if (min(filtered_data$tmin, na.rm = TRUE) < -98) {
+      bad_tmin <- which(with(filtered_data, tmin < -98))
       filtered_data <- filtered_data[-bad_tmin,]
     }
+  }
+
+  # tavg
+  if ("tavg" %in% var) {
+    filtered_data$tavg <- filtered_data$tavg / 10
   }
 
   all_cols <- colnames(filtered_data)
