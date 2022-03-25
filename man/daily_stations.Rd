@@ -4,7 +4,13 @@
 \alias{daily_stations}
 \title{NOAA NCDC station IDs per county.}
 \usage{
-daily_stations(fips, date_min = NULL, date_max = NULL, limit_20_longest = TRUE)
+daily_stations(
+  fips,
+  date_min = NULL,
+  date_max = NULL,
+  limit_20_longest = TRUE,
+  exclude_less_than_one_year = TRUE
+)
 }
 \arguments{
 \item{fips}{A string with the five-digit U.S. FIPS code of a county
@@ -12,20 +18,27 @@ in numeric, character, or factor format.}
 
 \item{date_min}{A string with the desired starting date in character, ISO
 format ("yyyy-mm-dd"). The dataframe returned will include only stations
-that have data for dates including and after the specified date. If not
-specified, the function will include all stations, regardless of the date
+that have data for dates including and after the specified date. In other words,
+if you specify that this equals "1981-02-16", then it will return only
+the stations with at least some data recorded after Feb. 16, 1981. If a station
+stopped recording data before Feb. 16, 1981, it will be removed from the set of stations. If not
+specified, the function will include available stations, regardless of the date
 when the station started recording data.}
 
 \item{date_max}{A string with the desired ending date in character, ISO
 format ("yyyy-mm-dd"). The dataframe returned will include only stations
 that have data for dates up to and including the specified date. If not
-specified, the function will include all stations, regardless of the date
+specified, the function will include available stations, regardless of the date
 when the station stopped recording data.}
 
 \item{limit_20_longest}{A logical value, indicating whether the stations should
 be limited to the 20 with the longest records of data (otherwise, there may
 be so many stations that it will take extremely long to pull data from all of
-them).}
+them). The default is TRUE.}
+
+\item{exclude_less_than_one_year}{A logical value, indicating whether stations with
+less than one year's worth of data should be automatically excluded. The default
+value is TRUE.}
 }
 \value{
 A dataframe with NOAA NCDC station IDs for a single U.S. county.
