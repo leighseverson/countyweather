@@ -19,7 +19,7 @@ License: GPL-2
 LazyData: TRUE
 Imports:
     dplyr (>= 0.4.3),
-    ggmap (>= 2.6.1),
+    sf (>= 0.8.0),
     ggplot2 (>= 2.1.0),
     geosphere (>= 1.5.1),
     lubridate (>= 1.5.6),

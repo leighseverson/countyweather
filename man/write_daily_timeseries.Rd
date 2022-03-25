@@ -32,14 +32,17 @@ default is to include all monitors with any available data (i.e.,
 
 \item{date_min}{A string with the desired starting date in character, ISO
 format ("yyyy-mm-dd"). The dataframe returned will include only stations
-that have data for dates including and after the specified date. If not
-specified, the function will include all stations, regardless of the date
+that have data for dates including and after the specified date. In other words,
+if you specify that this equals "1981-02-16", then it will return only
+the stations with at least some data recorded after Feb. 16, 1981. If a station
+stopped recording data before Feb. 16, 1981, it will be removed from the set of stations. If not
+specified, the function will include available stations, regardless of the date
 when the station started recording data.}
 
 \item{date_max}{A string with the desired ending date in character, ISO
 format ("yyyy-mm-dd"). The dataframe returned will include only stations
 that have data for dates up to and including the specified date. If not
-specified, the function will include all stations, regardless of the date
+specified, the function will include available stations, regardless of the date
 when the station stopped recording data.}
 
 \item{var}{A character vector specifying desired weather variables. For
