@@ -59,8 +59,6 @@ hourly_fips <- function(fips, year, var = "all", coverage = NULL,
                                  coverage = coverage,
                                  average_data = average_data)
 
-  ## TODO: replace with tigris to get county boundary
-
   station_map <- hourly_stationmap(fips = fips, hourly_data = weather_data,
                                    station_label = station_label)
 
