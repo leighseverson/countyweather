@@ -8,6 +8,7 @@ hourly_stationmap(
   fips,
   hourly_data,
   point_color = "firebrick",
+  fill_color = "lightgrey",
   point_size = 2,
   station_label = FALSE
 )
@@ -19,6 +20,9 @@ hourly_stationmap(
 
 \item{point_color}{Character string with color for points
 mapping the locations of weather stations (passes to \code{ggplot}).}
+
+\item{fill_color}{Character string with color for county background fill
+(passes to \code{ggplot}).}
 
 \item{point_size}{Character string with size for for points
 mapping the locations of weather stations (passes to \code{ggplot}).}
