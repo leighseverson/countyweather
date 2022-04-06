@@ -68,7 +68,7 @@
 #' @export
 daily_fips <- function(fips, coverage = NULL, date_min = NULL, date_max = NULL,
                        var = "all", average_data = TRUE, station_label = FALSE,
-                       limit_20_longest = TRUE,  exclude_less_than_one_year = TRUE,
+                       limit_20_longest = TRUE,  exclude_less_than_one_year = FALSE,
                        verbose = TRUE) {
   census_data <- countyweather::county_centers
   loc_fips <- which(census_data$fips == fips)
@@ -82,7 +82,8 @@ daily_fips <- function(fips, coverage = NULL, date_min = NULL, date_max = NULL,
   }
 
   stations <- daily_stations(fips = fips, date_min = date_min,
-                             date_max = date_max, limit_20_longest = limit_20_longest)
+                             date_max = date_max, limit_20_longest = limit_20_longest,
+                             exclude_less_than_one_year = exclude_less_than_one_year)
   weather_data <- daily_df(stations = stations,
                            var = var,
                            date_min = date_min,
@@ -186,7 +187,7 @@ daily_fips <- function(fips, coverage = NULL, date_min = NULL, date_max = NULL,
 #' \dontrun{
 #' stations <- daily_stations(fips = "12086", date_min = "2010-01-01",
 #'                            date_max = "2010-02-01")
-#' fips_list <- daily_df(stations = stations, coverage = 0.90,
+#' fips_list <- countyweather:::daily_df(stations = stations, coverage = 0.90,
 #'                  var = c("tmax", "tmin", "prcp"),
 #'                  date_min = "2010-01-01", date_max = "2010-02-01")
 #' averaged_data <- fips_list$daily_data
