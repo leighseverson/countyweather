@@ -13,7 +13,7 @@ daily_fips(
   average_data = TRUE,
   station_label = FALSE,
   limit_20_longest = TRUE,
-  exclude_less_than_one_year = TRUE,
+  exclude_less_than_one_year = FALSE,
   verbose = TRUE
 )
 }
@@ -70,7 +70,8 @@ weather station locations to include labels with station ids.}
 \item{limit_20_longest}{A logical value, indicating whether the stations should
 be limited to the 20 with the longest records of data (otherwise, there may
 be so many stations that it will take extremely long to pull data from all of
-them). The default is TRUE.}
+them). The default is FALSE, but you may want to change to TRUE if it is taking
+a long time to pull your data.}
 
 \item{exclude_less_than_one_year}{A logical value, indicating whether stations with
 less than one year's worth of data should be automatically excluded. The default

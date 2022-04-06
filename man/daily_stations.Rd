@@ -8,7 +8,7 @@ daily_stations(
   fips,
   date_min = NULL,
   date_max = NULL,
-  limit_20_longest = TRUE,
+  limit_20_longest = FALSE,
   exclude_less_than_one_year = TRUE
 )
 }
@@ -34,7 +34,8 @@ when the station stopped recording data.}
 \item{limit_20_longest}{A logical value, indicating whether the stations should
 be limited to the 20 with the longest records of data (otherwise, there may
 be so many stations that it will take extremely long to pull data from all of
-them). The default is TRUE.}
+them). The default is FALSE, but you may want to change to TRUE if it is taking
+a long time to pull your data.}
 
 \item{exclude_less_than_one_year}{A logical value, indicating whether stations with
 less than one year's worth of data should be automatically excluded. The default
