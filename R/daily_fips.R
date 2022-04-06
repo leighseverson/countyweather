@@ -283,14 +283,17 @@ daily_df <- function(stations, coverage = NULL, var = "all", date_min = NULL,
 
   group_cols <- c("id", "key")
 
-  stats <- filtered_data %>%
-    dplyr::select_(quote(-date)) %>%
-    tidyr::gather_(key_col = "key", value_col = "value", gather_cols = g_cols) %>%
-    dplyr::group_by_(.dots = group_cols) %>%
-    dplyr::summarize_(standard_dev = ~ sd(value, na.rm = TRUE),
-                      min = ~ min(value, na.rm = TRUE),
-                      max = ~ max(value, na.rm = TRUE),
-                      range = ~ max - min)
+  suppressWarnings(
+    stats <- filtered_data %>%
+      dplyr::select_(quote(-date)) %>%
+      tidyr::gather_(key_col = "key", value_col = "value", gather_cols = g_cols) %>%
+      dplyr::group_by_(.dots = group_cols) %>%
+      dplyr::summarize_(standard_dev = ~ sd(value, na.rm = TRUE),
+                        min = ~ min(value, na.rm = TRUE),
+                        max = ~ max(value, na.rm = TRUE),
+                        range = ~ max - min)
+  )
+
 
   filtered <- dplyr::filter_(filtered, ~ id %in% good_monitors)
   stats <- dplyr::full_join(stats, filtered, by = c("id", "key"))
@@ -305,9 +308,8 @@ daily_df <- function(stations, coverage = NULL, var = "all", date_min = NULL,
   colnames(stations)[3] <- "var"
 
   if (average_data == TRUE) {
-    purrr::quietly(
-      filtered_data <- ave_daily(filtered_data)
-    )
+      ave_daily_quietly <- purrr::quietly(ave_daily)
+      filtered_data <- ave_daily_quietly(filtered_data)
   }
 
   out <- list("daily_data" = filtered_data, "station_df" = stations)
