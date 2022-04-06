@@ -198,9 +198,8 @@ hourly_df <- function(fips, year, var = "all", average_data = TRUE,
     dplyr::select_(quote(-station))
 
   if (average_data == TRUE) {
-    purrr::quietly(
-      data <- ave_hourly(data)
-    )
+    ave_hourly_quietly <- purrr::quietly(ave_hourly)
+    data <- ave_hourly_quietly(data)
   }
 
   data <- tibble::as_tibble(data)
