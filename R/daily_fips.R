@@ -306,7 +306,9 @@ daily_df <- function(stations, coverage = NULL, var = "all", date_min = NULL,
   colnames(stations)[3] <- "var"
 
   if (average_data == TRUE) {
-    filtered_data <- ave_daily(filtered_data)
+    purrr::quietly(
+      filtered_data <- ave_daily(filtered_data)
+    )
   }
 
   out <- list("daily_data" = filtered_data, "station_df" = stations)
