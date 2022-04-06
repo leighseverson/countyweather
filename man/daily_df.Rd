@@ -104,6 +104,14 @@ Because this function uses the NOAA API to identify the weather
    email. You then need to set that API code in your R session (e.g., using
    \code{options(noaakey = "your key")}, replacing "your key" with the API
    key you've requested from NOAA). See the package vignette for more details.
+
+For some weather observations pulled using this function, missing values
+  are coded as a series of "9"s, in some cases starting with a negative symbol.
+  The function underlying this one will automatically convert any value of -9999
+  to a missing value for the variables "prcp", "tmax", "tmin", "tavg", "snow", and
+  "snwd". However, for some weather observations, there still may be missing values
+  coded using a series of "9"s of some length. You will want to check your final data
+  to see if there are lurking missing values given with series of "9"s.
 }
 \examples{
 \dontrun{

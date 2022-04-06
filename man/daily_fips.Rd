@@ -97,7 +97,15 @@ A list with three elements. The first element (\code{daily_data}) is a
 \description{
 Given a particular county FIPS code, this function returns data and meta-data
 for weather data, either for all available dates or for dates within a
-requested date range.
+requested date range. For a few of the most common weather variables, we
+convert from the original units to more commonly-used units. For example, in
+NOAA's data, the temperature values (\code{tmin}, \code{tmax}, and \code{tavg})
+are recorded in tenths of degrees Celsius. This code converts those to degrees
+Celsius. Similarly, in NOAA's data the precipitation (\code{prcp}) is recorded
+in tenths of millimeters, which this code converts to millimeters. All other
+units are left as in NOAA's original data. See NOAA's README file for the
+GHCND data (\url{https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt}) for
+more information on the source data that are being pulled.
 }
 \note{
 Because this function uses the NOAA API to identify the weather
@@ -107,6 +115,14 @@ Because this function uses the NOAA API to identify the weather
    email. You then need to set that API code in your R session (e.g., using
    \code{options(noaakey = "your key")}, replacing "your key" with the API
    key you've requested from NOAA). See the package vignette for more details.
+
+For some weather observations pulled using this function, missing values
+  are coded as a series of "9"s, in some cases starting with a negative symbol.
+  The function underlying this one will automatically convert any value of -9999
+  to a missing value for the variables "prcp", "tmax", "tmin", "tavg", "snow", and
+  "snwd". However, for some weather observations, there still may be missing values
+  coded using a series of "9"s of some length. You will want to check your final data
+  to see if there are lurking missing values given with series of "9"s.
 }
 \examples{
 \dontrun{
