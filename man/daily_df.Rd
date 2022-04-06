@@ -117,7 +117,7 @@ For some weather observations pulled using this function, missing values
 \dontrun{
 stations <- daily_stations(fips = "12086", date_min = "2010-01-01",
                            date_max = "2010-02-01")
-fips_list <- daily_df(stations = stations, coverage = 0.90,
+fips_list <- countyweather:::daily_df(stations = stations, coverage = 0.90,
                  var = c("tmax", "tmin", "prcp"),
                  date_min = "2010-01-01", date_max = "2010-02-01")
 averaged_data <- fips_list$daily_data
